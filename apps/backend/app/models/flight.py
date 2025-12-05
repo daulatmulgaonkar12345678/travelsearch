@@ -32,16 +32,35 @@ class FlightOffer(BaseModel):
     
 class FlightSearchRequest(BaseModel):
     """Flight search parameters"""
-    origin: str             # IATA code
-    destination: str        # IATA code
-    departure_date: str     # YYYY-MM-DD
-    return_date: Optional[str] = None  # For return trips
+    # Trip configuration
+    trip_type: str = "roundtrip"  # oneway, roundtrip, multicity
+    
+    # Basic route (for oneway/roundtrip)
+    origin: Optional[str] = None             # IATA code
+    destination: Optional[str] = None        # IATA code
+    departure_date: Optional[str] = None     # YYYY-MM-DD
+    return_date: Optional[str] = None        # For return trips
+    
+    # Multi-city segments (for multicity)
+    segments: Optional[List[dict]] = None  # [{"origin": "BOM", "destination": "DEL", "date": "2025-12-15"}, ...]
+    
+    # Passengers
     adults: int = 1
-    children: int = 0
+    children: Optional[List[int]] = None  # List of ages
     infants: int = 0
-    cabin_class: str = "economy"
+    
+    # Cabin & preferences
+    cabin_class: str = "economy"  # economy, premium_economy, business, first
+    
+    # Filters
     direct_only: bool = False
     max_stops: Optional[int] = None
+    airlines: Optional[List[str]] = None  # Preferred airlines
+    max_price: Optional[float] = None
+    max_duration_minutes: Optional[int] = None
+    refundable_only: bool = False
+    include_red_eye: bool = True
+    green_only: bool = False
     
 class FlightSearchResponse(BaseModel):
     """Search response with offers"""
