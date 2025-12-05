@@ -79,4 +79,4 @@ def test_multicity_date_validation():
     
     # Invalid: segment2 <= segment1 (must be strictly greater)
     is_invalid = tomorrow <= tomorrow
-    assert is_invalid == True, \"Same date for segments should be invalid\"
+    assert is_invalid == True, "Same date for segments should be invalid"
