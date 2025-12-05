@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query
-from typing import List, Optional
+from fastapi import APIRouter, Query, Request
+from typing import List, Optional, Dict
 import json
 from pathlib import Path
 from functools import lru_cache
+from datetime import datetime, timedelta
 
 router = APIRouter()
+
+# In-memory cache for search results
+_search_cache: Dict[str, tuple] = {}
+_cache_ttl = 3600  # 1 hour
 
 @lru_cache(maxsize=1)
 def load_airports():
@@ -12,6 +17,30 @@ def load_airports():
     data_path = Path(__file__).parent.parent.parent / "data" / "airports.json"
     with open(data_path, 'r') as f:
         return json.load(f)
+
+def get_cached_result(cache_key: str):
+    """Get result from cache if not expired"""
+    if cache_key in _search_cache:
+        result, timestamp = _search_cache[cache_key]
+        if datetime.now() - timestamp < timedelta(seconds=_cache_ttl):
+            return result
+        else:
+            del _search_cache[cache_key]
+    return None
+
+def set_cached_result(cache_key: str, result):
+    """Store result in cache with timestamp"""
+    _search_cache[cache_key] = (result, datetime.now())
+    
+def cleanup_expired_cache():
+    """Remove expired cache entries"""
+    now = datetime.now()
+    expired_keys = [
+        key for key, (_, timestamp) in _search_cache.items()
+        if now - timestamp >= timedelta(seconds=_cache_ttl)
+    ]
+    for key in expired_keys:
+        del _search_cache[key]
 
 
 @router.get("/airports")
