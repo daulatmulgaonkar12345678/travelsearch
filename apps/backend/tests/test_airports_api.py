@@ -62,8 +62,9 @@ def test_flight_date_validation():
     # Return must be > departure
     assert day_after > tomorrow
     
-    # Invalid: return <= departure
-    assert not (tomorrow <= tomorrow)
+    # Invalid: return <= departure (must be strictly greater)
+    is_invalid = tomorrow <= tomorrow
+    assert is_invalid == True, \"Same date should be invalid\"
 
 
 def test_multicity_date_validation():
