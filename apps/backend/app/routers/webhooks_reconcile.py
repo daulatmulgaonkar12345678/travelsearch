@@ -27,7 +27,13 @@ async def reconcile(payload: ReconcilePayload, request: Request):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.reconciliations.insert_one(record)
-    return {"detail": "received", "record": record}
+    # Return a clean dict without MongoDB's _id
+    return {
+        "detail": "received",
+        "click_id": record["click_id"],
+        "booking_ref": record["booking_ref"],
+        "status": record["status"]
+    }
 
 @router.get('/admin/reconciliations')
 async def get_reconciliations():
