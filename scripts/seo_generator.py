@@ -115,7 +115,7 @@ def generate_route_page(origin: str, destination: str, price: float) -> str:
     origin_city = origin_data.get("city", origin)
     dest_city = dest_data.get("city", destination)
     
-    title = f"Cheap Flights from {origin_city} to {dest_city} | {origin} to {dest} Flights"
+    title = f"Cheap Flights from {origin_city} to {dest_city} | {origin} to {destination} Flights"
     description = f"Find the best deals on flights from {origin_city} ({origin}) to {dest_city} ({destination}). Compare prices from multiple airlines. Book now from ₹{int(price)}."
     
     canonical = f"https://travelsearch.com/flights/{origin.lower()}-to-{destination.lower()}"
