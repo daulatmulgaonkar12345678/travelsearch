@@ -49,6 +49,10 @@ app.include_router(redirect.router, prefix="/api", tags=["redirect"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api", tags=["admin"])
 
+# Import and include reconciliation routes
+from app.routers import webhooks_reconcile
+app.include_router(webhooks_reconcile.router, prefix="/api", tags=["webhooks", "admin"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
