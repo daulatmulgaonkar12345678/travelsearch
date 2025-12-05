@@ -1,0 +1,205 @@
+{
+  "meta": {
+    "count": 3,
+    "links": {
+      "self": "https://api.amadeus.com/v2/shopping/flight-offers?originLocationCode=BOM&destinationLocationCode=PNQ&departureDate=2025-12-15&adults=1"
+    }
+  },
+  "data": [
+    {
+      "type": "flight-offer",
+      "id": "1",
+      "source": "GDS",
+      "instantTicketingRequired": false,
+      "nonHomogeneous": false,
+      "oneWay": false,
+      "lastTicketingDate": "2025-12-10",
+      "numberOfBookableSeats": 9,
+      "itineraries": [
+        {
+          "duration": "PT1H30M",
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BOM",
+                "terminal": "2",
+                "at": "2025-12-15T09:30:00"
+              },
+              "arrival": {
+                "iataCode": "PNQ",
+                "terminal": "1",
+                "at": "2025-12-15T11:00:00"
+              },
+              "carrierCode": "6E",
+              "number": "2341",
+              "aircraft": {
+                "code": "320"
+              },
+              "operating": {
+                "carrierCode": "6E"
+              },
+              "duration": "PT1H30M",
+              "id": "1",
+              "numberOfStops": 0,
+              "blacklistedInEU": false
+            }
+          ]
+        }
+      ],
+      "price": {
+        "currency": "INR",
+        "total": "8500.00",
+        "base": "7200.00",
+        "fees": [
+          {
+            "amount": "0.00",
+            "type": "SUPPLIER"
+          },
+          {
+            "amount": "0.00",
+            "type": "TICKETING"
+          }
+        ],
+        "grandTotal": "8500.00"
+      },
+      "pricingOptions": {
+        "fareType": [
+          "PUBLISHED"
+        ],
+        "includedCheckedBagsOnly": true
+      },
+      "validatingAirlineCodes": [
+        "6E"
+      ],
+      "travelerPricings": [
+        {
+          "travelerId": "1",
+          "fareOption": "STANDARD",
+          "travelerType": "ADULT",
+          "price": {
+            "currency": "INR",
+            "total": "8500.00",
+            "base": "7200.00"
+          },
+          "fareDetailsBySegment": [
+            {
+              "segmentId": "1",
+              "cabin": "ECONOMY",
+              "fareBasis": "TLOWSVR",
+              "brandedFare": "LIGHT",
+              "class": "T",
+              "includedCheckedBags": {
+                "weight": 15,
+                "weightUnit": "KG"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flight-offer",
+      "id": "2",
+      "source": "GDS",
+      "instantTicketingRequired": false,
+      "nonHomogeneous": false,
+      "oneWay": false,
+      "lastTicketingDate": "2025-12-10",
+      "numberOfBookableSeats": 7,
+      "itineraries": [
+        {
+          "duration": "PT5H40M",
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BOM",
+                "terminal": "2",
+                "at": "2025-12-15T14:20:00"
+              },
+              "arrival": {
+                "iataCode": "DEL",
+                "terminal": "3",
+                "at": "2025-12-15T16:10:00"
+              },
+              "carrierCode": "AI",
+              "number": "445",
+              "aircraft": {
+                "code": "320"
+              },
+              "duration": "PT1H50M",
+              "id": "2",
+              "numberOfStops": 0
+            },
+            {
+              "departure": {
+                "iataCode": "DEL",
+                "terminal": "3",
+                "at": "2025-12-15T18:30:00"
+              },
+              "arrival": {
+                "iataCode": "PNQ",
+                "terminal": "1",
+                "at": "2025-12-15T20:00:00"
+              },
+              "carrierCode": "AI",
+              "number": "892",
+              "aircraft": {
+                "code": "321"
+              },
+              "duration": "PT1H30M",
+              "id": "3",
+              "numberOfStops": 0
+            }
+          ]
+        }
+      ],
+      "price": {
+        "currency": "INR",
+        "total": "4800.00",
+        "base": "4200.00",
+        "grandTotal": "4800.00"
+      },
+      "validatingAirlineCodes": [
+        "AI"
+      ],
+      "travelerPricings": [
+        {
+          "travelerId": "1",
+          "fareOption": "STANDARD",
+          "travelerType": "ADULT",
+          "price": {
+            "currency": "INR",
+            "total": "4800.00"
+          }
+        }
+      ]
+    }
+  ],
+  "dictionaries": {
+    "locations": {
+      "BOM": {
+        "cityCode": "BOM",
+        "countryCode": "IN"
+      },
+      "PNQ": {
+        "cityCode": "PNQ",
+        "countryCode": "IN"
+      },
+      "DEL": {
+        "cityCode": "DEL",
+        "countryCode": "IN"
+      }
+    },
+    "aircraft": {
+      "320": "AIRBUS A320",
+      "321": "AIRBUS A321"
+    },
+    "currencies": {
+      "INR": "INDIAN RUPEE"
+    },
+    "carriers": {
+      "6E": "INDIGO",
+      "AI": "AIR INDIA"
+    }
+  }
+}
