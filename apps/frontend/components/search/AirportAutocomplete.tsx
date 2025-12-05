@@ -145,14 +145,21 @@ export default function AirportAutocomplete({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto">
+          <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+            <span className="text-xs text-gray-600 font-medium">Search Results</span>
+            <span className="text-xs text-gray-500 flex items-center gap-1">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+              Internal dataset
+            </span>
+          </div>
           {suggestions.map((airport, index) => (
             <button
               key={airport.iata}
               type="button"
               onClick={() => handleSelectAirport(airport)}
-              className={`w-full px-4 py-3 text-left hover:bg-blue-50 first:rounded-t-xl last:rounded-b-xl transition-colors ${
-                index === selectedIndex ? 'bg-blue-50' : ''
+              className={`w-full px-4 py-3 text-left hover:bg-blue-50 last:rounded-b-xl transition-colors border-b border-gray-100 last:border-b-0 ${
+                index === selectedIndex ? 'bg-blue-50 ring-2 ring-inset ring-blue-500' : ''
               }`}
             >
               <div className="flex items-center gap-3">
