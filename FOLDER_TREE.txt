@@ -1,0 +1,141 @@
+Metasearch Platform - Complete Folder Structure
+================================================
+
+/app/
+├── ARCHITECTURE.md                    # System architecture documentation
+├── README.md                           # Main project documentation
+├── PHASE_1_COMPLETE.md                 # Phase 1 completion summary
+├── FOLDER_TREE.txt                     # This file
+├── .env.example                        # Environment variables template
+│
+├── apps/
+│   ├── frontend/                       # Next.js 14 Frontend Application
+│   │   ├── app/                        # Next.js App Router
+│   │   │   ├── layout.tsx             # Root layout with fonts
+│   │   │   ├── page.tsx               # Home page with search
+│   │   │   └── globals.css            # Global styles + Tailwind
+│   │   ├── components/                 # React components
+│   │   │   └── search/
+│   │   │       ├── SearchBar.tsx      # Main search interface
+│   │   │       └── PassengerModal.tsx # Passenger selector modal
+│   │   ├── lib/
+│   │   │   └── utils.ts               # Utility functions
+│   │   ├── package.json               # Frontend dependencies
+│   │   ├── tsconfig.json              # TypeScript config
+│   │   ├── next.config.js             # Next.js config
+│   │   ├── tailwind.config.ts         # Tailwind CSS config
+│   │   ├── postcss.config.js          # PostCSS config
+│   │   └── .env.local.example         # Frontend env template
+│   │
+│   └── backend/                        # FastAPI Backend Application
+│       ├── app/
+│       │   ├── main.py                # FastAPI app entry point
+│       │   ├── config.py              # Configuration & settings
+│       │   │
+│       │   ├── routers/               # API route handlers
+│       │   │   ├── __init__.py
+│       │   │   ├── search.py          # Flight & hotel search
+│       │   │   ├── providers.py       # Provider info & status
+│       │   │   ├── redirect.py        # Click tracking & redirect
+│       │   │   ├── auth.py            # Authentication & 2FA
+│       │   │   └── admin.py           # Admin dashboard & RBAC
+│       │   │
+│       │   ├── models/                # Pydantic data models
+│       │   │   ├── __init__.py
+│       │   │   ├── flight.py          # Flight models
+│       │   │   ├── hotel.py           # Hotel models
+│       │   │   ├── user.py            # User models
+│       │   │   └── click.py           # Click log models
+│       │   │
+│       │   ├── services/              # Business logic layer
+│       │   │   ├── __init__.py
+│       │   │   ├── aggregator.py      # Search aggregation
+│       │   │   ├── ranking.py         # Result ranking engine
+│       │   │   ├── cache.py           # Cache service (Redis)
+│       │   │   └── adapters/          # Provider adapters
+│       │   │       ├── __init__.py
+│       │   │       ├── base.py        # Base adapter interface
+│       │   │       ├── amadeus_adapter.py    # Amadeus flights
+│       │   │       ├── lcc_adapter.py        # LCC flights
+│       │   │       └── hotel_adapter.py      # Hotel providers
+│       │   │
+│       │   ├── middleware/            # HTTP middleware
+│       │   │   ├── __init__.py
+│       │   │   ├── security.py        # Security headers (CSP, HSTS)
+│       │   │   ├── rate_limit.py      # Rate limiting
+│       │   │   └── bot_detection.py   # Bot & fraud detection
+│       │   │
+│       │   ├── db/                    # Database layer
+│       │   │   └── mongodb.py         # MongoDB connection
+│       │   │
+│       │   └── utils/                 # Utility functions
+│       │
+│       ├── requirements.txt           # Python dependencies
+│       └── Dockerfile                 # Backend Docker image
+│
+├── packages/                           # Shared packages (planned)
+│   ├── ui/                            # Shared React components
+│   └── types/                         # Shared TypeScript types
+│
+├── scripts/                           # Utility scripts
+│   ├── generate_arch_diagram.sh      # Generate architecture PNG
+│   ├── test_phase1.sh                # Phase 1 test suite
+│   ├── generate_seo_pages.py         # SEO page generator (Phase 5)
+│   ├── seed_data.py                  # Seed mock data (Phase 5)
+│   └── deploy.sh                     # Deployment script (Phase 8)
+│
+├── infra/                             # Infrastructure configs (Phase 8)
+│   ├── terraform/                    # GCP Terraform configs
+│   └── docker-compose.yml            # Local development
+│
+└── tests/                             # Test suites (Phase 6)
+    ├── e2e/                          # Playwright E2E tests
+    └── load/                         # k6 load tests
+
+
+Key Features Implemented in Phase 1:
+====================================
+
+Backend (FastAPI):
+  ✓ Search aggregation from multiple providers
+  ✓ Mock adapters (Amadeus, LCC, Hotels)
+  ✓ Ranking engine (price 60%, duration 25%, stops 15%)
+  ✓ In-memory cache with Redis interface
+  ✓ Click tracking with fraud detection
+  ✓ JWT authentication + TOTP 2FA
+  ✓ RBAC admin system (4 roles)
+  ✓ Security middleware (CSP, HSTS, rate limiting)
+  ✓ Bot detection & device fingerprinting
+  ✓ Immutable audit logs
+
+Frontend (Next.js 14):
+  ✓ App Router with SSR/SSG support
+  ✓ Responsive search interface
+  ✓ Flight/Hotel tab switcher
+  ✓ Passenger selector modal
+  ✓ Date inputs with validation
+  ✓ Tailwind CSS + shadcn compatibility
+  ✓ Accessible components (ARIA, keyboard nav)
+
+Database (MongoDB):
+  ✓ users collection
+  ✓ seo_pages collection
+  ✓ clicks collection
+  ✓ providers collection
+  ✓ admin_audit collection
+  ✓ price_alerts collection
+
+API Endpoints:
+  ✓ /api/search/flights (GET/POST)
+  ✓ /api/search/hotels (GET/POST)
+  ✓ /api/providers (GET)
+  ✓ /api/redirect (POST)
+  ✓ /api/auth/* (register, login, 2FA)
+  ✓ /api/admin/* (dashboard, users, audit logs)
+
+Development Ready:
+  ✓ Backend runs on port 8001
+  ✓ Frontend runs on port 3000
+  ✓ Mock mode active (no API keys needed)
+  ✓ Environment configuration documented
+  ✓ Integration instructions provided
