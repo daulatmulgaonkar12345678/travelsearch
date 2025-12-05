@@ -102,7 +102,12 @@ async def search_airports(
     
     results.sort(key=sort_key)
     
-    return results[:limit]
+    final_results = results[:limit]
+    
+    # Cache the result
+    set_cached_result(cache_key, final_results)
+    
+    return final_results
 
 
 @router.get("/cities")
