@@ -19,8 +19,10 @@ export default function ReconciliationsPage() {
   const [items, setItems] = useState<Reconciliation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchReconciliations();
   }, []);
 
@@ -41,8 +43,36 @@ export default function ReconciliationsPage() {
   };
 
   const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleString();
+    if (!mounted) return isoString;
+    return new Date(isoString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
   };
+
+  if (!mounted) {
+    return (
+      <div className="container mx-auto p-6 max-w-6xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
+            <CardDescription>
+              Review pending affiliate bookings and match them with click records
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading...
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
