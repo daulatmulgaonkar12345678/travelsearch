@@ -116,6 +116,18 @@ async def search_hotels(
 ):
     """Search hotels from multiple providers (GET endpoint for simple queries)"""
     try:
+        # Validate dates
+        from datetime import date, timedelta
+        today = date.today()
+        check_in_date = date.fromisoformat(check_in)
+        check_out_date = date.fromisoformat(check_out)
+        
+        if check_in_date < today + timedelta(days=1):
+            raise HTTPException(status_code=400, detail="Check-in must be at least tomorrow")
+        
+        if check_out_date <= check_in_date:
+            raise HTTPException(status_code=400, detail="Check-out must be after check-in")
+        
         # For GET endpoint, we'll use a simple structure
         # Real implementation would parse room configurations from query params
         request = HotelSearchRequest(
