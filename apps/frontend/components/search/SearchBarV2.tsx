@@ -83,10 +83,10 @@ export default function SearchBarV2({ defaultTab = 'flights' }: SearchBarV2Props
   
   // Hotels
   const [city, setCity] = useState('')
-  const [checkIn, setCheckIn] = useState('')
-  const [checkOut, setCheckOut] = useState('')
-  const [hotelRooms, setHotelRooms] = useState<HotelRoomData>({
-    rooms: [{ adults: 2, children: [] }],
+  const [checkIn, setCheckIn] = useState(getTomorrowDate())
+  const [checkOut, setCheckOut] = useState(getDayAfterTomorrow())
+  const [hotelRooms, setHotelRooms] = useState<EnhancedHotelRoomData>({
+    rooms: [{ adults: 2, children: [], roomType: 'Standard', ac: true }],
   })
   const [showRoomModal, setShowRoomModal] = useState(false)
 
