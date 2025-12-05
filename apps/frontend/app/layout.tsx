@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'Compare flights and hotels from multiple providers. Find the best travel deals with our metasearch engine.',
 }
 
+import ErrorBoundary from '@/components/ErrorBoundary'
+
 export default function RootLayout({
   children,
 }: {
@@ -18,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   )
