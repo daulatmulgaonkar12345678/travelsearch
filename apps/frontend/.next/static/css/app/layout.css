@@ -818,6 +818,9 @@ video {
 .max-h-\[80vh\] {
   max-height: 80vh;
 }
+.max-h-\[85vh\] {
+  max-height: 85vh;
+}
 .min-h-screen {
   min-height: 100vh;
 }
@@ -871,6 +874,9 @@ video {
 }
 .max-w-2xl {
   max-width: 42rem;
+}
+.max-w-3xl {
+  max-width: 48rem;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -1032,6 +1038,14 @@ video {
 }
 .rounded-xl {
   border-radius: 0.75rem;
+}
+.rounded-b-2xl {
+  border-bottom-right-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+}
+.rounded-t-2xl {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
 }
 .border {
   border-width: 1px;
@@ -1319,6 +1333,9 @@ video {
 }
 .pt-3 {
   padding-top: 0.75rem;
+}
+.pb-3 {
+  padding-bottom: 0.75rem;
 }
 .text-left {
   text-align: left;

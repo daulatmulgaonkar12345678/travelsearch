@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plane, Hotel, Calendar, Users } from 'lucide-react'
 import TripTypeSelector from './TripTypeSelector'
 import CabinClassSelector from './CabinClassSelector'
 import MultiCityBuilder from './MultiCityBuilder'
 import AdvancedPassengerModal from './AdvancedPassengerModal'
-import HotelRoomSelector from './HotelRoomSelector'
+import EnhancedHotelRoomSelector from './EnhancedHotelRoomSelector'
+import DateInputs from './DateInputs'
 
 type SearchType = 'flights' | 'hotels'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
 type CabinClass = 'economy' | 'premium_economy' | 'business' | 'first'
+type RoomType = 'Standard' | 'Deluxe' | 'Suite'
 
 interface Child {
   age: number
@@ -29,18 +31,37 @@ interface FlightSegment {
   date: string
 }
 
-interface RoomGuests {
+interface Room {
   adults: number
   children: number[]
+  roomType: RoomType
+  ac: boolean
 }
 
-interface HotelRoomData {
-  rooms: RoomGuests[]
+interface EnhancedHotelRoomData {
+  rooms: Room[]
 }
 
-export default function SearchBarV2() {
+interface SearchBarV2Props {
+  defaultTab?: SearchType
+}
+
+export default function SearchBarV2({ defaultTab = 'flights' }: SearchBarV2Props) {
   // Common
-  const [searchType, setSearchType] = useState<SearchType>('flights')
+  const [searchType, setSearchType] = useState<SearchType>(defaultTab)
+  
+  // Get tomorrow's date as minimum
+  const getTomorrowDate = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
+  }
+  
+  const getDayAfterTomorrow = () => {
+    const dayAfter = new Date()
+    dayAfter.setDate(dayAfter.getDate() + 2)
+    return dayAfter.toISOString().split('T')[0]
+  }
   
   // Flights
   const [tripType, setTripType] = useState<TripType>('roundtrip')
