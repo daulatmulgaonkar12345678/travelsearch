@@ -1,0 +1,12 @@
+{
+  "generated_at": "2025-12-05T09:05:26.343229",
+  "total_pages": 317,
+  "breakdown": {
+    "route_pages": 56,
+    "hotel_pages": 200,
+    "airport_pages": 8,
+    "cheapest_month_pages": 48,
+    "airline_pages": 5
+  },
+  "sitemap": "/app/output/seo_samples/sitemap.xml"
+}
