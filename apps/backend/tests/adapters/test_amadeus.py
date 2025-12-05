@@ -93,7 +93,7 @@ class TestAmadeusAdapter:
         assert offer.price == 4800.0
         assert len(offer.segments) == 2  # Two segments (connecting)
         assert offer.stops == 1
-        assert offer.total_duration_minutes == 340  # 1h50m + 1h30m + layover
+        assert offer.total_duration_minutes == 200  # 1h50m + 1h30m (flight time only, no layover)
         
         # Check segments
         assert offer.segments[0].departure_airport == "BOM"
