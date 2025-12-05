@@ -53,6 +53,10 @@ app.include_router(admin.router, prefix="/api", tags=["admin"])
 from app.routers import webhooks_reconcile
 app.include_router(webhooks_reconcile.router, prefix="/api", tags=["webhooks", "admin"])
 
+# Import and include airports routes
+from app.routers import airports
+app.include_router(airports.router, prefix="/api", tags=["airports"])
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
