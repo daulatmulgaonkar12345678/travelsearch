@@ -17,8 +17,9 @@ def test_date_validation_logic():
     # Check-out must be after check-in
     assert day_after > tomorrow, "Check-out must be after check-in"
     
-    # Same-day checkout should be invalid
-    assert not (tomorrow <= tomorrow), "Same-day checkout should be invalid"
+    # Same-day checkout should be invalid (check-out must be > check-in)
+    checkout_valid = day_after > tomorrow
+    assert checkout_valid, "Check-out must be strictly after check-in"
 
 
 def test_date_string_formatting():
