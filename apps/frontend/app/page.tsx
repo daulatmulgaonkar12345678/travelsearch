@@ -34,7 +34,7 @@ export default function Home() {
 
         {/* Search Component */}
         <div className="max-w-5xl mx-auto">
-          <SearchBarV2 />
+          <SearchBarV3 />
         </div>
       </section>
 
