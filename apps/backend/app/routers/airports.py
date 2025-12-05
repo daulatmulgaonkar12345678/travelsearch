@@ -46,15 +46,26 @@ def cleanup_expired_cache():
 @router.get("/airports")
 async def search_airports(
     query: str = Query(..., min_length=1, description="Search query (city, airport name, or IATA code)"),
-    limit: int = Query(10, ge=1, le=50, description="Maximum results to return")
+    limit: int = Query(10, ge=1, le=50, description="Maximum results to return"),
+    request: Request = None
 ):
     """
     Search airports by city, name, or IATA code
     Returns empty list if query < 2 characters
+    Cached for 1 hour
     """
     # Return empty for very short queries
     if len(query) < 2:
         return []
+    
+    # Check cache
+    cache_key = f"airports:{query.lower()}:{limit}"
+    cached = get_cached_result(cache_key)
+    if cached is not None:
+        return cached
+    
+    # Cleanup expired cache periodically
+    cleanup_expired_cache()
     
     airports = load_airports()
     query_lower = query.lower()
