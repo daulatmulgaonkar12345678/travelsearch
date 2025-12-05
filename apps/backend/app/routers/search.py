@@ -98,23 +98,40 @@ async def search_hotels(
     city: str = Query(..., description="City name"),
     check_in: str = Query(..., description="Check-in date (YYYY-MM-DD)"),
     check_out: str = Query(..., description="Check-out date (YYYY-MM-DD)"),
-    adults: int = Query(1, ge=1),
-    children: int = Query(0, ge=0),
-    rooms: int = Query(1, ge=1),
+    
+    # Filters
     min_rating: Optional[float] = Query(None, ge=0, le=5),
+    max_rating: Optional[float] = Query(None, ge=0, le=5),
+    min_review_score: Optional[float] = Query(None, ge=0, le=10),
+    min_price: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
+    
+    # Policies
+    free_cancellation: bool = Query(False),
+    pay_at_hotel: bool = Query(False),
+    ac_required: bool = Query(False),
+    
+    # Location
+    max_distance_km: Optional[float] = Query(None),
 ):
-    """Search hotels from multiple providers"""
+    """Search hotels from multiple providers (GET endpoint for simple queries)"""
     try:
+        # For GET endpoint, we'll use a simple structure
+        # Real implementation would parse room configurations from query params
         request = HotelSearchRequest(
             city=city,
             check_in=check_in,
             check_out=check_out,
-            adults=adults,
-            children=children,
-            rooms=rooms,
+            rooms=[{"adults": 2, "children": []}],  # Default single room
             min_rating=min_rating,
-            max_price=max_price
+            max_rating=max_rating,
+            min_review_score=min_review_score,
+            min_price=min_price,
+            max_price=max_price,
+            free_cancellation=free_cancellation,
+            pay_at_hotel=pay_at_hotel,
+            ac_required=ac_required,
+            max_distance_km=max_distance_km,
         )
         
         logger.info(f"Hotel search request: {request.city}")
