@@ -1,4 +1,4 @@
-import SearchBar from '@/components/search/SearchBar'
+import SearchBarV2 from '@/components/search/SearchBarV2'
 import { Plane, Hotel, Shield, TrendingDown } from 'lucide-react'
 
 export default function Home() {
