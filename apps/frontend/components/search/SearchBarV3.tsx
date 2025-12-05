@@ -1,0 +1,504 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Plane, Hotel, Calendar, Users } from 'lucide-react'
+import TripTypeSelector from './TripTypeSelector'
+import CabinClassSelector from './CabinClassSelector'
+import AdvancedPassengerModal from './AdvancedPassengerModal'
+import EnhancedHotelRoomSelector from './EnhancedHotelRoomSelector'
+import DateInputs from './DateInputs'
+import AirportAutocomplete from './AirportAutocomplete'
+import CityAutocomplete from './CityAutocomplete'
+
+type SearchType = 'flights' | 'hotels'
+type TripType = 'oneway' | 'roundtrip' | 'multicity'
+type CabinClass = 'economy' | 'premium_economy' | 'business' | 'first'
+type RoomType = 'Standard' | 'Deluxe' | 'Suite'
+
+interface Child {
+  age: number
+}
+
+interface PassengerData {
+  adults: number
+  children: Child[]
+  infants: number
+}
+
+interface FlightSegment {
+  id: string
+  origin: string
+  destination: string
+  date: string
+}
+
+interface Room {
+  adults: number
+  children: number[]
+  roomType: RoomType
+  ac: boolean
+}
+
+interface EnhancedHotelRoomData {
+  rooms: Room[]
+}
+
+interface SearchBarV3Props {
+  defaultTab?: SearchType
+}
+
+export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props) {
+  // SSR-safe state initialization
+  const [mounted, setMounted] = useState(false)
+  const [searchType, setSearchType] = useState<SearchType>(defaultTab)
+  
+  // Get deterministic default dates (SSR-safe)
+  const getTomorrowDate = () => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
+  }
+  
+  const getDayAfterTomorrow = () => {
+    const dayAfter = new Date()
+    dayAfter.setDate(dayAfter.getDate() + 2)
+    return dayAfter.toISOString().split('T')[0]
+  }
+
+  // Flights state
+  const [tripType, setTripType] = useState<TripType>('roundtrip')
+  const [origin, setOrigin] = useState('')
+  const [destination, setDestination] = useState('')
+  const [departureDate, setDepartureDate] = useState(getTomorrowDate())
+  const [returnDate, setReturnDate] = useState(getDayAfterTomorrow())
+  const [cabinClass, setCabinClass] = useState<CabinClass>('economy')
+  const [passengers, setPassengers] = useState<PassengerData>({
+    adults: 1,
+    children: [],
+    infants: 0,
+  })
+  const [multiCitySegments, setMultiCitySegments] = useState<FlightSegment[]>([
+    { id: 'seg-1', origin: '', destination: '', date: getTomorrowDate() },
+    { id: 'seg-2', origin: '', destination: '', date: getDayAfterTomorrow() },
+  ])
+  const [showPassengerModal, setShowPassengerModal] = useState(false)
+  
+  // Hotels state
+  const [city, setCity] = useState('')
+  const [checkIn, setCheckIn] = useState(getTomorrowDate())
+  const [checkOut, setCheckOut] = useState(getDayAfterTomorrow())
+  const [hotelRooms, setHotelRooms] = useState<EnhancedHotelRoomData>({
+    rooms: [{ adults: 2, children: [], roomType: 'Standard', ac: true }],
+  })
+  const [showRoomModal, setShowRoomModal] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const totalPassengers = passengers.adults + passengers.children.length + passengers.infants
+  const totalGuests = hotelRooms.rooms.reduce((sum, room) => sum + room.adults + room.children.length, 0)
+
+  const validateFlightDates = (): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (tripType === 'multicity') {
+      // Validate multicity segments
+      for (let i = 0; i < multiCitySegments.length; i++) {
+        const segment = multiCitySegments[i]
+        if (!segment.origin || !segment.destination || !segment.date) {
+          alert(`Please fill all fields for segment ${i + 1}`)
+          return false
+        }
+        
+        const segmentDate = new Date(segment.date)
+        if (segmentDate <= today) {
+          alert(`Segment ${i + 1} date must be at least tomorrow`)
+          return false
+        }
+        
+        // Check if current segment date is after previous segment
+        if (i > 0) {
+          const prevDate = new Date(multiCitySegments[i - 1].date)
+          if (segmentDate <= prevDate) {
+            alert(`Segment ${i + 1} date must be after segment ${i} date`)
+            return false
+          }
+        }
+      }
+    } else {
+      // Validate one-way or round-trip
+      if (!origin || !destination || !departureDate) {
+        alert('Please fill all required fields')
+        return false
+      }
+      
+      const depDate = new Date(departureDate)
+      if (depDate <= today) {
+        alert('Departure date must be at least tomorrow')
+        return false
+      }
+      
+      if (tripType === 'roundtrip') {
+        if (!returnDate) {
+          alert('Please select return date')
+          return false
+        }
+        const retDate = new Date(returnDate)
+        if (retDate <= depDate) {
+          alert('Return date must be after departure date')
+          return false
+        }
+      }
+    }
+    
+    return true
+  }
+
+  const handleFlightSearch = () => {
+    if (!validateFlightDates()) return
+
+    if (tripType === 'multicity') {
+      const params = new URLSearchParams({
+        trip_type: 'multicity',
+        cabin_class: cabinClass,
+        adults: passengers.adults.toString(),
+        infants: passengers.infants.toString(),
+      })
+      passengers.children.forEach((child, idx) => {
+        params.append(`child_${idx}_age`, child.age.toString())
+      })
+      multiCitySegments.forEach((seg, idx) => {
+        params.append(`seg_${idx}_origin`, seg.origin)
+        params.append(`seg_${idx}_dest`, seg.destination)
+        params.append(`seg_${idx}_date`, seg.date)
+      })
+      window.location.href = `/flights/results?${params}`
+    } else {
+      const params = new URLSearchParams({
+        trip_type: tripType,
+        origin,
+        destination,
+        departure_date: departureDate,
+        cabin_class: cabinClass,
+        adults: passengers.adults.toString(),
+        infants: passengers.infants.toString(),
+      })
+      if (tripType === 'roundtrip' && returnDate) {
+        params.append('return_date', returnDate)
+      }
+      passengers.children.forEach((child, idx) => {
+        params.append(`child_${idx}_age`, child.age.toString())
+      })
+      window.location.href = `/flights/results?${params}`
+    }
+  }
+
+  const handleHotelSearch = () => {
+    if (!city) {
+      alert('Please enter a city')
+      return
+    }
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const checkInDate = new Date(checkIn)
+    const checkOutDate = new Date(checkOut)
+    
+    if (checkInDate <= today) {
+      alert('Check-in date must be at least tomorrow')
+      return
+    }
+    
+    if (checkOutDate <= checkInDate) {
+      alert('Check-out date must be after check-in date')
+      return
+    }
+    
+    const params = new URLSearchParams({
+      city,
+      check_in: checkIn,
+      check_out: checkOut,
+      rooms: hotelRooms.rooms.length.toString(),
+    })
+    hotelRooms.rooms.forEach((room, roomIdx) => {
+      params.append(`room_${roomIdx}_adults`, room.adults.toString())
+      params.append(`room_${roomIdx}_type`, room.roomType)
+      params.append(`room_${roomIdx}_ac`, room.ac.toString())
+      room.children.forEach((age, childIdx) => {
+        params.append(`room_${roomIdx}_child_${childIdx}_age`, age.toString())
+      })
+    })
+    window.location.href = `/hotels/results?${params}`
+  }
+
+  const handleMultiCitySegmentUpdate = (id: string, field: keyof FlightSegment, value: string) => {
+    setMultiCitySegments(prev =>
+      prev.map(seg =>
+        seg.id === id ? { ...seg, [field]: value } : seg
+      )
+    )
+  }
+
+  const addMultiCitySegment = () => {
+    const lastSegment = multiCitySegments[multiCitySegments.length - 1]
+    const lastDate = new Date(lastSegment.date || getTomorrowDate())
+    lastDate.setDate(lastDate.getDate() + 1)
+    
+    setMultiCitySegments([...multiCitySegments, {
+      id: `seg-${Date.now()}`,
+      origin: '',
+      destination: '',
+      date: lastDate.toISOString().split('T')[0]
+    }])
+  }
+
+  const removeMultiCitySegment = (id: string) => {
+    if (multiCitySegments.length > 2) {
+      setMultiCitySegments(prev => prev.filter(seg => seg.id !== id))
+    }
+  }
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="h-96 flex items-center justify-center">
+          <div className="animate-pulse text-gray-400">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+      {/* Tab Selector */}
+      <div className="flex border-b border-gray-200">
+        <button
+          data-testid="flights-tab"
+          onClick={() => setSearchType('flights')}
+          className={`flex-1 py-4 px-6 flex items-center justify-center space-x-2 font-medium transition-colors ${
+            searchType === 'flights'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <Plane className="h-5 w-5" />
+          <span>Flights</span>
+        </button>
+        <button
+          data-testid="hotels-tab"
+          onClick={() => setSearchType('hotels')}
+          className={`flex-1 py-4 px-6 flex items-center justify-center space-x-2 font-medium transition-colors ${
+            searchType === 'hotels'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <Hotel className="h-5 w-5" />
+          <span>Hotels</span>
+        </button>
+      </div>
+
+      {/* Search Form */}
+      <div className="p-6">
+        {searchType === 'flights' ? (
+          <div className="space-y-4">
+            <TripTypeSelector value={tripType} onChange={setTripType} />
+
+            {/* Cabin Class - ALWAYS VISIBLE for all trip types */}
+            <CabinClassSelector value={cabinClass} onChange={setCabinClass} />
+
+            {tripType === 'multicity' ? (
+              <div className="space-y-4">
+                {multiCitySegments.map((segment, index) => (
+                  <div key={segment.id} className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-gray-700">Flight {index + 1}</span>
+                      {multiCitySegments.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMultiCitySegment(segment.id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      <AirportAutocomplete
+                        value={segment.origin}
+                        onChange={(val) => handleMultiCitySegmentUpdate(segment.id, 'origin', val)}
+                        label="From"
+                        placeholder="Origin"
+                        testId={`origin-${index}`}
+                      />
+                      <AirportAutocomplete
+                        value={segment.destination}
+                        onChange={(val) => handleMultiCitySegmentUpdate(segment.id, 'destination', val)}
+                        label="To"
+                        placeholder="Destination"
+                        testId={`destination-${index}`}
+                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="date"
+                            value={segment.date}
+                            min={index === 0 ? getTomorrowDate() : multiCitySegments[index - 1]?.date}
+                            onChange={(e) => handleMultiCitySegmentUpdate(segment.id, 'date', e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addMultiCitySegment}
+                  className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  + Add Another Flight
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <AirportAutocomplete
+                    value={origin}
+                    onChange={setOrigin}
+                    label="From"
+                    placeholder="Origin city or airport"
+                    testId="origin-input"
+                  />
+                  <AirportAutocomplete
+                    value={destination}
+                    onChange={setDestination}
+                    label="To"
+                    placeholder="Destination city or airport"
+                    testId="destination-input"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Departure</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        data-testid="departure-date-input"
+                        type="date"
+                        value={departureDate}
+                        min={getTomorrowDate()}
+                        onChange={(e) => setDepartureDate(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Return {tripType === 'oneway' && '(N/A)'}
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        data-testid="return-date-input"
+                        type="date"
+                        value={returnDate}
+                        min={departureDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        disabled={tripType === 'oneway'}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+              <button
+                data-testid="passenger-selector"
+                onClick={() => setShowPassengerModal(true)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5 text-gray-400" />
+                  <span>
+                    {totalPassengers} passenger{totalPassengers !== 1 ? 's' : ''} • {cabinClass.replace('_', ' ')}
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <CityAutocomplete
+              value={city}
+              onChange={setCity}
+              label="City or Hotel"
+              placeholder="Where are you going?"
+              testId="city-input"
+            />
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <DateInputs
+                checkIn={checkIn}
+                checkOut={checkOut}
+                onChange={({ checkIn: ci, checkOut: co }) => {
+                  setCheckIn(ci)
+                  setCheckOut(co)
+                }}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Rooms & Guests</label>
+                <button
+                  data-testid="room-selector"
+                  onClick={() => setShowRoomModal(true)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-gray-400" />
+                    <span>
+                      {hotelRooms.rooms.length} room{hotelRooms.rooms.length !== 1 ? 's' : ''} • {totalGuests} guest
+                      {totalGuests !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button
+          data-testid="search-button"
+          onClick={searchType === 'flights' ? handleFlightSearch : handleHotelSearch}
+          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg hover:shadow-xl"
+        >
+          Search {searchType === 'flights' ? 'Flights' : 'Hotels'}
+        </button>
+      </div>
+
+      {showPassengerModal && (
+        <AdvancedPassengerModal
+          passengers={passengers}
+          onUpdate={setPassengers}
+          onClose={() => setShowPassengerModal(false)}
+        />
+      )}
+
+      {showRoomModal && (
+        <EnhancedHotelRoomSelector
+          data={hotelRooms}
+          onUpdate={setHotelRooms}
+          onClose={() => setShowRoomModal(false)}
+        />
+      )}
+    </div>
+  )
+}
