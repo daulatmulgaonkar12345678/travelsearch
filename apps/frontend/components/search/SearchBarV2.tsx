@@ -133,6 +133,22 @@ export default function SearchBarV2({ defaultTab = 'flights' }: SearchBarV2Props
   }
 
   const handleHotelSearch = () => {
+    // Validate dates
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const checkInDate = new Date(checkIn)
+    const checkOutDate = new Date(checkOut)
+    
+    if (checkInDate <= today) {
+      alert('Check-in date must be at least tomorrow')
+      return
+    }
+    
+    if (checkOutDate <= checkInDate) {
+      alert('Check-out date must be after check-in date')
+      return
+    }
+    
     const params = new URLSearchParams({
       city,
       check_in: checkIn,
@@ -141,6 +157,8 @@ export default function SearchBarV2({ defaultTab = 'flights' }: SearchBarV2Props
     })
     hotelRooms.rooms.forEach((room, roomIdx) => {
       params.append(`room_${roomIdx}_adults`, room.adults.toString())
+      params.append(`room_${roomIdx}_type`, room.roomType)
+      params.append(`room_${roomIdx}_ac`, room.ac.toString())
       room.children.forEach((age, childIdx) => {
         params.append(`room_${roomIdx}_child_${childIdx}_age`, age.toString())
       })
