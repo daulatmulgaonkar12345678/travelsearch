@@ -100,29 +100,45 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const totalGuests = hotelRooms.rooms.reduce((sum, room) => sum + room.adults + room.children.length, 0)
 
   const validateFlightDates = (): boolean => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
     if (tripType === 'multicity') {
-      // Validate multicity segments
-      for (let i = 0; i < multiCitySegments.length; i++) {
-        const segment = multiCitySegments[i]
-        if (!segment.origin || !segment.destination || !segment.date) {
-          alert(`Please fill all fields for segment ${i + 1}`)
+      // Import validation logic
+      const segments = multiCitySegments.map(seg => ({
+        origin: seg.origin,
+        destination: seg.destination,
+        date: seg.date
+      }))
+      
+      // Check all segments filled
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i]
+        if (!seg.origin || !seg.destination || !seg.date) {
+          alert(`Flight ${i + 1}: Please fill all fields`)
           return false
         }
         
-        const segmentDate = new Date(segment.date)
-        if (segmentDate <= today) {
-          alert(`Segment ${i + 1} date must be at least tomorrow`)
+        // Check origin !== destination
+        if (seg.origin.toUpperCase() === seg.destination.toUpperCase()) {
+          alert(`Flight ${i + 1}: Origin and destination must be different`)
+          return false
+        }
+      }
+      
+      // Check dates in order
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      for (let i = 0; i < segments.length; i++) {
+        const currentDate = new Date(segments[i].date)
+        
+        if (i === 0 && currentDate <= today) {
+          alert('First flight must be at least tomorrow')
           return false
         }
         
-        // Check if current segment date is after previous segment
         if (i > 0) {
-          const prevDate = new Date(multiCitySegments[i - 1].date)
-          if (segmentDate <= prevDate) {
-            alert(`Segment ${i + 1} date must be after segment ${i} date`)
+          const prevDate = new Date(segments[i - 1].date)
+          if (currentDate <= prevDate) {
+            alert(`Flight ${i + 1} must be after Flight ${i}`)
             return false
           }
         }
@@ -134,7 +150,16 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         return false
       }
       
+      // Check origin !== destination
+      if (origin.toUpperCase() === destination.toUpperCase()) {
+        alert('Origin and destination must be different')
+        return false
+      }
+      
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
       const depDate = new Date(departureDate)
+      
       if (depDate <= today) {
         alert('Departure date must be at least tomorrow')
         return false
@@ -151,6 +176,21 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           return false
         }
       }
+    }
+    
+    // Validate passengers
+    const totalPassengers = passengers.adults + passengers.children.length + passengers.infants
+    if (passengers.adults < 1) {
+      alert('At least 1 adult is required')
+      return false
+    }
+    if (passengers.infants > passengers.adults) {
+      alert('Number of infants cannot exceed number of adults')
+      return false
+    }
+    if (totalPassengers > 9) {
+      alert('Maximum 9 passengers allowed')
+      return false
     }
     
     return true
