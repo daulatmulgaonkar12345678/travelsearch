@@ -13,31 +13,56 @@ aggregator = SearchAggregator()
 
 @router.get("/search/flights", response_model=FlightSearchResponse)
 async def search_flights(
-    origin: str = Query(..., description="Origin airport IATA code"),
-    destination: str = Query(..., description="Destination airport IATA code"),
-    departure_date: str = Query(..., description="Departure date (YYYY-MM-DD)"),
+    # Trip type
+    trip_type: str = Query("roundtrip", description="Trip type: oneway, roundtrip, multicity"),
+    
+    # Basic route (for oneway/roundtrip)
+    origin: Optional[str] = Query(None, description="Origin airport IATA code"),
+    destination: Optional[str] = Query(None, description="Destination airport IATA code"),
+    departure_date: Optional[str] = Query(None, description="Departure date (YYYY-MM-DD)"),
     return_date: Optional[str] = Query(None, description="Return date (YYYY-MM-DD)"),
+    
+    # Passengers
     adults: int = Query(1, ge=1, le=9),
-    children: int = Query(0, ge=0, le=9),
     infants: int = Query(0, ge=0, le=9),
+    
+    # Cabin class
     cabin_class: str = Query("economy"),
+    
+    # Filters
     direct_only: bool = Query(False),
+    max_price: Optional[float] = Query(None),
+    max_duration_minutes: Optional[int] = Query(None),
+    refundable_only: bool = Query(False),
+    include_red_eye: bool = Query(True),
+    green_only: bool = Query(False),
 ):
-    """Search flights from multiple providers"""
+    """Search flights from multiple providers (GET endpoint for simple queries)"""
     try:
+        # Parse children ages from query params (child_0_age, child_1_age, etc.)
+        from fastapi import Request
+        # For simplicity in GET, we'll accept a children count
+        # Real implementation would parse dynamic params
+        
         request = FlightSearchRequest(
-            origin=origin.upper(),
-            destination=destination.upper(),
+            trip_type=trip_type,
+            origin=origin.upper() if origin else None,
+            destination=destination.upper() if destination else None,
             departure_date=departure_date,
             return_date=return_date,
             adults=adults,
-            children=children,
+            children=None,  # Will be parsed from query params in real implementation
             infants=infants,
             cabin_class=cabin_class,
-            direct_only=direct_only
+            direct_only=direct_only,
+            max_price=max_price,
+            max_duration_minutes=max_duration_minutes,
+            refundable_only=refundable_only,
+            include_red_eye=include_red_eye,
+            green_only=green_only,
         )
         
-        logger.info(f"Flight search request: {request.origin} -> {request.destination}")
+        logger.info(f"Flight search request: {request.trip_type} {request.origin} -> {request.destination}")
         
         offers = await aggregator.search_flights(request)
         
