@@ -1,4 +1,4 @@
-import SearchBarV2 from '@/components/search/SearchBarV2'
+import SearchBarV3 from '@/components/search/SearchBarV3'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
