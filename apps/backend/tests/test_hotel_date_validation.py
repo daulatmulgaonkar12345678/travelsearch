@@ -3,10 +3,17 @@ Test hotel search date validation
 """
 from datetime import date, timedelta
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
+from httpx import AsyncClient
+import asyncio
 
-client = TestClient(app)
+
+def get_client():
+    from app.main import app
+    from fastapi.testclient import TestClient
+    return TestClient(app)
+
+
+client = get_client()
 
 
 def test_hotel_search_check_in_must_be_tomorrow_or_later():
