@@ -350,7 +350,7 @@ export default function SearchBarV2({ defaultTab = 'flights' }: SearchBarV2Props
       )}
 
       {showRoomModal && (
-        <HotelRoomSelector
+        <EnhancedHotelRoomSelector
           data={hotelRooms}
           onUpdate={setHotelRooms}
           onClose={() => setShowRoomModal(false)}
