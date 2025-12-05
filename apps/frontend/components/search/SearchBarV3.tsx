@@ -252,8 +252,30 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     }
     
     if (checkOutDate <= checkInDate) {
-      alert('Check-out date must be after check-in date')
+      alert('Check-out date must be after check-in date (minimum 1 night stay)')
       return
+    }
+    
+    // Validate minimum 1 night stay
+    const nightsDiff = Math.floor((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24))
+    if (nightsDiff < 1) {
+      alert('Minimum stay is 1 night')
+      return
+    }
+    
+    // Validate room configuration
+    for (let i = 0; i < hotelRooms.rooms.length; i++) {
+      const room = hotelRooms.rooms[i]
+      if (room.adults < 1) {
+        alert(`Room ${i + 1}: At least 1 adult required`)
+        return
+      }
+      
+      const totalGuests = room.adults + room.children.length
+      if (totalGuests > 8) {
+        alert(`Room ${i + 1}: Maximum 8 guests per room`)
+        return
+      }
     }
     
     const params = new URLSearchParams({
