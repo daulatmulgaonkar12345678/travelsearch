@@ -42,7 +42,7 @@ export default function HotelsPage() {
         </div>
 
         <div className="max-w-5xl mx-auto">
-          <SearchBarV2 defaultTab="hotels" />
+          <SearchBarV3 defaultTab="hotels" />
         </div>
       </section>
 
