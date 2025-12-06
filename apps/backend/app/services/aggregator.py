@@ -2,7 +2,9 @@ from typing import List
 import asyncio
 from app.models.flight import FlightOffer, FlightSearchRequest
 from app.models.hotel import HotelOffer, HotelSearchRequest
-from app.services.adapters import AmadeusAdapter, LCCAdapter, HotelAdapter
+from app.services.adapters.amadeus_flights import AmadeusFlightsAdapter
+from app.services.adapters.amadeus_hotels import AmadeusHotelsAdapter
+from app.services.adapters.duffel_flights import DuffelFlightsAdapter
 from app.services.ranking import RankingEngine
 from app.services.cache import CacheService
 from app.config import settings, is_mock_mode
@@ -14,23 +16,19 @@ class SearchAggregator:
     """Aggregates search results from multiple providers"""
     
     def __init__(self):
-        # Initialize adapters based on mock mode
-        self.amadeus = AmadeusAdapter(
-            api_key=settings.amadeus_api_key,
-            api_secret=settings.amadeus_api_secret,
-            mock_mode=is_mock_mode("amadeus")
-        )
-        self.lcc = LCCAdapter(
-            api_key=settings.lcc_api_key,
-            mock_mode=is_mock_mode("lcc")
-        )
-        self.hotels = HotelAdapter(
-            trip_key=settings.trip_api_key,
-            agoda_key=settings.agoda_api_key,
-            mock_mode=is_mock_mode("trip") or is_mock_mode("agoda")
-        )
+        # Initialize new real adapters
+        self.amadeus_flights = AmadeusFlightsAdapter()
+        self.duffel_flights = DuffelFlightsAdapter()
+        self.amadeus_hotels = AmadeusHotelsAdapter()
+        
+        # Provider selection from config
+        self.flight_provider = settings.flight_provider
+        self.hotel_provider = settings.hotel_provider
+        
         self.ranking = RankingEngine()
         self.cache = CacheService()
+        
+        logger.info(f"SearchAggregator initialized with flight={self.flight_provider}, hotel={self.hotel_provider}")
     
     async def search_flights(self, request: FlightSearchRequest) -> List[FlightOffer]:
         """Search flights from all providers and aggregate"""
