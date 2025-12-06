@@ -79,8 +79,8 @@ class SearchAggregator:
         return ranked_offers
     
     async def search_hotels(self, request: HotelSearchRequest) -> List[HotelOffer]:
-        """Search hotels from all providers and aggregate"""
-        cache_key = f"hotels:{request.city}:{request.check_in}:{request.check_out}"
+        """Search hotels from configured provider"""
+        cache_key = f"hotels:{request.city}:{request.check_in}:{request.check_out}:{len(request.rooms)}"
         
         # Check cache
         cached = await self.cache.get(cache_key)
@@ -88,9 +88,14 @@ class SearchAggregator:
             logger.info(f"Cache hit for {cache_key}")
             return cached
         
-        # Query hotel providers
-        logger.info(f"Searching hotels in: {request.city}")
-        offers = await self.hotels.search_hotels(request)
+        # Query hotel provider (currently only Amadeus)
+        logger.info(f"Searching hotels in: {request.city} via {self.hotel_provider}")
+        
+        if self.hotel_provider == "amadeus":
+            offers = await self.amadeus_hotels.search_hotels(request)
+        else:
+            logger.warning(f"Unknown hotel provider: {self.hotel_provider}, defaulting to Amadeus")
+            offers = await self.amadeus_hotels.search_hotels(request)
         
         # Rank results
         ranked_offers = self.ranking.rank_hotels(offers)
@@ -98,6 +103,7 @@ class SearchAggregator:
         # Cache
         await self.cache.set(cache_key, ranked_offers, ttl=settings.cache_ttl)
         
+        logger.info(f"Returning {len(ranked_offers)} hotel offers")
         return ranked_offers
     
     def _deduplicate_flights(self, offers: List[FlightOffer]) -> List[FlightOffer]:
