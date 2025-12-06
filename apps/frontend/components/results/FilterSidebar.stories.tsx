@@ -16,16 +16,16 @@ type Story = StoryObj<typeof FilterSidebar>
 
 const FilterSidebarWithState = () => {
   const [filters, setFilters] = useState({
-    stops: [],
-    baggage: [],
+    stops: [] as string[],
+    baggage: [] as string[],
     departureTime: [0, 23] as [number, number],
     arrivalTime: [0, 23] as [number, number],
     duration: [0, 24] as [number, number],
-    airlines: [],
+    airlines: [] as string[],
     emissions: false,
   })
 
-  return <FilterSidebar filters={filters} onFilterChange={setFilters} />
+  return <FilterSidebar filters={filters} onFilterChange={setFilters as any} />
 }
 
 export const Default: Story = {
