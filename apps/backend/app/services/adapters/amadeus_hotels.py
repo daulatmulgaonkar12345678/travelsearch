@@ -337,7 +337,6 @@ class AmadeusHotelsAdapter:
                 room_data = best_offer.get("room", {})
                 room_type = room_data.get("type", "Standard")
                 room_desc = room_data.get("typeEstimated", {})
-                room_category = room_desc.get("category", "STANDARD")
                 
                 # Amenities (basic from description)
                 description = room_desc.get("categoryEstimated", {})
