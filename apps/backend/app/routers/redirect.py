@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from typing import Optional
@@ -7,6 +7,7 @@ from datetime import datetime
 from app.models.click import ClickLog
 from app.db.mongodb import get_clicks_collection
 from app.middleware.bot_detection import BotDetectionService
+from app.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
