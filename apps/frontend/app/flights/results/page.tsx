@@ -229,7 +229,7 @@ function SearchResultsContent() {
                   <ResultCard
                     key={offer.offer_id}
                     offer={offer}
-                    badge={offer.badge}
+                    badge={'badge' in offer ? offer.badge : undefined}
                     onProviderSelect={handleProviderSelect}
                   />
                 ))}
