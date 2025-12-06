@@ -31,8 +31,8 @@ class SearchAggregator:
         logger.info(f"SearchAggregator initialized with flight={self.flight_provider}, hotel={self.hotel_provider}")
     
     async def search_flights(self, request: FlightSearchRequest) -> List[FlightOffer]:
-        """Search flights from all providers and aggregate"""
-        cache_key = f"flights:{request.origin}:{request.destination}:{request.departure_date}"
+        """Search flights from configured providers and aggregate"""
+        cache_key = f"flights:{request.origin}:{request.destination}:{request.departure_date}:{request.cabin_class}"
         
         # Check cache first
         cached = await self.cache.get(cache_key)
@@ -40,13 +40,23 @@ class SearchAggregator:
             logger.info(f"Cache hit for {cache_key}")
             return cached
         
-        # Query all providers in parallel
-        logger.info(f"Searching flights: {request.origin} -> {request.destination}")
-        results = await asyncio.gather(
-            self.amadeus.search_flights(request),
-            self.lcc.search_flights(request),
-            return_exceptions=True
-        )
+        # Select providers based on configuration
+        tasks = []
+        
+        if self.flight_provider == "amadeus":
+            tasks.append(self.amadeus_flights.search_flights(request))
+        elif self.flight_provider == "duffel":
+            tasks.append(self.duffel_flights.search_flights(request))
+        elif self.flight_provider == "amadeus+duffel":
+            tasks.append(self.amadeus_flights.search_flights(request))
+            tasks.append(self.duffel_flights.search_flights(request))
+        else:
+            logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
+            tasks.append(self.amadeus_flights.search_flights(request))
+        
+        # Query providers in parallel
+        logger.info(f"Searching flights: {request.origin} -> {request.destination} via {self.flight_provider}")
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # Flatten results and handle errors
         all_offers = []
@@ -65,6 +75,7 @@ class SearchAggregator:
         # Cache for 15 minutes
         await self.cache.set(cache_key, ranked_offers, ttl=settings.cache_ttl)
         
+        logger.info(f"Returning {len(ranked_offers)} flight offers")
         return ranked_offers
     
     async def search_hotels(self, request: HotelSearchRequest) -> List[HotelOffer]:
