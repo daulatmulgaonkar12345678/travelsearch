@@ -5,10 +5,26 @@ class Settings(BaseSettings):
     # Provider API Keys
     amadeus_api_key: str = "REPLACE_ME"
     amadeus_api_secret: str = "REPLACE_ME"
+    amadeus_base_url: str = "https://test.api.amadeus.com"
+    amadeus_environment: str = "test"
+    
+    # Duffel (optional secondary flight provider)
+    duffel_test_token: Optional[str] = "REPLACE_ME"
+    duffel_environment: str = "test"
+    
+    # Travelpayouts / Aviasales (affiliate redirect)
+    travelpayouts_aviasales_base_url: str = "REPLACE_ME"
+    travelpayouts_marker: str = "REPLACE_ME"
+    
+    # Legacy providers (keeping for backward compatibility)
     lcc_api_key: str = "REPLACE_ME"
     trip_api_key: str = "REPLACE_ME"
     agoda_api_key: str = "REPLACE_ME"
     kiwi_api_key: str = "REPLACE_ME"
+    
+    # Provider selection
+    flight_provider: str = "amadeus"  # amadeus, duffel, amadeus+duffel
+    hotel_provider: str = "amadeus"   # amadeus
     
     # Email & Captcha
     sendgrid_api_key: str = "REPLACE_ME"
