@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import Navigation from '@/components/layout/Navigation'
 import ResultCard, { FlightOffer } from '@/components/results/ResultCard'
 import FilterSidebar from '@/components/results/FilterSidebar'
 import DateStrip from '@/components/search/DateStrip'
