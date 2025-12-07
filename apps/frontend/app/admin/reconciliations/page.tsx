@@ -57,26 +57,31 @@ export default function ReconciliationsPage() {
 
   if (!mounted) {
     return (
-      <div className="container mx-auto p-6 max-w-6xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
-            <CardDescription>
-              Review pending affiliate bookings and match them with click records
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              Loading...
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="container mx-auto p-6 max-w-6xl">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
+              <CardDescription>
+                Review pending affiliate bookings and match them with click records
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading...
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="container mx-auto p-6 max-w-6xl">
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
