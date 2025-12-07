@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import { FlightOffer } from './ResultCard'
+import RangeSlider from '@/components/ui/RangeSlider'
 
 interface FilterState {
   stops: string[]
