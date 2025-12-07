@@ -7,6 +7,7 @@ import FilterSidebar from '@/components/results/FilterSidebar'
 import DateStrip from '@/components/search/DateStrip'
 import InterstitialRedirectModal from '@/components/common/InterstitialRedirectModal'
 import { Loader2, SlidersHorizontal } from 'lucide-react'
+import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 
 function SearchResultsContent() {
   const searchParams = useSearchParams()
