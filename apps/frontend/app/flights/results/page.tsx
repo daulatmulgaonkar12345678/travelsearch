@@ -41,7 +41,66 @@ function SearchResultsContent() {
   const returnDate = searchParams.get('return_date') || ''
   const cabinClass = searchParams.get('cabin_class') || 'economy'
 
-  // Initialize flexible date bar
+  // Fetch real per-day prices for date strip
+  const fetchDateRangePrices = async (centerDate: string) => {
+    try {
+      const center = new Date(centerDate)
+      const dates = []
+      
+      // Generate date range (-3 to +3 days)
+      for (let i = -3; i <= 3; i++) {
+        const date = new Date(center)
+        date.setDate(center.getDate() + i)
+        dates.push(date.toISOString().split('T')[0])
+      }
+      
+      const adults = parseInt(searchParams.get('adults') || '1', 10)
+      const children = parseInt(searchParams.get('children') || '0', 10)
+      const infants = parseInt(searchParams.get('infants') || '0', 10)
+      
+      const response = await apiFetch(API_ENDPOINTS.pricingDateRange, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin,
+          destination,
+          dates,
+          adults,
+          children,
+          infants,
+          cabin_class: cabinClass,
+          trip_type: tripType
+        })
+      })
+      
+      if (response.ok) {
+        const datePrices = await response.json()
+        const newCache = new Map<string, number>()
+        
+        datePrices.forEach((dp: any) => {
+          if (dp.min_price !== null && dp.min_price !== undefined) {
+            newCache.set(dp.date, dp.min_price)
+          }
+        })
+        
+        setDatePriceCache(newCache)
+      } else {
+        console.error('Failed to fetch date range prices:', response.status)
+      }
+    } catch (error) {
+      console.error('Error fetching date range prices:', error)
+    }
+  }
+
+  // Initialize flexible date bar and fetch prices
+  useEffect(() => {
+    if (selectedDate && origin && destination) {
+      // Fetch real prices for visible dates
+      fetchDateRangePrices(selectedDate)
+    }
+  }, [selectedDate, origin, destination, cabinClass, tripType])
+
+  // Generate date options from cache
   useEffect(() => {
     if (selectedDate) {
       const dates = generateDateOptions(selectedDate)
