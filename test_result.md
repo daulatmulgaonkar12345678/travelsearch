@@ -166,7 +166,29 @@ backend:
           comment: "✅ PASS - Real Amadeus integration working. API keys configured correctly, OAuth 2.0 authentication successful, returning real flight and hotel data (not mock). Environment: test mode with sandbox credentials"
 
 frontend:
-  # No frontend testing required per instructions
+  - task: "Backend Connection - Flight Search API Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/apps/frontend/components/search/SearchBarV3.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to test flight search form integration with backend API - verify no ERR_CONNECTION_REFUSED errors and flight results are displayed"
+
+  - task: "Pune Airport Autocomplete Fix"
+    implemented: true
+    working: "NA"
+    file: "/app/apps/frontend/components/search/AirportAutocomplete.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to test airport autocomplete shows Pune (PNQ) when typing 'pu' and properly sets origin parameter to PNQ in search results URL"
 
 metadata:
   created_by: "testing_agent"
