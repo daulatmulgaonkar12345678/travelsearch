@@ -12,6 +12,7 @@ import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 
 function SearchResultsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [offers, setOffers] = useState<FlightOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
