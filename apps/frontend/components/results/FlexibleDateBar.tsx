@@ -30,7 +30,7 @@ export default function FlexibleDateBar({
   }
 
   return (
-    <div className="bg-white border-b border-gray-200 py-4 sticky top-16 z-40 shadow-sm">
+    <div className="bg-white border-b border-gray-200 py-2 sticky top-16 z-40 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center space-x-2">
           <button
