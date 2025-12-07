@@ -3,14 +3,19 @@
 interface SortTabsProps {
   activeSort: 'best' | 'cheapest' | 'fastest'
   onSortChange: (sort: 'best' | 'cheapest' | 'fastest') => void
-  counts?: {
-    best: number
-    cheapest: number
-    fastest: number
+  prices?: {
+    best?: number
+    cheapest?: number
+    fastest?: number
   }
+  currency?: string
 }
 
-export default function SortTabs({ activeSort, onSortChange, counts }: SortTabsProps) {
+const formatPrice = (price: number) => {
+  return Math.round(price).toLocaleString()
+}
+
+export default function SortTabs({ activeSort, onSortChange, prices, currency = 'INR' }: SortTabsProps) {
   const tabs = [
     { id: 'best' as const, label: 'Best', description: 'Optimized picks' },
     { id: 'cheapest' as const, label: 'Cheapest', description: 'Lowest price' },
@@ -22,7 +27,7 @@ export default function SortTabs({ activeSort, onSortChange, counts }: SortTabsP
       <div className="flex">
         {tabs.map((tab) => {
           const isActive = activeSort === tab.id
-          const count = counts?.[tab.id]
+          const price = prices?.[tab.id]
 
           return (
             <button
@@ -37,8 +42,11 @@ export default function SortTabs({ activeSort, onSortChange, counts }: SortTabsP
               `}
             >
               <div className="font-semibold text-lg">{tab.label}</div>
-              <div className="text-xs mt-1">
-                {isActive && count !== undefined ? `${count} results` : tab.description}
+              <div className="text-xs mt-1 text-gray-600">
+                {price !== undefined 
+                  ? `${tab.description} – from ${currency} ${formatPrice(price)}`
+                  : `${tab.description} – no flights`
+                }
               </div>
             </button>
           )
