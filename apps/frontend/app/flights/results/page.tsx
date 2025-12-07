@@ -90,8 +90,7 @@ function SearchResultsContent() {
 
   const handleProviderSelect = async (provider: any, offer: FlightOffer) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
-      const response = await fetch(`${apiUrl}/api/redirect`, {
+      const response = await apiFetch(API_ENDPOINTS.redirect, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
