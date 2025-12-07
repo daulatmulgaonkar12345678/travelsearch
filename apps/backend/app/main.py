@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import search, providers, redirect, auth, admin
+from app.routers import search, providers, redirect, auth, admin, pricing
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
