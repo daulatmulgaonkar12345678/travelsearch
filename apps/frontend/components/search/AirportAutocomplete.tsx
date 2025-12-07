@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Plane, MapPin } from 'lucide-react'
+import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 
 interface Airport {
   iata: string
