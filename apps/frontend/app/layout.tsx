@@ -8,6 +8,9 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-displ
 export const metadata: Metadata = {
   title: 'Flight & Hotel Metasearch | Find the Best Deals',
   description: 'Compare flights and hotels from multiple providers. Find the best travel deals with our metasearch engine.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 import ErrorBoundary from '@/components/ErrorBoundary'
