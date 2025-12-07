@@ -30,8 +30,7 @@ export default function ReconciliationsPage() {
   const fetchReconciliations = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-      const response = await fetch(`${apiUrl}/api/admin/reconciliations`);
+      const response = await apiFetch(API_ENDPOINTS.adminReconciliations);
       if (!response.ok) throw new Error('Failed to fetch reconciliations');
       const data = await response.json();
       setItems(data);
