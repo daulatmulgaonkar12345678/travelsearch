@@ -56,11 +56,15 @@ export default function AirportAutocomplete({
 
     setIsLoading(true)
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
-      const response = await fetch(`${apiUrl}/api/airports?query=${encodeURIComponent(searchQuery)}&limit=10`)
+      const url = `${API_ENDPOINTS.airports}?query=${encodeURIComponent(searchQuery)}&limit=10`
+      const response = await apiFetch(url)
+      
       if (response.ok) {
         const data = await response.json()
         setSuggestions(data)
+      } else {
+        console.error(`Airport search failed: ${response.status} ${response.statusText}`)
+        setSuggestions([])
       }
     } catch (error) {
       console.error('Failed to fetch airports:', error)
