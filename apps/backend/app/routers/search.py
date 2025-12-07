@@ -164,6 +164,14 @@ async def search_hotels(
 async def search_hotels_post(request: HotelSearchRequest):
     """Search hotels (POST method)"""
     try:
+        # Log incoming request for debugging
+        logger.info(f"=== HOTEL SEARCH REQUEST START ===")
+        logger.info(f"Request city: {request.city}")
+        logger.info(f"Request check_in: {request.check_in}")
+        logger.info(f"Request check_out: {request.check_out}")
+        logger.info(f"Request rooms: {request.rooms}")
+        logger.info(f"Full request dict: {request.dict()}")
+        
         # Validate dates
         from datetime import date, timedelta
         today = date.today()
@@ -171,23 +179,58 @@ async def search_hotels_post(request: HotelSearchRequest):
         try:
             check_in_date = date.fromisoformat(request.check_in)
             check_out_date = date.fromisoformat(request.check_out)
+            logger.info(f"Parsed dates - check_in: {check_in_date}, check_out: {check_out_date}")
         except ValueError as e:
             logger.error(f"Invalid date format: {e}")
-            raise HTTPException(status_code=422, detail=f"Invalid date format. Use YYYY-MM-DD. Error: {str(e)}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid date format. Use YYYY-MM-DD format. Error: {str(e)}"
+            )
         
         if check_in_date < today:
             logger.warning(f"Check-in date {check_in_date} is in the past")
             # Allow it but warn - some users might be testing
         
         if check_out_date <= check_in_date:
-            raise HTTPException(status_code=422, detail="Check-out date must be after check-in date")
+            logger.error(f"Check-out date {check_out_date} is not after check-in date {check_in_date}")
+            raise HTTPException(
+                status_code=400, 
+                detail="Check-out date must be after check-in date"
+            )
         
         # Validate rooms
         if not request.rooms or len(request.rooms) == 0:
+            logger.warning("No rooms specified, using default: 1 room, 2 adults")
             request.rooms = [{"adults": 2, "children": []}]
         
-        logger.info(f"Hotel search request: {request.city}, {request.check_in} to {request.check_out}, {len(request.rooms)} room(s)")
+        # Validate each room structure
+        for idx, room in enumerate(request.rooms):
+            if not isinstance(room, dict):
+                logger.error(f"Room {idx} is not a dict: {type(room)}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Room {idx} must be an object with 'adults' and 'children' fields"
+                )
+            if "adults" not in room:
+                logger.error(f"Room {idx} missing 'adults' field")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Room {idx} must have an 'adults' field"
+                )
+            if not isinstance(room.get("adults"), int) or room["adults"] < 1:
+                logger.error(f"Room {idx} has invalid adults count: {room.get('adults')}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Room {idx} must have at least 1 adult"
+                )
+        
+        logger.info(f"Hotel search validated: {request.city}, {request.check_in} to {request.check_out}, {len(request.rooms)} room(s)")
+        
+        # Call aggregator
         offers = await aggregator.search_hotels(request)
+        
+        logger.info(f"Hotel search returned {len(offers)} offers")
+        logger.info(f"=== HOTEL SEARCH REQUEST END ===")
         
         return HotelSearchResponse(
             offers=offers,
@@ -198,5 +241,5 @@ async def search_hotels_post(request: HotelSearchRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Hotel search error: {e}", exc_info=True)
+        logger.error(f"Hotel search unexpected error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
