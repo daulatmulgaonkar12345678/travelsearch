@@ -199,6 +199,7 @@ function SearchResultsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       {/* Date Strip */}
       <DateStrip selectedDate={selectedDate} onDateSelect={setSelectedDate} />
 
