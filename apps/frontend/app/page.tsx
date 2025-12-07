@@ -1,25 +1,11 @@
 import SearchBarV3 from '@/components/search/SearchBarV3'
-import { Plane, Hotel, Shield, TrendingDown } from 'lucide-react'
+import Navigation from '@/components/layout/Navigation'
+import { Hotel, Shield, TrendingDown } from 'lucide-react'
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Plane className="h-8 w-8 text-blue-600" />
-              <h1 className="text-2xl font-display font-bold text-gray-900">TravelSearch</h1>
-            </div>
-            <nav className="hidden md:flex items-center space-x-6">
-              <a href="/flights" className="text-gray-600 hover:text-blue-600 transition-colors">Flights</a>
-              <a href="/hotels" className="text-gray-600 hover:text-blue-600 transition-colors">Hotels</a>
-              <a href="/admin" className="text-gray-600 hover:text-blue-600 transition-colors">Admin</a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16">
