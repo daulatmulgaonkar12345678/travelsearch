@@ -34,6 +34,10 @@ export const API_ENDPOINTS = {
   searchFlights: `${API_BASE_URL}/api/search/flights`,
   searchHotels: `${API_BASE_URL}/api/search/hotels`,
   
+  // Pricing endpoints
+  pricingDateRange: `${API_BASE_URL}/api/pricing/date-range`,
+  pricingCacheStats: `${API_BASE_URL}/api/pricing/cache-stats`,
+  
   // Redirect endpoints
   redirect: `${API_BASE_URL}/api/redirect`,
   redirectAviasales: `${API_BASE_URL}/api/redirect/aviasales`,
