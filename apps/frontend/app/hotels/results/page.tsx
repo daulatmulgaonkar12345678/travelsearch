@@ -166,7 +166,7 @@ function HotelResultsContent() {
               Hotels in {city}
             </h2>
             <p className="text-gray-600 text-sm">
-              {checkIn} to {checkOut} • {rooms} room(s) • {offers.length} hotels found
+              {checkIn} to {checkOut} • {roomsCount} room(s) • {offers.length} hotels found
             </p>
           </div>
           <button
