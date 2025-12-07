@@ -55,11 +55,15 @@ export default function CityAutocomplete({
 
     setIsLoading(true)
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
-      const response = await fetch(`${apiUrl}/api/cities?query=${encodeURIComponent(searchQuery)}&limit=10`)
+      const url = `${API_BASE_URL}/api/cities?query=${encodeURIComponent(searchQuery)}&limit=10`
+      const response = await apiFetch(url)
+      
       if (response.ok) {
         const data = await response.json()
         setSuggestions(data)
+      } else {
+        console.error(`City search failed: ${response.status} ${response.statusText}`)
+        setSuggestions([])
       }
     } catch (error) {
       console.error('Failed to fetch cities:', error)
