@@ -183,6 +183,7 @@ export default function ReconciliationsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
