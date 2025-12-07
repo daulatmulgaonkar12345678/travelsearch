@@ -168,27 +168,33 @@ backend:
 frontend:
   - task: "Backend Connection - Flight Search API Integration"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/apps/frontend/components/search/SearchBarV3.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Need to test flight search form integration with backend API - verify no ERR_CONNECTION_REFUSED errors and flight results are displayed"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Flight search API integration working correctly. No ERR_CONNECTION_REFUSED errors. API calls successfully made to local backend (localhost:8001). Flight results displayed properly with real Amadeus data. Navigation from homepage to results page works seamlessly."
 
   - task: "Pune Airport Autocomplete Fix"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/apps/frontend/components/search/AirportAutocomplete.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Need to test airport autocomplete shows Pune (PNQ) when typing 'pu' and properly sets origin parameter to PNQ in search results URL"
+        - working: true
+          agent: "testing"
+          comment: "✅ PASS - Pune airport autocomplete working perfectly. Typing 'pu' shows 'Pune, India - PNQ' in dropdown. Selecting Pune correctly sets origin parameter to 'PNQ' (not 'pune') in search results URL. Complete flow PNQ→BOM search returns 11 real flight results. Backend API integration fixed by updating NEXT_PUBLIC_API_URL to localhost:8001."
 
 metadata:
   created_by: "testing_agent"
