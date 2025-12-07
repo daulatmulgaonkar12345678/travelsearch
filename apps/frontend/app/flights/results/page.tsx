@@ -142,6 +142,50 @@ function SearchResultsContent() {
     }
   }
 
+  // Calculate tab prices (Best/Cheapest/Fastest)
+  const tabPrices = React.useMemo(() => {
+    if (filteredOffers.length === 0) {
+      return { best: undefined, cheapest: undefined, fastest: undefined }
+    }
+
+    // Cheapest: minimum price
+    const cheapestPrice = Math.min(...filteredOffers.map(o => o.price))
+
+    // Fastest: price of the flight with minimum duration
+    const fastestFlight = filteredOffers.reduce((min, offer) => 
+      (offer.total_duration_minutes || 0) < (min.total_duration_minutes || 0) ? offer : min
+    )
+    const fastestPrice = fastestFlight.price
+
+    // Best: price of the first flight when sorted by "best" logic
+    const bestSorted = [...filteredOffers].sort((a, b) => {
+      const scoreA = a.price / 1000 + (a.total_duration_minutes || 0) / 60
+      const scoreB = b.price / 1000 + (b.total_duration_minutes || 0) / 60
+      return scoreA - scoreB
+    })
+    const bestPrice = bestSorted[0]?.price
+
+    return { best: bestPrice, cheapest: cheapestPrice, fastest: fastestPrice }
+  }, [filteredOffers])
+
+  // Calculate date prices (minimum price per date from filtered results)
+  useEffect(() => {
+    if (filteredOffers.length === 0) return
+
+    const dateMinPrice = new Map<string, number>()
+    
+    filteredOffers.forEach(offer => {
+      // Extract date from first segment
+      const departureDate = offer.segments[0]?.departure_time?.split('T')[0]
+      if (departureDate) {
+        const currentMin = dateMinPrice.get(departureDate)
+        dateMinPrice.set(departureDate, currentMin === undefined ? offer.price : Math.min(currentMin, offer.price))
+      }
+    })
+
+    setDatePriceCache(dateMinPrice)
+  }, [filteredOffers])
+
   // Apply filters and sorting
   useEffect(() => {
     let filtered = [...offers]
