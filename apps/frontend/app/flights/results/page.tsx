@@ -335,11 +335,8 @@ function SearchResultsContent() {
       <SortTabs
         activeSort={sortType}
         onSortChange={setSortType}
-        counts={{
-          best: filteredOffers.length,
-          cheapest: filteredOffers.length,
-          fastest: filteredOffers.length,
-        }}
+        prices={tabPrices}
+        currency="INR"
       />
 
       <div className="container mx-auto px-4 py-4">
