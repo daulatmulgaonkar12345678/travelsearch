@@ -82,6 +82,14 @@ export default function ReconciliationsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <div className="container mx-auto p-6 max-w-6xl">
+      {/* Mock Data Notice */}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-900">
+          <strong>Note:</strong> This Admin view currently uses sample/mock data for reconciliation. 
+          Future work: connect to real affiliate click logs and bookings.
+        </p>
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
