@@ -176,25 +176,22 @@ export default function ImprovedFilters({
 
         {expandedSections.departureTime && (
           <div className="mt-3">
-            <div className="text-sm text-gray-600 mb-3">
-              Outbound {formatTime(filters.departureTimeRange[0])} –{' '}
-              {formatTime(filters.departureTimeRange[1])}
+            <div className="text-sm text-gray-700 mb-4 font-medium">
+              Outbound {formatTime(filters.departureTimeRange[0])} – {formatTime(filters.departureTimeRange[1])}
             </div>
-            <div className="relative pt-2 pb-1">
-              <input
-                type="range"
-                min="0"
-                max="23"
-                value={filters.departureTimeRange[1]}
-                onChange={(e) =>
-                  onFilterChange({
-                    ...filters,
-                    departureTimeRange: [filters.departureTimeRange[0], parseInt(e.target.value)],
-                  })
-                }
-                className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
+            <RangeSlider
+              min={0}
+              max={23}
+              value={filters.departureTimeRange}
+              onChange={(newRange) =>
+                onFilterChange({
+                  ...filters,
+                  departureTimeRange: newRange,
+                })
+              }
+              step={1}
+              className="px-1"
+            />
           </div>
         )}
       </div>
