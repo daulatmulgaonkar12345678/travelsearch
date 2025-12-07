@@ -91,6 +91,36 @@ function SearchResultsContent() {
   }, [searchParams, selectedDate])
 
   const handleProviderSelect = async (provider: any, offer: FlightOffer) => {
+    // Navigate to vendor selection page with offer details
+    const firstSegment = offer.segments[0]
+    const lastSegment = offer.segments[offer.segments.length - 1]
+    
+    const params = new URLSearchParams({
+      origin: firstSegment.departure_airport,
+      destination: lastSegment.arrival_airport,
+      departure_date: new Date(firstSegment.departure_time).toISOString().split('T')[0],
+      departure_time: new Date(firstSegment.departure_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      arrival_time: new Date(lastSegment.arrival_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      airline: firstSegment.carrier_name,
+      flight_number: firstSegment.flight_number || '',
+      price: offer.price.toString(),
+      currency: offer.currency,
+      stops: offer.stops.toString(),
+      adults: searchParams.get('adults') || '1',
+      children: searchParams.get('children') || '0',
+      infants: searchParams.get('infants') || '0',
+      cabin_class: offer.cabin_class || 'economy',
+    })
+    
+    const returnDate = searchParams.get('return_date')
+    if (returnDate) {
+      params.set('return_date', returnDate)
+    }
+    
+    router.push(`/flights/vendors?${params.toString()}`)
+    
+    // Keep old modal logic as backup (commented out)
+    /*
     try {
       const response = await apiFetch(API_ENDPOINTS.redirect, {
         method: 'POST',
