@@ -164,7 +164,29 @@ async def search_hotels(
 async def search_hotels_post(request: HotelSearchRequest):
     """Search hotels (POST method)"""
     try:
-        logger.info(f"Hotel search request: {request.city}")
+        # Validate dates
+        from datetime import date, timedelta
+        today = date.today()
+        
+        try:
+            check_in_date = date.fromisoformat(request.check_in)
+            check_out_date = date.fromisoformat(request.check_out)
+        except ValueError as e:
+            logger.error(f"Invalid date format: {e}")
+            raise HTTPException(status_code=422, detail=f"Invalid date format. Use YYYY-MM-DD. Error: {str(e)}")
+        
+        if check_in_date < today:
+            logger.warning(f"Check-in date {check_in_date} is in the past")
+            # Allow it but warn - some users might be testing
+        
+        if check_out_date <= check_in_date:
+            raise HTTPException(status_code=422, detail="Check-out date must be after check-in date")
+        
+        # Validate rooms
+        if not request.rooms or len(request.rooms) == 0:
+            request.rooms = [{"adults": 2, "children": []}]
+        
+        logger.info(f"Hotel search request: {request.city}, {request.check_in} to {request.check_out}, {len(request.rooms)} room(s)")
         offers = await aggregator.search_hotels(request)
         
         return HotelSearchResponse(
@@ -173,6 +195,8 @@ async def search_hotels_post(request: HotelSearchRequest):
             cached=False,
             timestamp=datetime.utcnow()
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Hotel search error: {e}")
+        logger.error(f"Hotel search error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
