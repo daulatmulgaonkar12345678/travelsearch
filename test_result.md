@@ -198,10 +198,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Flight Search API - Oneway"
-    - "Flight Search API - Roundtrip"
-    - "Hotel Search API"
-    - "Aviasales Affiliate Redirect"
+    - "Backend Connection - Flight Search API Integration"
+    - "Pune Airport Autocomplete Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
