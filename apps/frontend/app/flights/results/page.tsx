@@ -4,97 +4,196 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import ResultCard, { FlightOffer } from '@/components/results/ResultCard'
-import FilterSidebar from '@/components/results/FilterSidebar'
-import DateStrip from '@/components/search/DateStrip'
-import InterstitialRedirectModal from '@/components/common/InterstitialRedirectModal'
-import { Loader2, SlidersHorizontal } from 'lucide-react'
+import SortTabs from '@/components/results/SortTabs'
+import AdvancedFilters from '@/components/results/AdvancedFilters'
+import FlexibleDateBar from '@/components/results/FlexibleDateBar'
+import { Loader2, SlidersHorizontal, X } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 
 function SearchResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [offers, setOffers] = useState<FlightOffer[]>([])
+  const [filteredOffers, setFilteredOffers] = useState<FlightOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  
-  // Redirect modal state
-  const [redirectModal, setRedirectModal] = useState<{
-    isOpen: boolean
-    provider: string
-    price: number
-    currency: string
-    redirectUrl: string
-  }>({ isOpen: false, provider: '', price: 0, currency: 'INR', redirectUrl: '' })
+  const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
+
+  // Flexible dates state
+  const [dateOptions, setDateOptions] = useState<any[]>([])
+  const [selectedDate, setSelectedDate] = useState(searchParams.get('departure_date') || '')
+  const [datePriceCache, setDatePriceCache] = useState<Map<string, number>>(new Map())
 
   // Filter state
   const [filters, setFilters] = useState({
     stops: [] as string[],
-    baggage: [] as string[],
-    departureTime: [0, 23] as [number, number],
-    arrivalTime: [0, 23] as [number, number],
-    duration: [0, 24] as [number, number],
+    departureTimeRange: [0, 23] as [number, number],
+    durationRange: [0, 1440] as [number, number], // minutes
     airlines: [] as string[],
-    emissions: false,
   })
 
-  const [selectedDate, setSelectedDate] = useState<string>(searchParams.get('departure_date') || '')
+  // Search parameters
+  const origin = searchParams.get('origin') || ''
+  const destination = searchParams.get('destination') || ''
+  const tripType = searchParams.get('trip_type') || 'oneway'
+  const returnDate = searchParams.get('return_date') || ''
+  const cabinClass = searchParams.get('cabin_class') || 'economy'
+
+  // Initialize flexible date bar
+  useEffect(() => {
+    if (selectedDate) {
+      const dates = generateDateOptions(selectedDate)
+      setDateOptions(dates)
+    }
+  }, [selectedDate])
+
+  const generateDateOptions = (centerDate: string) => {
+    const center = new Date(centerDate)
+    const options = []
+
+    for (let i = -3; i <= 3; i++) {
+      const date = new Date(center)
+      date.setDate(center.getDate() + i)
+      
+      const dateStr = date.toISOString().split('T')[0]
+      options.push({
+        date: dateStr,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNum: date.getDate().toString(),
+        month: date.toLocaleDateString('en-US', { month: 'short' }),
+        bestPrice: datePriceCache.get(dateStr) || null,
+        currency: 'INR'
+      })
+    }
+
+    return options
+  }
 
   useEffect(() => {
-    const fetchResults = async () => {
+    if (!origin || !destination || !selectedDate) {
+      setError('Missing required search parameters')
+      setLoading(false)
+      return
+    }
+
+    fetchResults()
+  }, [origin, destination, selectedDate, tripType, returnDate, cabinClass])
+
+  const fetchResults = async () => {
+    try {
       setLoading(true)
       setError(null)
 
       const params = new URLSearchParams({
-        origin: searchParams.get('origin') || 'BOM',
-        destination: searchParams.get('destination') || 'PNQ',
-        departure_date: selectedDate || searchParams.get('departure_date') || '2025-12-15',
+        origin,
+        destination,
+        departure_date: selectedDate,
+        trip_type: tripType,
         adults: searchParams.get('adults') || '1',
         children: searchParams.get('children') || '0',
         infants: searchParams.get('infants') || '0',
+        cabin_class: cabinClass,
       })
 
-      try {
-        const url = `${API_ENDPOINTS.searchFlights}?${params}`
-        const response = await apiFetch(url)
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const data = await response.json()
-        
-        // Transform backend offers to include mock providers
-        const offersWithProviders = data.offers.map((offer: any) => ({
-          ...offer,
-          providers: [
-            {
-              name: offer.provider,
-              price: offer.price,
-              deep_link: offer.deep_link || 'https://mock-provider.com',
-              rating: offer.rating || 85,
-              trust_bullets: ['Secure payments', '24/7 support'],
-            },
-          ],
-        }))
-        
-        setOffers(offersWithProviders)
-      } catch (err) {
-        console.error('Search error:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch results')
-      } finally {
-        setLoading(false)
+      if (returnDate && tripType === 'roundtrip') {
+        params.set('return_date', returnDate)
       }
+
+      const url = `${API_ENDPOINTS.searchFlights}?${params}`
+      const response = await apiFetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const fetchedOffers = data.offers || []
+      setOffers(fetchedOffers)
+
+      // Cache minimum price for this date
+      if (fetchedOffers.length > 0) {
+        const minPrice = Math.min(...fetchedOffers.map((o: FlightOffer) => o.price))
+        setDatePriceCache(prev => new Map(prev).set(selectedDate, minPrice))
+      }
+
+      // Initialize filters based on available data
+      if (fetchedOffers.length > 0) {
+        const durations = fetchedOffers.map((o: FlightOffer) => o.total_duration_minutes || 0)
+        const uniqueAirlines = Array.from(new Set(
+          fetchedOffers.flatMap((o: FlightOffer) => 
+            o.segments.map(s => s.carrier_name)
+          )
+        )).sort()
+
+        setFilters(prev => ({
+          ...prev,
+          durationRange: [Math.min(...durations), Math.max(...durations)],
+          airlines: uniqueAirlines
+        }))
+      }
+    } catch (err) {
+      console.error('Search error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch results')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Apply filters and sorting
+  useEffect(() => {
+    let filtered = [...offers]
+
+    // Filter by stops
+    if (filters.stops.length > 0) {
+      filtered = filtered.filter(offer => {
+        if (filters.stops.includes('Direct') && offer.stops === 0) return true
+        if (filters.stops.includes('1 stop') && offer.stops === 1) return true
+        if (filters.stops.includes('2+ stops') && offer.stops >= 2) return true
+        return false
+      })
     }
 
-    fetchResults()
-  }, [searchParams, selectedDate])
+    // Filter by departure time
+    filtered = filtered.filter(offer => {
+      const depTime = new Date(offer.segments[0].departure_time).getHours()
+      return depTime >= filters.departureTimeRange[0] && depTime <= filters.departureTimeRange[1]
+    })
 
-  const handleProviderSelect = async (provider: any, offer: FlightOffer) => {
-    // Navigate to vendor selection page with offer details
+    // Filter by duration
+    filtered = filtered.filter(offer => {
+      const duration = offer.total_duration_minutes || 0
+      return duration >= filters.durationRange[0] && duration <= filters.durationRange[1]
+    })
+
+    // Filter by airlines
+    if (filters.airlines.length > 0) {
+      filtered = filtered.filter(offer => {
+        return offer.segments.some(seg => filters.airlines.includes(seg.carrier_name))
+      })
+    }
+
+    // Sort
+    if (sortType === 'cheapest') {
+      filtered.sort((a, b) => a.price - b.price)
+    } else if (sortType === 'fastest') {
+      filtered.sort((a, b) => (a.total_duration_minutes || 0) - (b.total_duration_minutes || 0))
+    } else {
+      // Best: simple heuristic (can be improved)
+      filtered.sort((a, b) => {
+        const scoreA = a.price / 1000 + (a.total_duration_minutes || 0) / 60
+        const scoreB = b.price / 1000 + (b.total_duration_minutes || 0) / 60
+        return scoreA - scoreB
+      })
+    }
+
+    setFilteredOffers(filtered)
+  }, [offers, filters, sortType])
+
+  const handleProviderSelect = (provider: any, offer: FlightOffer) => {
     const firstSegment = offer.segments[0]
     const lastSegment = offer.segments[offer.segments.length - 1]
-    
+
     const params = new URLSearchParams({
       origin: firstSegment.departure_airport,
       destination: lastSegment.arrival_airport,
@@ -111,145 +210,168 @@ function SearchResultsContent() {
       infants: searchParams.get('infants') || '0',
       cabin_class: offer.cabin_class || 'economy',
     })
-    
-    const returnDate = searchParams.get('return_date')
+
     if (returnDate) {
       params.set('return_date', returnDate)
     }
-    
+
     router.push(`/flights/vendors?${params.toString()}`)
   }
 
-  const filterResults = (offers: FlightOffer[]) => {
-    return offers.filter((offer) => {
-      // Stops filter
-      if (filters.stops.length > 0) {
-        const stopMatch = filters.stops.some((stop) => {
-          if (stop === 'Non-stop') return offer.stops === 0
-          if (stop === '1 Stop') return offer.stops === 1
-          if (stop === '2+ Stops') return offer.stops >= 2
-          return false
-        })
-        if (!stopMatch) return false
-      }
+  const handleDateSelect = async (newDate: string) => {
+    setSelectedDate(newDate)
+    
+    // Update URL
+    const newParams = new URLSearchParams(searchParams.toString())
+    newParams.set('departure_date', newDate)
+    router.push(`/flights/results?${newParams.toString()}`, { scroll: false })
+  }
 
-      // Duration filter (in hours)
-      const durationHours = offer.total_duration_minutes / 60
-      if (durationHours > filters.duration[1]) return false
+  const handleResetFilters = () => {
+    const durations = offers.map(o => o.total_duration_minutes || 0)
+    const uniqueAirlines = Array.from(new Set(
+      offers.flatMap(o => o.segments.map(s => s.carrier_name))
+    )).sort()
 
-      // Airlines filter
-      if (filters.airlines.length > 0) {
-        const airlineMatch = filters.airlines.some(
-          (airline) => offer.segments[0].carrier_name === airline
-        )
-        if (!airlineMatch) return false
-      }
-
-      // Emissions filter
-      if (filters.emissions && offer.emissions_kg && offer.emissions_kg > 80) {
-        return false
-      }
-
-      return true
+    setFilters({
+      stops: [],
+      departureTimeRange: [0, 23],
+      durationRange: [Math.min(...durations), Math.max(...durations)],
+      airlines: uniqueAirlines
     })
   }
 
-  const filteredOffers = filterResults(offers)
+  const availableAirlines = Array.from(new Set(
+    offers.flatMap(o => o.segments.map(s => s.carrier_name))
+  )).sort()
 
-  // Determine badges
-  const offersWithBadges = filteredOffers.map((offer, idx) => {
-    if (idx === 0 && offer.rating && offer.rating >= 85) return { ...offer, badge: 'best' as const }
-    if (offer.price === Math.min(...filteredOffers.map(o => o.price))) return { ...offer, badge: 'cheapest' as const }
-    if (offer.total_duration_minutes === Math.min(...filteredOffers.map(o => o.total_duration_minutes))) {
-      return { ...offer, badge: 'fastest' as const }
-    }
-    return offer
-  })
+  const minDuration = Math.min(...offers.map(o => o.total_duration_minutes || 0))
+  const maxDuration = Math.max(...offers.map(o => o.total_duration_minutes || 0))
+
+  if (loading && offers.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Searching flights from {origin} to {destination}...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-red-900 mb-2">Search Error</h3>
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={() => router.push('/')}
+            className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Back to Search
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (offers.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">No flights found</h3>
+        <p className="text-gray-600 mb-4">
+          We couldn't find any flights from {origin} to {destination} on {selectedDate}.
+        </p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Try Another Search
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      {/* Date Strip */}
-      <DateStrip selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+      
+      {/* Flexible Date Bar */}
+      {dateOptions.length > 0 && (
+        <FlexibleDateBar
+          dates={dateOptions}
+          selectedDate={selectedDate}
+          onDateSelect={handleDateSelect}
+          loading={loading}
+        />
+      )}
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {searchParams.get('origin')} → {searchParams.get('destination')}
-          </h1>
-          <button
-            data-testid="toggle-filters"
-            onClick={() => setShowFilters(!showFilters)}
-            className="md:hidden flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-lg"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-            <span>Filters</span>
-          </button>
-        </div>
+      {/* Sort Tabs */}
+      <SortTabs
+        activeSort={sortType}
+        onSortChange={setSortType}
+        counts={{
+          best: filteredOffers.length,
+          cheapest: filteredOffers.length,
+          fastest: filteredOffers.length
+        }}
+      />
 
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Filters */}
-          <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-80 flex-shrink-0`}>
-            <FilterSidebar filters={filters} onFilterChange={setFilters} />
-          </aside>
-
-          {/* Results */}
-          <main className="flex-1">
-            {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-3 text-gray-600">Searching flights...</span>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                <p className="text-red-800">Error: {error}</p>
-              </div>
-            ) : filteredOffers.length === 0 ? (
-              <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-                <p className="text-gray-600">No flights found matching your filters.</p>
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-32">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
                 <button
-                  onClick={() => setFilters({
-                    stops: [],
-                    baggage: [],
-                    departureTime: [0, 23],
-                    arrivalTime: [0, 23],
-                    duration: [0, 24],
-                    airlines: [],
-                    emissions: false,
-                  })}
-                  className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                  onClick={handleResetFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center space-x-1"
                 >
-                  Clear all filters
+                  <X className="h-4 w-4" />
+                  <span>Reset</span>
                 </button>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
-                  {filteredOffers.length} flight{filteredOffers.length !== 1 ? 's' : ''} found
-                </div>
-                {offersWithBadges.map((offer) => (
-                  <ResultCard
-                    key={offer.offer_id}
-                    offer={offer}
-                    badge={'badge' in offer ? offer.badge : undefined}
-                    onProviderSelect={handleProviderSelect}
-                  />
-                ))}
-              </div>
-            )}
-          </main>
+              <AdvancedFilters
+                filters={filters}
+                onFilterChange={setFilters}
+                availableAirlines={availableAirlines}
+                minDuration={minDuration}
+                maxDuration={maxDuration}
+              />
+            </div>
+          </div>
+
+          {/* Results */}
+          <div className="lg:col-span-3">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-gray-600">
+                {filteredOffers.length} of {offers.length} flights
+                {filteredOffers.length !== offers.length && ' (filtered)'}
+              </p>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filters</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {filteredOffers.map((offer) => (
+                <ResultCard
+                  key={offer.offer_id}
+                  offer={offer}
+                  badge={undefined}
+                  onProviderSelect={handleProviderSelect}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Interstitial Redirect Modal */}
-      <InterstitialRedirectModal
-        isOpen={redirectModal.isOpen}
-        provider={redirectModal.provider}
-        price={redirectModal.price}
-        currency={redirectModal.currency}
-        redirectUrl={redirectModal.redirectUrl}
-        onClose={() => setRedirectModal({ ...redirectModal, isOpen: false })}
-      />
     </div>
   )
 }
@@ -257,8 +379,8 @@ function SearchResultsContent() {
 export default function SearchResultsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
       </div>
     }>
       <SearchResultsContent />
