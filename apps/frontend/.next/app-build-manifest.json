@@ -15,6 +15,13 @@
       "static/css/c968334b29b5c200.css",
       "static/chunks/app/layout-d7204e5b32dfd914.js"
     ],
+    "/admin/page": [
+      "static/chunks/webpack-1c04d427bedd7f8b.js",
+      "static/chunks/fd9d1056-76614a2684aeaad6.js",
+      "static/chunks/938-4c04771bd2266e48.js",
+      "static/chunks/main-app-7a0885f190dcd632.js",
+      "static/chunks/app/admin/page-b6db5d3284d048cd.js"
+    ],
     "/admin/reconciliations/page": [
       "static/chunks/webpack-1c04d427bedd7f8b.js",
       "static/chunks/fd9d1056-76614a2684aeaad6.js",
@@ -37,13 +44,6 @@
       "static/chunks/938-4c04771bd2266e48.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/app/flights/page-bdb1bbce80d3918d.js"
-    ],
-    "/admin/page": [
-      "static/chunks/webpack-1c04d427bedd7f8b.js",
-      "static/chunks/fd9d1056-76614a2684aeaad6.js",
-      "static/chunks/938-4c04771bd2266e48.js",
-      "static/chunks/main-app-7a0885f190dcd632.js",
-      "static/chunks/app/admin/page-b6db5d3284d048cd.js"
     ],
     "/flights/vendors/page": [
       "static/chunks/webpack-1c04d427bedd7f8b.js",
