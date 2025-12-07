@@ -32,7 +32,7 @@ export default function FlexibleDateBar({
   return (
     <div className="bg-white border-b border-gray-200 py-2 sticky top-16 z-40 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <button
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
             onClick={() => {
@@ -47,7 +47,7 @@ export default function FlexibleDateBar({
           </button>
 
           <div className="flex-1 overflow-x-auto scrollbar-hide">
-            <div className="flex space-x-2">
+            <div className="flex w-full gap-3">
               {dates.map((dateOption) => {
                 const isSelected = dateOption.date === selectedDate
                 const hasPrice = dateOption.bestPrice !== null
@@ -58,13 +58,12 @@ export default function FlexibleDateBar({
                     onClick={() => onDateSelect(dateOption.date)}
                     disabled={loading}
                     className={`
-                      flex-shrink-0 px-4 py-3 rounded-lg border-2 transition-all
+                      flex-1 px-4 py-3 rounded-lg border-2 transition-all min-w-[120px]
                       ${isSelected
                         ? 'border-blue-600 bg-blue-50 shadow-sm'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                       }
                       ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                      min-w-[100px]
                     `}
                   >
                     <div className="text-center">
