@@ -297,11 +297,11 @@ function SearchResultsContent() {
         }}
       />
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-32">
+            <div className="lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
                 <button
