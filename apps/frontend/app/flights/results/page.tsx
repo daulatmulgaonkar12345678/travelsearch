@@ -228,24 +228,6 @@ function SearchResultsContent() {
     return { best: bestPrice, cheapest: cheapestPrice, fastest: fastestPrice }
   }, [filteredOffers])
 
-  // Calculate date prices (minimum price per date from filtered results)
-  useEffect(() => {
-    if (filteredOffers.length === 0) return
-
-    const dateMinPrice = new Map<string, number>()
-    
-    filteredOffers.forEach(offer => {
-      // Extract date from first segment
-      const departureDate = offer.segments[0]?.departure_time?.split('T')[0]
-      if (departureDate) {
-        const currentMin = dateMinPrice.get(departureDate)
-        dateMinPrice.set(departureDate, currentMin === undefined ? offer.price : Math.min(currentMin, offer.price))
-      }
-    })
-
-    setDatePriceCache(dateMinPrice)
-  }, [filteredOffers])
-
   // Apply filters and sorting
   useEffect(() => {
     let filtered = [...offers]
