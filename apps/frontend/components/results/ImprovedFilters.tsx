@@ -213,22 +213,22 @@ export default function ImprovedFilters({
 
         {expandedSections.duration && (
           <div className="mt-3">
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-              <span>{formatDuration(minDuration)}</span>
-              <span>Up to {formatDuration(filters.durationRange[1])}</span>
+            <div className="flex items-center justify-between text-sm text-gray-700 mb-4 font-medium">
+              <span>{formatDuration(filters.durationRange[0])}</span>
+              <span>{formatDuration(filters.durationRange[1])}</span>
             </div>
-            <input
-              type="range"
+            <RangeSlider
               min={minDuration}
               max={maxDuration}
-              value={filters.durationRange[1]}
-              onChange={(e) =>
+              value={filters.durationRange}
+              onChange={(newRange) =>
                 onFilterChange({
                   ...filters,
-                  durationRange: [filters.durationRange[0], parseInt(e.target.value)],
+                  durationRange: newRange,
                 })
               }
-              className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              step={15}
+              className="px-1"
             />
           </div>
         )}
