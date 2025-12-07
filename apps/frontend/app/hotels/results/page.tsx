@@ -34,7 +34,7 @@ function HotelResultsContent() {
   const city = searchParams.get('city') || ''
   const checkIn = searchParams.get('check_in') || ''
   const checkOut = searchParams.get('check_out') || ''
-  const rooms = searchParams.get('rooms') || '1'
+  const roomsCount = parseInt(searchParams.get('rooms') || '1', 10)
 
   useEffect(() => {
     if (!city || !checkIn || !checkOut) {
@@ -48,11 +48,28 @@ function HotelResultsContent() {
         setLoading(true)
         setError(null)
 
+        // Reconstruct rooms array from query parameters
+        const rooms = []
+        for (let i = 0; i < roomsCount; i++) {
+          const adults = parseInt(searchParams.get(`room_${i}_adults`) || '2', 10)
+          const children: number[] = []
+          
+          // Extract children ages for this room
+          let childIdx = 0
+          while (searchParams.has(`room_${i}_child_${childIdx}_age`)) {
+            const age = parseInt(searchParams.get(`room_${i}_child_${childIdx}_age`) || '0', 10)
+            children.push(age)
+            childIdx++
+          }
+          
+          rooms.push({ adults, children })
+        }
+
         const requestBody = {
           city,
           check_in: checkIn,
           check_out: checkOut,
-          rooms: JSON.parse(rooms)
+          rooms
         }
 
         const url = API_ENDPOINTS.searchHotels
