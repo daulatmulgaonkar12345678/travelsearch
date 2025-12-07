@@ -23,6 +23,29 @@ interface HotelOffer {
   deep_link: string
 }
 
+type RoomConfig = {
+  adults: number
+  children: number[]
+}
+
+function getRoomsFromSearchParams(searchParams: URLSearchParams): RoomConfig[] {
+  const roomCount = Number(searchParams.get('rooms') ?? '1')
+  const rooms: RoomConfig[] = []
+
+  for (let i = 0; i < roomCount; i++) {
+    const adults = Number(searchParams.get(`room_${i}_adults`) ?? '2')
+    const children: number[] = []
+    let childIndex = 0
+    while (searchParams.has(`room_${i}_child_${childIndex}_age`)) {
+      children.push(Number(searchParams.get(`room_${i}_child_${childIndex}_age`) ?? '0'))
+      childIndex++
+    }
+    rooms.push({ adults, children })
+  }
+
+  return rooms.length > 0 ? rooms : [{ adults: 2, children: [] }]
+}
+
 function HotelResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -35,6 +58,10 @@ function HotelResultsContent() {
   const checkIn = searchParams.get('check_in') || ''
   const checkOut = searchParams.get('check_out') || ''
   const roomsCount = parseInt(searchParams.get('rooms') || '1', 10)
+  
+  // Extract rooms configuration from search params (safe to use in dependency array)
+  const rooms = getRoomsFromSearchParams(searchParams)
+  const roomsKey = JSON.stringify(rooms) // Stable key for dependency tracking
 
   useEffect(() => {
     if (!city || !checkIn || !checkOut) {
@@ -47,23 +74,6 @@ function HotelResultsContent() {
       try {
         setLoading(true)
         setError(null)
-
-        // Reconstruct rooms array from query parameters
-        const rooms = []
-        for (let i = 0; i < roomsCount; i++) {
-          const adults = parseInt(searchParams.get(`room_${i}_adults`) || '2', 10)
-          const children: number[] = []
-          
-          // Extract children ages for this room
-          let childIdx = 0
-          while (searchParams.has(`room_${i}_child_${childIdx}_age`)) {
-            const age = parseInt(searchParams.get(`room_${i}_child_${childIdx}_age`) || '0', 10)
-            children.push(age)
-            childIdx++
-          }
-          
-          rooms.push({ adults, children })
-        }
 
         const requestBody = {
           city,
@@ -94,7 +104,7 @@ function HotelResultsContent() {
     }
 
     fetchResults()
-  }, [city, checkIn, checkOut, rooms])
+  }, [city, checkIn, checkOut, roomsKey])
 
   const handleSelectHotel = (offer: HotelOffer) => {
     // Navigate to vendor selection page
