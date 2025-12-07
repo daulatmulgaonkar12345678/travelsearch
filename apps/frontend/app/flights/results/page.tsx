@@ -3,11 +3,12 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import ResultCard, { FlightOffer } from '@/components/results/ResultCard'
+import EnhancedFlightCard from '@/components/results/EnhancedFlightCard'
 import SortTabs from '@/components/results/SortTabs'
-import AdvancedFilters from '@/components/results/AdvancedFilters'
+import ImprovedFilters from '@/components/results/ImprovedFilters'
 import FlexibleDateBar from '@/components/results/FlexibleDateBar'
-import { Loader2, SlidersHorizontal, X } from 'lucide-react'
+import { FlightOffer } from '@/components/results/ResultCard'
+import { Loader2 } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 
 function SearchResultsContent() {
@@ -17,7 +18,6 @@ function SearchResultsContent() {
   const [filteredOffers, setFilteredOffers] = useState<FlightOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
   const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
 
   // Flexible dates state
@@ -29,7 +29,7 @@ function SearchResultsContent() {
   const [filters, setFilters] = useState({
     stops: [] as string[],
     departureTimeRange: [0, 23] as [number, number],
-    durationRange: [0, 1440] as [number, number], // minutes
+    durationRange: [0, 1440] as [number, number],
     airlines: [] as string[],
   })
 
@@ -46,7 +46,7 @@ function SearchResultsContent() {
       const dates = generateDateOptions(selectedDate)
       setDateOptions(dates)
     }
-  }, [selectedDate])
+  }, [selectedDate, datePriceCache])
 
   const generateDateOptions = (centerDate: string) => {
     const center = new Date(centerDate)
@@ -55,7 +55,7 @@ function SearchResultsContent() {
     for (let i = -3; i <= 3; i++) {
       const date = new Date(center)
       date.setDate(center.getDate() + i)
-      
+
       const dateStr = date.toISOString().split('T')[0]
       options.push({
         date: dateStr,
@@ -63,7 +63,7 @@ function SearchResultsContent() {
         dayNum: date.getDate().toString(),
         month: date.toLocaleDateString('en-US', { month: 'short' }),
         bestPrice: datePriceCache.get(dateStr) || null,
-        currency: 'INR'
+        currency: 'INR',
       })
     }
 
@@ -114,22 +114,24 @@ function SearchResultsContent() {
       // Cache minimum price for this date
       if (fetchedOffers.length > 0) {
         const minPrice = Math.min(...fetchedOffers.map((o: FlightOffer) => o.price))
-        setDatePriceCache(prev => new Map(prev).set(selectedDate, minPrice))
+        setDatePriceCache((prev) => {
+          const newCache = new Map(prev)
+          newCache.set(selectedDate, minPrice)
+          return newCache
+        })
       }
 
       // Initialize filters based on available data
       if (fetchedOffers.length > 0) {
         const durations = fetchedOffers.map((o: FlightOffer) => o.total_duration_minutes || 0)
-        const uniqueAirlines = Array.from(new Set(
-          fetchedOffers.flatMap((o: FlightOffer) => 
-            o.segments.map(s => s.carrier_name)
-          )
-        )).sort()
+        const uniqueAirlines = Array.from(
+          new Set(fetchedOffers.flatMap((o: FlightOffer) => o.segments.map((s) => s.carrier_name)))
+        ).sort()
 
-        setFilters(prev => ({
+        setFilters((prev) => ({
           ...prev,
           durationRange: [Math.min(...durations), Math.max(...durations)],
-          airlines: uniqueAirlines
+          airlines: uniqueAirlines,
         }))
       }
     } catch (err) {
@@ -146,7 +148,7 @@ function SearchResultsContent() {
 
     // Filter by stops
     if (filters.stops.length > 0) {
-      filtered = filtered.filter(offer => {
+      filtered = filtered.filter((offer) => {
         if (filters.stops.includes('Direct') && offer.stops === 0) return true
         if (filters.stops.includes('1 stop') && offer.stops === 1) return true
         if (filters.stops.includes('2+ stops') && offer.stops >= 2) return true
@@ -155,21 +157,21 @@ function SearchResultsContent() {
     }
 
     // Filter by departure time
-    filtered = filtered.filter(offer => {
+    filtered = filtered.filter((offer) => {
       const depTime = new Date(offer.segments[0].departure_time).getHours()
       return depTime >= filters.departureTimeRange[0] && depTime <= filters.departureTimeRange[1]
     })
 
     // Filter by duration
-    filtered = filtered.filter(offer => {
+    filtered = filtered.filter((offer) => {
       const duration = offer.total_duration_minutes || 0
       return duration >= filters.durationRange[0] && duration <= filters.durationRange[1]
     })
 
     // Filter by airlines
     if (filters.airlines.length > 0) {
-      filtered = filtered.filter(offer => {
-        return offer.segments.some(seg => filters.airlines.includes(seg.carrier_name))
+      filtered = filtered.filter((offer) => {
+        return offer.segments.some((seg) => filters.airlines.includes(seg.carrier_name))
       })
     }
 
@@ -179,7 +181,7 @@ function SearchResultsContent() {
     } else if (sortType === 'fastest') {
       filtered.sort((a, b) => (a.total_duration_minutes || 0) - (b.total_duration_minutes || 0))
     } else {
-      // Best: simple heuristic (can be improved)
+      // Best: weighted combination
       filtered.sort((a, b) => {
         const scoreA = a.price / 1000 + (a.total_duration_minutes || 0) / 60
         const scoreB = b.price / 1000 + (b.total_duration_minutes || 0) / 60
@@ -190,70 +192,47 @@ function SearchResultsContent() {
     setFilteredOffers(filtered)
   }, [offers, filters, sortType])
 
-  const handleProviderSelect = (provider: any, offer: FlightOffer) => {
-    const firstSegment = offer.segments[0]
-    const lastSegment = offer.segments[offer.segments.length - 1]
-
-    const params = new URLSearchParams({
-      origin: firstSegment.departure_airport,
-      destination: lastSegment.arrival_airport,
-      departure_date: new Date(firstSegment.departure_time).toISOString().split('T')[0],
-      departure_time: new Date(firstSegment.departure_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      arrival_time: new Date(lastSegment.arrival_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      airline: firstSegment.carrier_name,
-      flight_number: firstSegment.flight_number || '',
-      price: offer.price.toString(),
-      currency: offer.currency,
-      stops: offer.stops.toString(),
-      adults: searchParams.get('adults') || '1',
-      children: searchParams.get('children') || '0',
-      infants: searchParams.get('infants') || '0',
-      cabin_class: offer.cabin_class || 'economy',
-    })
-
-    if (returnDate) {
-      params.set('return_date', returnDate)
-    }
-
-    router.push(`/flights/vendors?${params.toString()}`)
-  }
-
   const handleDateSelect = async (newDate: string) => {
     setSelectedDate(newDate)
-    
-    // Update URL
+
     const newParams = new URLSearchParams(searchParams.toString())
     newParams.set('departure_date', newDate)
     router.push(`/flights/results?${newParams.toString()}`, { scroll: false })
   }
 
   const handleResetFilters = () => {
-    const durations = offers.map(o => o.total_duration_minutes || 0)
-    const uniqueAirlines = Array.from(new Set(
-      offers.flatMap(o => o.segments.map(s => s.carrier_name))
-    )).sort()
+    const durations = offers.map((o) => o.total_duration_minutes || 0)
+    const uniqueAirlines = Array.from(
+      new Set(offers.flatMap((o) => o.segments.map((s) => s.carrier_name)))
+    ).sort()
 
     setFilters({
       stops: [],
       departureTimeRange: [0, 23],
       durationRange: [Math.min(...durations), Math.max(...durations)],
-      airlines: uniqueAirlines
+      airlines: uniqueAirlines,
     })
   }
 
-  const availableAirlines = Array.from(new Set(
-    offers.flatMap(o => o.segments.map(s => s.carrier_name))
-  )).sort()
+  const minDuration = Math.min(...offers.map((o) => o.total_duration_minutes || 0))
+  const maxDuration = Math.max(...offers.map((o) => o.total_duration_minutes || 0))
 
-  const minDuration = Math.min(...offers.map(o => o.total_duration_minutes || 0))
-  const maxDuration = Math.max(...offers.map(o => o.total_duration_minutes || 0))
+  // Assign badges to top offers
+  const getOfferWithBadge = (offer: FlightOffer, index: number) => {
+    if (sortType === 'cheapest' && index === 0) return 'cheapest'
+    if (sortType === 'fastest' && index === 0) return 'fastest'
+    if (sortType === 'best' && index === 0) return 'best'
+    return undefined
+  }
 
   if (loading && offers.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Searching flights from {origin} to {destination}...</p>
+          <p className="text-gray-600">
+            Searching flights from {origin} to {destination}...
+          </p>
         </div>
       </div>
     )
@@ -296,7 +275,7 @@ function SearchResultsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       {/* Flexible Date Bar */}
       {dateOptions.length > 0 && (
         <FlexibleDateBar
@@ -314,7 +293,7 @@ function SearchResultsContent() {
         counts={{
           best: filteredOffers.length,
           cheapest: filteredOffers.length,
-          fastest: filteredOffers.length
+          fastest: filteredOffers.length,
         }}
       />
 
@@ -322,21 +301,21 @@ function SearchResultsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-32">
+            <div className="lg:sticky lg:top-32">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
                 <button
                   onClick={handleResetFilters}
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  <X className="h-4 w-4" />
-                  <span>Reset</span>
+                  Reset all
                 </button>
               </div>
-              <AdvancedFilters
+              <ImprovedFilters
                 filters={filters}
                 onFilterChange={setFilters}
-                availableAirlines={availableAirlines}
+                offers={offers}
+                filteredOffers={filteredOffers}
                 minDuration={minDuration}
                 maxDuration={maxDuration}
               />
@@ -345,27 +324,21 @@ function SearchResultsContent() {
 
           {/* Results */}
           <div className="lg:col-span-3">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-gray-600">
-                {filteredOffers.length} of {offers.length} flights
-                {filteredOffers.length !== offers.length && ' (filtered)'}
+            <div className="mb-4">
+              <p className="text-gray-600 text-sm">
+                {filteredOffers.length === offers.length
+                  ? `${offers.length} flight${offers.length !== 1 ? 's' : ''} found`
+                  : `${filteredOffers.length} of ${offers.length} flights`}
               </p>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span>Filters</span>
-              </button>
             </div>
 
             <div className="space-y-4">
-              {filteredOffers.map((offer) => (
-                <ResultCard
+              {filteredOffers.map((offer, index) => (
+                <EnhancedFlightCard
                   key={offer.offer_id}
                   offer={offer}
-                  badge={undefined}
-                  onProviderSelect={handleProviderSelect}
+                  badge={getOfferWithBadge(offer, index)}
+                  searchParams={searchParams}
                 />
               ))}
             </div>
@@ -378,11 +351,13 @@ function SearchResultsContent() {
 
 export default function SearchResultsPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        </div>
+      }
+    >
       <SearchResultsContent />
     </Suspense>
   )
