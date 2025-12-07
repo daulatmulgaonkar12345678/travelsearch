@@ -207,3 +207,5 @@ test_plan:
 agent_communication:
     - agent: "testing"
       message: "✅ ALL BACKEND TESTS PASSED - TravelSearch metasearch platform API integration is working correctly with real Amadeus and Aviasales providers. All endpoints return real data (not mock), response times are under 30 seconds, affiliate redirect properly built with marker. Flight search returns valid Amadeus offers with proper segments, hotel search returns real hotel data, and Aviasales redirect works correctly. No issues found."
+    - agent: "testing"
+      message: "🔄 STARTING FRONTEND TESTING - Testing two specific fixes: 1) Backend connection for flight search (no ERR_CONNECTION_REFUSED), 2) Pune airport autocomplete showing PNQ when typing 'pu'. Will test complete user flow from homepage to results page."
