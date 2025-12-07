@@ -118,37 +118,6 @@ function SearchResultsContent() {
     }
     
     router.push(`/flights/vendors?${params.toString()}`)
-    
-    // Keep old modal logic as backup (commented out)
-    /*
-    try {
-      const response = await apiFetch(API_ENDPOINTS.redirect, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: provider.name,
-          offer_id: offer.offer_id,
-          route: `${offer.segments[0].departure_airport}-${offer.segments[offer.segments.length - 1].arrival_airport}`,
-          price: provider.price,
-          deep_link: provider.deep_link,
-        }),
-      })
-
-      const data = await response.json()
-
-      // Show interstitial modal
-      setRedirectModal({
-        isOpen: true,
-        provider: provider.name,
-        price: provider.price,
-        currency: offer.currency,
-        redirectUrl: data.redirect_url,
-      })
-    } catch (err) {
-      console.error('Redirect error:', err)
-      // Fallback: direct redirect
-      window.open(provider.deep_link, '_blank')
-    }
   }
 
   const filterResults = (offers: FlightOffer[]) => {
