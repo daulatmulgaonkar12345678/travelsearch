@@ -26,6 +26,9 @@ function SearchResultsContent() {
   const [dateOptions, setDateOptions] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState(searchParams.get('departure_date') || '')
   const [datePriceCache, setDatePriceCache] = useState<Map<string, number>>(new Map())
+  
+  // Month View state
+  const [showMonthView, setShowMonthView] = useState(false)
 
   // Filter state
   const [filters, setFilters] = useState({
