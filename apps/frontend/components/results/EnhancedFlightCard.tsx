@@ -173,7 +173,18 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
         {/* Vendor Selection Panel */}
         {showVendors && (
           <div className="mt-4 pt-4 border-t border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Choose your booking site</h4>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Choose your booking site</h4>
+                <p className="text-xs text-gray-600">
+                  You'll be redirected to complete your booking securely on the partner's website
+                </p>
+              </div>
+              <div className="flex items-center space-x-1 text-xs text-gray-600 whitespace-nowrap ml-4">
+                <Lock className="h-3 w-3" />
+                <span>Secure redirection</span>
+              </div>
+            </div>
             <div className="space-y-2">
               {FLIGHT_VENDORS.map((vendor) => {
                 const isActive = vendor.type === 'real'
