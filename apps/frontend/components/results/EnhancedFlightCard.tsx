@@ -92,7 +92,7 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
     <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all">
       {/* Badge */}
       {badge && (
-        <div className={`${badgeConfig[badge].bg} ${badgeConfig[badge].textColor} px-3 py-1 text-xs font-semibold inline-block rounded-tl-lg`}>
+        <div className={`${badgeConfig[badge].bg} ${badgeConfig[badge].textColor} border ${badgeConfig[badge].borderColor} px-3 py-1 text-xs font-medium inline-block rounded-tl-lg rounded-br-lg`}>
           {badgeConfig[badge].label}
         </div>
       )}
