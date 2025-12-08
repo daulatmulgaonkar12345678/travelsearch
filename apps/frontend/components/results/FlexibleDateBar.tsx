@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
 interface DateOption {
   date: string // YYYY-MM-DD
