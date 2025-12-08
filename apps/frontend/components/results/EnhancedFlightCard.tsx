@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Plane, Clock, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { Plane, Clock, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
 import { FlightOffer, Segment } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { API_BASE_URL } from '@/lib/config'
+import PriceDisplay from '@/components/ui/PriceDisplay'
 
 interface EnhancedFlightCardProps {
   offer: FlightOffer
