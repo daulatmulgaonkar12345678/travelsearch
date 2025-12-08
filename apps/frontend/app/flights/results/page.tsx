@@ -97,6 +97,63 @@ function SearchResultsContent() {
     }
   }
 
+  // Fetch prices for entire month (for Month View)
+  const fetchPricesForMonth = async (month: string): Promise<Array<{date: string, price: number | null, isAvailable: boolean}>> => {
+    try {
+      const [year, monthNum] = month.split('-').map(Number)
+      const daysInMonth = new Date(year, monthNum, 0).getDate()
+      const dates: string[] = []
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        dates.push(`${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+      }
+      
+      const adults = parseInt(searchParams.get('adults') || '1', 10)
+      const children = parseInt(searchParams.get('children') || '0', 10)
+      const infants = parseInt(searchParams.get('infants') || '0', 10)
+      
+      const response = await apiFetch(API_ENDPOINTS.pricingDateRange, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin,
+          destination,
+          dates,
+          adults,
+          children,
+          infants,
+          cabin_class: cabinClass,
+          trip_type: tripType
+        })
+      })
+      
+      if (response.ok) {
+        const datePrices = await response.json()
+        
+        // Update cache with these prices
+        const newCache = new Map(datePriceCache)
+        datePrices.forEach((dp: any) => {
+          if (dp.min_price !== null) {
+            newCache.set(dp.date, dp.min_price)
+          }
+        })
+        setDatePriceCache(newCache)
+        
+        // Return formatted data for MonthView
+        return datePrices.map((dp: any) => ({
+          date: dp.date,
+          price: dp.min_price,
+          isAvailable: dp.min_price !== null
+        }))
+      }
+      
+      return []
+    } catch (error) {
+      console.error('Error fetching month prices:', error)
+      return []
+    }
+  }
+
   // Initialize flexible date bar and fetch prices
   useEffect(() => {
     if (selectedDate && origin && destination) {
