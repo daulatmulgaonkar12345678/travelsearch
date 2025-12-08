@@ -41,9 +41,9 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
   const dayOffset = getDayOffset(firstSegment.departure_time, lastSegment.arrival_time)
 
   const badgeConfig = {
-    best: { label: 'Best value', bg: 'bg-blue-600', textColor: 'text-white' },
-    cheapest: { label: 'Cheapest', bg: 'bg-green-600', textColor: 'text-white' },
-    fastest: { label: 'Fastest', bg: 'bg-purple-600', textColor: 'text-white' },
+    best: { label: 'Best value', bg: 'bg-blue-100', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
+    cheapest: { label: 'Cheapest', bg: 'bg-green-100', textColor: 'text-green-700', borderColor: 'border-green-200' },
+    fastest: { label: 'Fastest', bg: 'bg-gray-100', textColor: 'text-gray-700', borderColor: 'border-gray-200' },
   }
 
   const handleVendorClick = async (vendorId: string) => {
