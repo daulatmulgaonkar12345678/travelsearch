@@ -97,6 +97,17 @@ export default function FlexibleDateBar({
           >
             <ChevronRight className="h-5 w-5 text-gray-600" />
           </button>
+
+          {/* Month View Button */}
+          {onMonthViewClick && (
+            <button
+              onClick={onMonthViewClick}
+              className="ml-2 flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors flex-shrink-0"
+            >
+              <Calendar className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">Month view</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
