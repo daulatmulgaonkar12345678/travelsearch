@@ -16,6 +16,7 @@ interface FlexibleDateBarProps {
   selectedDate: string
   onDateSelect: (date: string) => void
   loading?: boolean
+  onMonthViewClick?: () => void
 }
 
 export default function FlexibleDateBar({ 
