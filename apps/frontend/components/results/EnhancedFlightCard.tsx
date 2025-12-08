@@ -205,7 +205,15 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
                     `}
                   >
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 text-sm">{vendor.name}</div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <div className="font-semibold text-gray-900 text-sm">{vendor.name}</div>
+                        {isActive && (
+                          <span className="inline-flex items-center space-x-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                            <Shield className="h-3 w-3" />
+                            <span>Official partner</span>
+                          </span>
+                        )}
+                      </div>
                       {vendor.description && (
                         <div className="text-xs text-gray-600 mt-0.5">{vendor.description}</div>
                       )}
@@ -213,12 +221,12 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
 
                     <div className="flex items-center space-x-3">
                       {isActive && (
-                        <div className="text-right">
-                          <div className="font-bold text-gray-900">
-                            {offer.currency} {Math.round(offer.price).toLocaleString()}
-                          </div>
-                          <div className="text-xs text-gray-500">Same price</div>
-                        </div>
+                        <PriceDisplay 
+                          price={offer.price}
+                          currency={offer.currency}
+                          size="sm"
+                          showTrustLabel={true}
+                        />
                       )}
 
                       {isActive ? (
