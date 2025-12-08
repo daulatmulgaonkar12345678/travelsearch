@@ -153,9 +153,13 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
 
           {/* Right: Price & Action */}
           <div className="text-right flex-shrink-0">
-            <div className="text-2xl font-bold text-gray-900">
-              {offer.currency} {Math.round(offer.price).toLocaleString()}
-            </div>
+            <PriceDisplay 
+              price={offer.price}
+              currency={offer.currency}
+              size="md"
+              showTrustLabel={true}
+              className="mb-2"
+            />
             <button
               onClick={() => setShowVendors(!showVendors)}
               className="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm flex items-center space-x-2"
