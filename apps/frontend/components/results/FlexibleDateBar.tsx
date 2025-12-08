@@ -23,7 +23,8 @@ export default function FlexibleDateBar({
   dates, 
   selectedDate, 
   onDateSelect,
-  loading 
+  loading,
+  onMonthViewClick 
 }: FlexibleDateBarProps) {
   const formatPrice = (price: number | null, currency: string) => {
     if (price === null) return '–'
