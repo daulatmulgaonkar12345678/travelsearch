@@ -164,10 +164,7 @@ function HotelResultsContent() {
   }
 
   return (
-    <div>
-      <Navigation />
-      <TrustStrip />
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Search Summary */}
       <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
         <div className="flex items-center justify-between flex-wrap gap-4">
