@@ -217,8 +217,21 @@ metadata:
   test_sequence: 1
   run_ui: false
 
+  - task: "FIXED Redirect Screen Auto-Redirect Performance"
+    implemented: true
+    working: "NA"
+    file: "/app/apps/frontend/components/common/RedirectScreen.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "CRITICAL FIX IMPLEMENTED - Fixed redirect screen performance issues where redirects were getting stuck and never redirecting to partner sites. Changes: 1) Direct frontend URL building (no backend calls), 2) Fire-and-forget logging (async, non-blocking), 3) Robust redirect with safety timeout (5s max), 4) Removed all blocking API dependencies. Need comprehensive testing of redirect speed, reliability, and network independence for both flights and hotels."
+
 test_plan:
-  current_focus: []
+  current_focus:
+    - "FIXED Redirect Screen Auto-Redirect Performance"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -232,3 +245,5 @@ agent_communication:
       message: "✅ FRONTEND TESTING COMPLETE - Both critical fixes verified and working: 1) Backend connection issue resolved - no ERR_CONNECTION_REFUSED errors, API calls working to localhost:8001, flight results displaying correctly. 2) Pune airport autocomplete fixed - typing 'pu' shows Pune in dropdown, selecting it correctly sets origin=PNQ parameter, complete PNQ→BOM search returns 11 flight results. Environment configuration updated to use local backend API."
     - agent: "testing"
       message: "✅ PROFESSIONAL REDIRECT SCREEN TESTING COMPLETE - Comprehensive testing of redirect screen implementation shows PERFECT FUNCTIONALITY. Both flight and hotel redirect screens work flawlessly with all required elements: route/hotel name display, vendor branding, progress animations, security indicators, trust messages, and professional UI matching Skyscanner quality. Flight redirect tested with BOM→DEL route showing Aviasales branding. Hotel redirect tested with INTERCONTINENTAL MARINE DRIVE showing Aviasales Hotels branding. All animations smooth, all trust signals present, user experience is professional and reassuring. Implementation ready for production."
+    - agent: "main"
+      message: "🔧 CRITICAL REDIRECT PERFORMANCE FIX IMPLEMENTED - Fixed major redirect screen performance issues where users were getting stuck and never redirected to partner sites. Root cause: redirects were dependent on slow backend API calls. Solution: 1) Direct frontend URL building using buildAviasalesFlightUrl/buildAviasalesHotelUrl functions, 2) Fire-and-forget click logging that never blocks, 3) Robust redirect with 1.5-3.5s animation + 5s safety timeout, 4) Removed all blocking API dependencies. Need comprehensive testing to verify redirect speed (1.5-3.5s), reliability (99%+ success), and network independence (no blocking backend calls)."
