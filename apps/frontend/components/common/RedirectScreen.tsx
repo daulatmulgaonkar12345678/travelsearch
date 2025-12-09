@@ -29,7 +29,7 @@ export default function RedirectScreen({
 
   // Rotating messages based on type
   const flightMessages = [
-    'Checking availability…',
+    'Checking seat availability and final price…',
     'Confirming prices…',
     'Verifying seat options…',
     'Securing your redirect…',
