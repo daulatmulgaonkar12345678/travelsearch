@@ -42,12 +42,14 @@ function HotelVendorsContent() {
         checkOut: checkOut,
       })
 
-      const redirectUrl = `${baseUrl}?${params.toString()}`
-      window.open(redirectUrl, '_blank')
+      const finalRedirectUrl = `${baseUrl}?${params.toString()}`
+      
+      // Show redirect screen instead of immediate redirect
+      setRedirectUrl(finalRedirectUrl)
+      setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
       alert('Failed to redirect to vendor. Please try again.')
-    } finally {
       setRedirecting(null)
     }
   }
