@@ -6,11 +6,14 @@ import Navigation from '@/components/layout/Navigation'
 import { Plane, Clock, ArrowRight, Loader2, ExternalLink, Calendar, Users } from 'lucide-react'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { API_BASE_URL } from '@/lib/config'
+import RedirectScreen from '@/components/common/RedirectScreen'
 
 function FlightVendorsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [redirectUrl, setRedirectUrl] = useState<string>('')
+  const [showRedirectScreen, setShowRedirectScreen] = useState(false)
 
   // Get offer details from URL params
   const origin = searchParams.get('origin') || ''
