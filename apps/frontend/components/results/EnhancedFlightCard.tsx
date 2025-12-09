@@ -58,23 +58,29 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
     try {
       setRedirecting(vendorId)
 
-      const redirectParams = new URLSearchParams({
+      const departDate = new Date(firstSegment.departure_time).toISOString().split('T')[0]
+      const returnDate = searchParams?.get('return_date')
+
+      // Build affiliate URL DIRECTLY on frontend (no backend call)
+      const finalRedirectUrl = buildAviasalesFlightUrl({
         origin: firstSegment.departure_airport,
         destination: lastSegment.arrival_airport,
-        depart: new Date(firstSegment.departure_time).toISOString().split('T')[0],
-        adults: searchParams?.get('adults') || '1',
-        children: searchParams?.get('children') || '0',
-        infants: searchParams?.get('infants') || '0',
+        departDate,
+        returnDate: returnDate || undefined,
+        adults: parseInt(searchParams?.get('adults') || '1', 10),
+        children: parseInt(searchParams?.get('children') || '0', 10),
+        infants: parseInt(searchParams?.get('infants') || '0', 10),
       })
 
-      const returnDate = searchParams?.get('return_date')
-      if (returnDate) {
-        redirectParams.set('return', returnDate)
-      }
-
-      const finalRedirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
+      // Log click asynchronously (fire-and-forget, won't block redirect)
+      logAffiliateClick(
+        'aviasales',
+        `${firstSegment.departure_airport}-${lastSegment.arrival_airport}`,
+        offer.offer_id,
+        offer.price
+      ).catch(() => {}) // Silently fail
       
-      // Show redirect screen instead of immediate redirect
+      // Show redirect screen - it will handle the actual redirect
       setRedirectUrl(finalRedirectUrl)
       setShowRedirectScreen(true)
     } catch (error) {
