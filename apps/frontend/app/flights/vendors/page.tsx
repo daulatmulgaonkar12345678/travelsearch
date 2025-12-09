@@ -56,14 +56,14 @@ function FlightVendorsContent() {
         redirectParams.set('return', returnDate)
       }
 
-      const redirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
+      const finalRedirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
 
-      // Open in new tab
-      window.open(redirectUrl, '_blank')
+      // Show redirect screen instead of immediate redirect
+      setRedirectUrl(finalRedirectUrl)
+      setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
       alert('Failed to redirect to vendor. Please try again.')
-    } finally {
       setRedirecting(null)
     }
   }
