@@ -85,6 +85,30 @@ function FlightVendorsContent() {
     )
   }
 
+  // Get vendor details for redirect screen
+  const selectedVendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
+
+  // Show redirect screen if triggered
+  if (showRedirectScreen && selectedVendor) {
+    return (
+      <RedirectScreen
+        vendor={{
+          name: selectedVendor.name,
+          logo: selectedVendor.logo,
+        }}
+        redirectUrl={redirectUrl}
+        type="flight"
+        contextInfo={{
+          route: `${origin} → ${destination}`,
+        }}
+        onRedirectComplete={() => {
+          setShowRedirectScreen(false)
+          setRedirecting(null)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Flight Details Card */}
