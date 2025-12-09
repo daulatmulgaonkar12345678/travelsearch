@@ -138,11 +138,20 @@ export default function HotelResultCard({ hotel, providers = [], onProviderSelec
 
             {/* Price */}
             <div className="text-right ml-4">
-              <div className="text-sm text-gray-500">From</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {formatCurrency(hotel.price_per_night, hotel.currency)}
-              </div>
+              <div className="text-sm text-gray-500 mb-1">From</div>
+              <PriceDisplay 
+                price={hotel.price_per_night}
+                currency={hotel.currency}
+                size="md"
+                showTrustLabel={true}
+                className="mb-1"
+              />
               <div className="text-xs text-gray-500">per night</div>
+              {hotel.cancellation_policy === 'FREE_CANCELLATION' && (
+                <div className="text-xs text-green-600 font-medium mt-1">
+                  Free cancellation
+                </div>
+              )}
             </div>
           </div>
 
