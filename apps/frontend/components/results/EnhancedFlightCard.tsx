@@ -93,6 +93,30 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
     return `${offer.stops} stops`
   }
 
+  // Get vendor details for redirect screen
+  const selectedVendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
+
+  // Show redirect screen if triggered
+  if (showRedirectScreen && selectedVendor) {
+    return (
+      <RedirectScreen
+        vendor={{
+          name: selectedVendor.name,
+          logo: selectedVendor.logo,
+        }}
+        redirectUrl={redirectUrl}
+        type="flight"
+        contextInfo={{
+          route: `${firstSegment.departure_airport} → ${lastSegment.arrival_airport}`,
+        }}
+        onRedirectComplete={() => {
+          setShowRedirectScreen(false)
+          setRedirecting(null)
+        }}
+      />
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all">
       {/* Badge */}
