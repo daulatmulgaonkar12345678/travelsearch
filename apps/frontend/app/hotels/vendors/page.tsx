@@ -6,11 +6,14 @@ import Navigation from '@/components/layout/Navigation'
 import { Hotel, MapPin, Star, Loader2, ExternalLink } from 'lucide-react'
 import { HOTEL_VENDORS } from '@/lib/vendors'
 import { API_BASE_URL } from '@/lib/config'
+import RedirectScreen from '@/components/common/RedirectScreen'
 
 function HotelVendorsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [redirectUrl, setRedirectUrl] = useState<string>('')
+  const [showRedirectScreen, setShowRedirectScreen] = useState(false)
 
   // Get hotel details from URL params
   const hotelName = searchParams.get('hotel_name') || ''
