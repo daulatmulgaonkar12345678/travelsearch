@@ -6,6 +6,7 @@ import { FlightOffer, Segment } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { API_BASE_URL } from '@/lib/config'
 import PriceDisplay from '@/components/ui/PriceDisplay'
+import RedirectScreen from '@/components/common/RedirectScreen'
 
 interface EnhancedFlightCardProps {
   offer: FlightOffer
@@ -16,6 +17,8 @@ interface EnhancedFlightCardProps {
 export default function EnhancedFlightCard({ offer, badge, searchParams }: EnhancedFlightCardProps) {
   const [showVendors, setShowVendors] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [redirectUrl, setRedirectUrl] = useState<string>('')
+  const [showRedirectScreen, setShowRedirectScreen] = useState(false)
 
   const firstSegment = offer.segments[0]
   const lastSegment = offer.segments[offer.segments.length - 1]
