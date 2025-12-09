@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import { Plane, Clock, ArrowRight, Loader2, ExternalLink, Calendar, Users } from 'lucide-react'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
-import { API_BASE_URL } from '@/lib/config'
+import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
 
 function FlightVendorsContent() {
