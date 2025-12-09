@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { Plane, Building2, Lock } from 'lucide-react'
 
 interface RedirectScreenProps {
@@ -26,6 +26,7 @@ export default function RedirectScreen({
 }: RedirectScreenProps) {
   const [progress, setProgress] = useState(0)
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
+  const hasRedirected = useRef(false)
 
   // Rotating messages based on type
   const flightMessages = [
@@ -44,12 +45,59 @@ export default function RedirectScreen({
 
   const messages = type === 'flight' ? flightMessages : hotelMessages
 
-  // Randomized duration (1.5s - 3.5s)
-  const duration = 1500 + Math.random() * 2000 + Math.random() * 600 - 300
+  // Calculate duration once using useMemo - randomized between 1.5s - 3.5s
+  const duration = useMemo(() => {
+    return 1500 + Math.random() * 2000
+  }, [])
+
+  // Maximum safety timeout - absolute guarantee (5s max)
+  const SAFETY_TIMEOUT = 5000
 
   useEffect(() => {
+    let cancelled = false
+
+    // Validate redirect URL
+    if (!redirectUrl || redirectUrl.trim() === '') {
+      console.error('Invalid redirect URL')
+      alert('We couldn\'t open the partner site. Please try again or choose another partner.')
+      return
+    }
+
+    // Fire-and-forget redirect function
+    const performRedirect = () => {
+      if (cancelled || hasRedirected.current) return
+      
+      hasRedirected.current = true
+      
+      try {
+        // Call completion callback first (fire-and-forget)
+        if (onRedirectComplete) {
+          try {
+            onRedirectComplete()
+          } catch (err) {
+            console.warn('Redirect callback error (non-blocking):', err)
+          }
+        }
+
+        // Perform the actual redirect
+        console.log('Redirecting to:', redirectUrl)
+        window.location.href = redirectUrl
+      } catch (error) {
+        console.error('Redirect error:', error)
+        // Last resort - try again
+        try {
+          window.location.href = redirectUrl
+        } catch (finalError) {
+          console.error('Final redirect attempt failed:', finalError)
+          alert('Redirect failed. Opening in new tab...')
+          window.open(redirectUrl, '_blank')
+        }
+      }
+    }
+
     // Progress bar animation
     const progressInterval = setInterval(() => {
+      if (cancelled) return
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(progressInterval)
@@ -61,27 +109,30 @@ export default function RedirectScreen({
 
     // Message rotation (every 800ms)
     const messageInterval = setInterval(() => {
+      if (cancelled) return
       setCurrentMessageIndex((prev) => (prev + 1) % messages.length)
     }, 800)
 
-    // Redirect after duration completes
-    const redirectTimeout = setTimeout(() => {
-      try {
-        window.location.href = redirectUrl
-        onRedirectComplete?.()
-      } catch (error) {
-        console.error('Redirect error:', error)
-        // Still try direct navigation
-        window.location.href = redirectUrl
-      }
-    }, duration)
+    // Primary redirect timeout (after animation duration)
+    const redirectTimeout = setTimeout(performRedirect, duration)
 
+    // SAFETY NET: Absolute maximum timeout - guarantees redirect even if everything else fails
+    const safetyTimeout = setTimeout(() => {
+      if (!hasRedirected.current) {
+        console.warn('Safety timeout triggered - forcing redirect')
+        performRedirect()
+      }
+    }, SAFETY_TIMEOUT)
+
+    // Cleanup function
     return () => {
+      cancelled = true
       clearInterval(progressInterval)
       clearInterval(messageInterval)
       clearTimeout(redirectTimeout)
+      clearTimeout(safetyTimeout)
     }
-  }, [duration, redirectUrl, onRedirectComplete, messages.length])
+  }, [redirectUrl, duration, messages.length, onRedirectComplete])
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex items-center justify-center">
