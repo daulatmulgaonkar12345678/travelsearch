@@ -1,8 +1,9 @@
 'use client'
 
-import { MapPin, Star, Wifi, Coffee, Dumbbell } from 'lucide-react'
+import { MapPin, Star, Wifi, Coffee, Dumbbell, Lock, Shield } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useState } from 'react'
+import PriceDisplay from '@/components/ui/PriceDisplay'
 
 interface HotelOffer {
   offer_id: string
