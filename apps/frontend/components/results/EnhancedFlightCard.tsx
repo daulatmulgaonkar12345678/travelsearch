@@ -72,12 +72,14 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
         redirectParams.set('return', returnDate)
       }
 
-      const redirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
-      window.open(redirectUrl, '_blank')
+      const finalRedirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
+      
+      // Show redirect screen instead of immediate redirect
+      setRedirectUrl(finalRedirectUrl)
+      setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
       alert('Failed to redirect. Please try again.')
-    } finally {
       setRedirecting(null)
     }
   }
