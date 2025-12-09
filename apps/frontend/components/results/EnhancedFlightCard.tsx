@@ -176,12 +176,15 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-1">Choose your booking site</h4>
-                <p className="text-xs text-gray-600">
-                  You'll be redirected to complete your booking securely on the partner's website
+                <p className="text-xs text-gray-600 mb-1">
+                  You'll be redirected to complete your booking on the partner website.
+                </p>
+                <p className="text-xs text-gray-500">
+                  Price & availability will be confirmed there.
                 </p>
               </div>
               <div className="flex items-center space-x-1 text-xs text-gray-600 whitespace-nowrap ml-4">
-                <Lock className="h-3 w-3" />
+                <Lock className="h-3 w-3 text-green-600" />
                 <span>Secure redirection</span>
               </div>
             </div>
