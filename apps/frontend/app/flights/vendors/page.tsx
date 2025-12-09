@@ -42,23 +42,26 @@ function FlightVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // Build redirect URL
-      const redirectParams = new URLSearchParams({
+      // Build affiliate URL DIRECTLY on frontend (no backend call)
+      const finalRedirectUrl = buildAviasalesFlightUrl({
         origin,
         destination,
-        depart: departureDate,
-        adults,
-        children: children || '0',
-        infants: infants || '0',
+        departDate: departureDate,
+        returnDate: returnDate || undefined,
+        adults: parseInt(adults, 10),
+        children: parseInt(children, 10),
+        infants: parseInt(infants, 10),
       })
 
-      if (returnDate) {
-        redirectParams.set('return', returnDate)
-      }
+      // Log click asynchronously (fire-and-forget, won't block redirect)
+      logAffiliateClick(
+        'aviasales',
+        `${origin}-${destination}`,
+        `${origin}-${destination}-${departureDate}`,
+        parseFloat(price)
+      ).catch(() => {}) // Silently fail
 
-      const finalRedirectUrl = `${API_BASE_URL}/api/redirect/aviasales?${redirectParams.toString()}`
-
-      // Show redirect screen instead of immediate redirect
+      // Show redirect screen - it will handle the actual redirect
       setRedirectUrl(finalRedirectUrl)
       setShowRedirectScreen(true)
     } catch (error) {
