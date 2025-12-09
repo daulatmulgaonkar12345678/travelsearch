@@ -124,11 +124,10 @@ function HotelResultsContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Searching hotels in {city}...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        <HotelLoadingState city={city} />
       </div>
     )
   }
