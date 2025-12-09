@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import { Hotel, MapPin, Star, Loader2, ExternalLink } from 'lucide-react'
 import { HOTEL_VENDORS } from '@/lib/vendors'
-import { API_BASE_URL } from '@/lib/config'
+import { buildAviasalesHotelUrl, logAffiliateClick } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
 
 function HotelVendorsContent() {
