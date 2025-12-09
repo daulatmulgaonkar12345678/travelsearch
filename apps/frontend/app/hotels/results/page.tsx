@@ -256,6 +256,7 @@ export default function HotelResultsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      <TrustStrip />
       <main className="container mx-auto px-4 py-8">
         <Suspense fallback={
           <div className="flex items-center justify-center min-h-[400px]">
