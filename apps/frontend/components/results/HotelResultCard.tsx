@@ -200,28 +200,47 @@ export default function HotelResultCard({ hotel, providers = [], onProviderSelec
 
           {/* Provider Comparison */}
           <div className="border-t border-gray-200 pt-4">
-            <div className="text-sm font-medium text-gray-700 mb-3">Available on:</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-gray-700">Available on:</div>
+              <div className="flex items-center space-x-1 text-xs text-gray-600">
+                <Lock className="h-3 w-3 text-green-600" />
+                <span>Secure redirection</span>
+              </div>
+            </div>
+            <div className="text-xs text-gray-600 mb-3">
+              You'll be redirected securely to complete booking on partner site
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {displayProviders.map((provider) => (
                 <button
                   key={provider.provider}
                   data-testid={`hotel-provider-${provider.provider}`}
                   onClick={() => onProviderSelect?.(provider, hotel)}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">
-                        {provider.provider.slice(0, 2).toUpperCase()}
-                      </span>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-1">
+                      <div className="h-8 w-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {provider.provider.slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-900 text-sm">{provider.provider}</span>
+                        <span className="inline-flex items-center space-x-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                          <Shield className="h-3 w-3" />
+                          <span>Trusted partner</span>
+                        </span>
+                      </div>
                     </div>
-                    <span className="font-medium text-gray-900 text-sm">{provider.provider}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">
-                      {formatCurrency(provider.price, hotel.currency)}
-                    </div>
-                    <div className="text-xs text-gray-500">total</div>
+                  <div className="text-right ml-4">
+                    <PriceDisplay 
+                      price={provider.price}
+                      currency={hotel.currency}
+                      size="sm"
+                      showTrustLabel={true}
+                    />
                   </div>
                 </button>
               ))}
