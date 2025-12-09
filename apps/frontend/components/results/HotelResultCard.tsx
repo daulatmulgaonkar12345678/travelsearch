@@ -207,8 +207,11 @@ export default function HotelResultCard({ hotel, providers = [], onProviderSelec
                 <span>Secure redirection</span>
               </div>
             </div>
-            <div className="text-xs text-gray-600 mb-3">
-              You'll be redirected securely to complete booking on partner site
+            <div className="text-xs text-gray-600 mb-1">
+              You'll be redirected to complete your booking on the partner website.
+            </div>
+            <div className="text-xs text-gray-500 mb-3">
+              Price & availability will be confirmed there.
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {displayProviders.map((provider) => (
