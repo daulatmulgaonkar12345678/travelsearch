@@ -432,8 +432,20 @@ function SearchResultsContent() {
           selectedDate={selectedDate}
           onDateSelect={handleDateSelect}
           loading={loading}
+          onMonthViewClick={() => setShowMonthView(true)}
         />
       )}
+      
+      {/* Month View Modal */}
+      <MonthView
+        isOpen={showMonthView}
+        onClose={() => setShowMonthView(false)}
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        origin={origin}
+        destination={destination}
+        fetchPricesForMonth={fetchPricesForMonth}
+      />
 
       {/* Sort Tabs */}
       <SortTabs
