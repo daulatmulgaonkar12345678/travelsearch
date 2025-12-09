@@ -124,11 +124,7 @@ function HotelResultsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation />
-        <TrustStrip />
-        <HotelLoadingState city={city} />
-      </div>
+      <HotelLoadingState city={city} />
     )
   }
 
