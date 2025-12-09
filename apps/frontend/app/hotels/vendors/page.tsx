@@ -32,19 +32,23 @@ function HotelVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // For hotels, we'll use a simple redirect for now
-      // In production, you'd build a proper hotel deep-link
-      const baseUrl = 'https://aviasales.tpx.lt/eqOxwsZu'
-      const params = new URLSearchParams({
-        marker: '689331',
-        city: city,
-        checkIn: checkIn,
-        checkOut: checkOut,
+      // Build affiliate URL DIRECTLY on frontend (no backend call)
+      const finalRedirectUrl = buildAviasalesHotelUrl({
+        city,
+        checkIn,
+        checkOut,
+        adults: 2, // Default, can be extracted from search params if needed
       })
 
-      const finalRedirectUrl = `${baseUrl}?${params.toString()}`
-      
-      // Show redirect screen instead of immediate redirect
+      // Log click asynchronously (fire-and-forget, won't block redirect)
+      logAffiliateClick(
+        'aviasales_hotels',
+        `hotel-${city}`,
+        `${hotelName}-${checkIn}`,
+        parseFloat(price)
+      ).catch(() => {}) // Silently fail
+
+      // Show redirect screen - it will handle the actual redirect
       setRedirectUrl(finalRedirectUrl)
       setShowRedirectScreen(true)
     } catch (error) {
