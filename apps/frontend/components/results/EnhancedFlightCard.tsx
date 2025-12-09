@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plane, Clock, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
 import { FlightOffer, Segment } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
-import { API_BASE_URL } from '@/lib/config'
+import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
 import PriceDisplay from '@/components/ui/PriceDisplay'
 import RedirectScreen from '@/components/common/RedirectScreen'
 
