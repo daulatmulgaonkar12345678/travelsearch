@@ -106,9 +106,21 @@ export default function HotelResultCard({ hotel, providers = [], onProviderSelec
               </h3>
               
               {/* Location */}
-              <div className="flex items-center space-x-2 text-gray-600 mb-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm">{hotel.address}, {hotel.city}</span>
+              <div className="mb-2">
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">{hotel.city}</span>
+                </div>
+                {hotel.address && (
+                  <div className="text-xs text-gray-500 mt-1 ml-6">
+                    {hotel.address}
+                  </div>
+                )}
+                {(hotel.rating && hotel.rating >= 4) || (hotel.review_score && hotel.review_score >= 8) ? (
+                  <div className="text-xs text-green-600 font-medium mt-1 ml-6">
+                    Excellent location
+                  </div>
+                ) : null}
               </div>
 
               {/* Rating */}
