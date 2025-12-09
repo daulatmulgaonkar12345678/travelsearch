@@ -255,6 +255,7 @@ function HotelResultsContent() {
           </div>
         ))}
       </div>
+      </div>
     </div>
   )
 }
