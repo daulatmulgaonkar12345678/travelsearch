@@ -253,8 +253,22 @@ export default function AirportAutocomplete({
       )}
 
       {showSuggestions && query.length >= 2 && suggestions.length === 0 && !isLoading && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center text-gray-500 text-sm">
-          No airports found
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
+          {errorState === 'server_error' ? (
+            <div className="flex items-start gap-3 text-amber-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium">Service temporarily unavailable</p>
+                <p className="text-amber-600 mt-1">
+                  We're having trouble contacting our search service. Please try again in a minute.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 text-sm">
+              No airports found for "{query}"
+            </div>
+          )}
         </div>
       )}
     </div>
