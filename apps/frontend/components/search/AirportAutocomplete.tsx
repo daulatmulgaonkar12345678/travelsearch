@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Plane, MapPin, AlertCircle } from 'lucide-react'
-import { API_ENDPOINTS, apiFetch } from '@/lib/config'
+import { apiFetch } from '@/lib/api'
 import Fuse from 'fuse.js'
 
 interface Airport {
