@@ -1,10 +1,10 @@
 {
   "/_not-found": "app/_not-found.js",
   "/admin/page": "app/admin/page.js",
-  "/admin/reconciliations/page": "app/admin/reconciliations/page.js",
   "/flights/page": "app/flights/page.js",
-  "/flights/results/page": "app/flights/results/page.js",
+  "/admin/reconciliations/page": "app/admin/reconciliations/page.js",
   "/flights/vendors/page": "app/flights/vendors/page.js",
+  "/flights/results/page": "app/flights/results/page.js",
   "/hotels/results/page": "app/hotels/results/page.js",
   "/hotels/vendors/page": "app/hotels/vendors/page.js",
   "/page": "app/page.js",
