@@ -179,7 +179,7 @@ class FallbackOrchestrator:
         # 2. Add regional hubs
         origin_country = self.get_airport_country(original_origin)
         if origin_country:
-            hubs = get_top_hubs(origin_country, limit=limit_hubs, exclude=list(seen))
+            hubs = hub_airports.get_top_hubs(origin_country, limit=limit_hubs, exclude=list(seen))
             for hub in hubs:
                 if hub not in seen:
                     expanded_origins.append(hub)
