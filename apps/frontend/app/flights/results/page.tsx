@@ -15,6 +15,8 @@ import { FlightOffer } from '@/components/results/ResultCard'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
 import { requestCache } from '@/lib/requestCache'
+import { runFallbackSearches, type FallbackSuggestions } from '@/lib/fallbackSearch'
+import NoFlightsWithSuggestions from '@/components/results/NoFlightsWithSuggestions'
 
 function SearchResultsContent() {
   const searchParams = useSearchParams()
@@ -26,6 +28,10 @@ function SearchResultsContent() {
   const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [showRetry, setShowRetry] = useState(false)
+  
+  // Fallback suggestions state
+  const [fallbackSuggestions, setFallbackSuggestions] = useState<FallbackSuggestions | null>(null)
+  const [loadingFallback, setLoadingFallback] = useState(false)
   
   // Abort controller ref for cancelling requests
   const abortControllerRef = useRef<AbortController | null>(null)
