@@ -305,6 +305,12 @@ function SearchResultsContent() {
 
       setOffers(fetchedOffers)
       processFlightData(fetchedOffers)
+      
+      // Trigger fallback search if 0 results
+      if (fetchedOffers.length === 0) {
+        console.log('[Flights] 0 results - triggering fallback search')
+        triggerFallbackSearch(controller.signal)
+      }
 
     } catch (err: any) {
       // Don't show error if request was aborted (user changed search)
@@ -319,6 +325,43 @@ function SearchResultsContent() {
       setLoading(false)
       setLoadingTimeout(false)
       setShowRetry(false)
+    }
+  }
+  
+  // Trigger fallback search when primary returns 0 results
+  const triggerFallbackSearch = async (abortSignal: AbortSignal) => {
+    try {
+      setLoadingFallback(true)
+      setFallbackSuggestions(null)
+      
+      // Build search params
+      const params = new URLSearchParams({
+        origin,
+        destination,
+        departure_date: selectedDate,
+        trip_type: tripType,
+        adults: searchParams.get('adults') || '1',
+        children: searchParams.get('children') || '0',
+        infants: searchParams.get('infants') || '0',
+        cabin_class: cabinClass,
+      })
+      
+      if (returnDate && tripType === 'roundtrip') {
+        params.set('return_date', returnDate)
+      }
+      
+      // Run fallback searches (max 4 API calls)
+      const suggestions = await runFallbackSearches(params, abortSignal)
+      
+      setFallbackSuggestions(suggestions)
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.log('[Fallback] Request aborted')
+        return
+      }
+      console.error('[Fallback] Error:', err)
+    } finally {
+      setLoadingFallback(false)
     }
   }
 
