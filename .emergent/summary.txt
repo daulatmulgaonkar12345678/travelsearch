@@ -1,0 +1,209 @@
+<analysis>**original_problem_statement:**
+The user wants to build a production-grade Skyscanner-like metasearch platform for flights and hotels. Recent requests have focused on several key areas:
+1.  **Data Quality & Validation:** Implementing a robust backend flight duration validator to eliminate impossible results (e.g., 15-minute flights).
+2.  **User Experience on No Results:** Implementing a sophisticated, multi-stage fallback system (first client-side, then a more advanced server-side version) to provide alternative suggestions (nearby airports, hub airports, different dates) when a direct search yields no flights, mimicking Skyscanner's behavior.
+3.  **UI/UX Refactor:** A complete overhaul of the UI to match Skyscanner's layout, including a new search bar, a 3-card summary (Best/Cheapest/Fastest), a left-column filter panel, and an improved results page.
+4.  **Resilience & Bug Fixes:** Fixing backend 502 errors and making autocomplete components more resilient with client-side fallbacks. The most recent task is to fix a critical bug where frontend fallback logic incorrectly calls , causing connection errors.
+
+**PRODUCT REQUIREMENTS:**
+- **Frontend:** Next.js 14, TypeScript, Tailwind CSS, shadcn UI.
+- **Backend:** FastAPI, Python, Pydantic.
+- **Database:** MongoDB.
+- **Core Goal:** Achieve a user experience and feature set competitive with Skyscanner, focusing on data accuracy, helpful UX on dead-end searches, and a professional UI.
+
+**User's preferred language**: English
+
+**what currently exists?**
+The application is a monorepo with a Next.js frontend () and a FastAPI backend () using Amadeus production APIs.
+
+Key features implemented include:
+- A completed Add nearby airports feature, functional from the UI down to the backend.
+- A robust backend flight duration validator that filters out unrealistic flight times.
+- A comprehensive pre-launch validation was performed.
+- A *client-side* smart fallback for No flights found scenarios.
+- Backend services and models for a more advanced *server-side* fallback orchestrator have been created but are not fully integrated.
+- Autocomplete endpoints were fixed after a backend crash, and the frontend was enhanced with a -based local fallback for resilience.
+
+**Last working item**:
+- **Last item agent was working on:** The agent was tasked with resolving  errors that occur during fallback searches. The root cause was identified as the frontend making API calls to  instead of the correct remote backend URL. The agent's last action was to begin refactoring all frontend API calls to use the  environment variable.
+- **Status:** IN PROGRESS
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** Frontend testing agent. The test must trigger a no flights found scenario (e.g., search ISK to RTC) and verify through browser developer tools that all subsequent fallback API requests are directed to the correct remote backend URL, with no more  errors.
+- **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+- **Issue 1:** Fix  by making all frontend API calls use the remote backend URL (P0)
+- **Issue 2:** Complete the integration of the **server-side** global fallback logic (P1)
+- **Issue 3:** Integrate Hotel City & Name Autocomplete into the frontend (P1)
+- **Issue 4:** Implement the full Skyscanner-like UI/UX refactor (P2)
+- **Issue 5:** Implement Dynamic Filter Pricing (P2)
+- **Issue 6:** Implement Minimal Hotel Filters (P3)
+- **Issue 7:** Fix  Symlink Technical Debt (P3)
+
+**Issues Detail:**
+- **Issue 1:** Fix  by making all frontend API calls use the remote backend URL (P0)
+    - **Attempted fixes:** The agent correctly identified that  was not using the correct environment variable for the backend URL. It located the correct variable () and the config file () that should provide it.
+    - **Next debug checklist:**
+        1. Create a centralized API helper function (e.g.,  in a new  file) that constructs the full URL using .
+        2. Refactor all  calls across the frontend to use this new helper. Key files include , , and .
+        3. Remove all hardcoded  references and relative  calls intended for the backend.
+    - **Why fix this issue and what will be achieved with the fix?** This is a critical bug blocking the functionality of the fallback search feature in the preview/production environment. Fixing it will make all API communications robust and correctly configured.
+    - **Status:** IN PROGRESS
+    - **Is recurring issue?** Y
+    - **Should Test frontend/backend/both after fix?** frontend
+    - **Blocked on other issue:** None
+
+- **Issue 2:** Complete the integration of the **server-side** global fallback logic (P1)
+    - **Attempted fixes:** The agent created the backend orchestrator () and models. However, this new logic was never fully integrated into the main , and the frontend was not updated to handle the new, more complex JSON response.
+    - **Next debug checklist:**
+        1. **Backend:** In , replace the current simple fallback logic with a call to the .
+        2. **Backend:** Ensure the  endpoint returns the new structured response with  and  fields.
+        3. **Frontend:** In , adapt the data fetching logic to parse the new response structure.
+        4. **Frontend:** Update  to display the categorized fallback results (e.g., From nearby airports, To international hubs).
+    - **Why fix this issue and what will be achieved with the fix?** This will deliver a much more powerful and intelligent user experience for zero-result searches, closely matching Skyscanner's behavior.
+    - **Status:** IN PROGRESS
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on other issue:** Issue 1
+
+- **Issue 3:** Integrate Hotel City & Name Autocomplete into the frontend (P1)
+    - **Attempted fixes:** Backend endpoints (, ) were created in a previous session, but no frontend work has been done.
+    - **Next debug checklist:**
+        1. Locate the hotel search form within .
+        2. Wire the City or Hotel input to call the  endpoint and display suggestions.
+        3. On city selection, enable the hotel name input and wire it to the  endpoint.
+    - **Why fix this issue and what will be achieved with the fix?** To fix a core, broken feature and enable users to actually search for hotels.
+    - **Status:** NOT STARTED
+    - **Is recurring issue?** Y
+    - **Should Test frontend/backend/both after fix?** frontend
+    - **Blocked on other issue:** None
+
+**In progress Task List**:
+- **Task 1:** Complete server-side global fallback logic (P1)
+    - **Where to resume:** Integrating the  into the  service and updating the frontend to consume the new response format.
+    - **What will be achieved with this?** A best-in-class user experience for no flights found scenarios, providing intelligent, alternative suggestions to the user.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** both
+    - **Blocked on something:** Issue 1 (Fix ...).
+
+**Upcoming and Future Tasks**
+**Upcoming Tasks:**
+- **Implement Skyscanner UI/UX Refactor (P2):** Overhaul the search bar, results page (with 3-card summary), and filter column to match Skyscanner's design.
+- **Implement Dynamic Filter Pricing (P2):** Show from ₹X prices next to filter options like Stops and Airlines.
+- **Implement Minimal Hotel Filters (P3):** Add basic filters for price range and star rating to the hotel results page.
+- **Polish Admin Page (P3):** Add a descriptive note to the mock data page.
+
+**Future Tasks:**
+- Expand the admin dashboard with analytics.
+- Implement a more advanced deep-linking strategy.
+- Set up a full CI/CD pipeline.
+
+**Completed work in this session**
+- **Add nearby airports Feature (DONE):** Successfully implemented the frontend checkboxes and connected them to the backend, completing the feature end-to-end.
+- **Flight Duration Validator (DONE):** Created and integrated a critical backend validator to filter out impossible flight durations, with comprehensive unit tests.
+- **Comprehensive Pre-Launch Verification (DONE):** Performed a full validation pass on flight data, autocomplete, caching, and security, producing a detailed report.
+- **Client-Side No Flights Fallback (DONE):** Implemented a functional client-side fallback mechanism in the frontend to suggest alternative searches.
+- **Backend 502 Crash Fix (DONE):** Diagnosed and resolved a critical backend crash caused by a Python import cycle, making autocomplete endpoints stable.
+- **Frontend Autocomplete Resilience (DONE):** Enhanced the airport autocomplete to use a local  search as a fallback and display better error messages.
+
+**Earlier issues found/mentioned but not fixed**
+- **Issue 1:** Hotel City & Name Autocomplete is not integrated into the frontend. This has been a pending high-priority task for a long time.
+- **Issue 2:** Dynamic Filter Pricing (showing from ₹X) has been requested but never started.
+- **Issue 3:** Minimal Hotel Filters (price, rating) have been requested but never started.
+- **Issue 4:** A low-priority technical debt item to remove the  symlink is still pending.
+
+**Known issue recurrence from previous fork**
+- The issue of frontend API calls not using the correct backend URL is a recurring problem, previously appearing as hardcoded URLs and now as incorrect environment variable usage in specific modules.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- **Backend:** FastAPI, Pydantic, multi-stage fallback orchestration, data classification from files ().
+- **Frontend:** Next.js, React (, ), client-side fallbacks, dynamic component rendering, environment variable management (), and client-side search with .
+- **DevOps:** Diagnosing service crashes (Python import cycles), managing Next.js production builds (yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.), and restarting services with backend                          RUNNING   pid 33, uptime 0:00:03
+code-server                      STOPPED   Not started
+frontend                         STOPPED   Dec 10 06:08 PM
+mongodb                          RUNNING   pid 35, uptime 0:00:03
+nginx-code-proxy                 RUNNING   pid 32, uptime 0:00:03
+supervisor> .
+
+**key DB schema**
+No changes to the database schema in this session.
+
+**changes in tech stack**
+- **** was added to the frontend  to enable client-side fuzzy search as a fallback for autocomplete.
+
+**All files of reference**
+- ****: The location of the current bug. This file makes API calls that are failing due to incorrect URL construction.
+- ****: Orchestrates the search and fallback logic on the frontend. It will need to be refactored to use the new API helper and later, the new server-side fallback response.
+- ****: Another component that makes API calls and was recently enhanced with a  fallback.
+- ****: Contains the  variable needed to fix the current issue.
+- ****: The new, partially-implemented server-side fallback logic that is the target for Issue #2.
+- ****: The main backend service that needs to be updated to integrate the new fallback orchestrator.
+
+**Areas that need refactoring**:
+- **Frontend API Calls:** A centralized  helper function should be created to consolidate all API calls and ensure the correct base URL is always used, resolving the current bug and preventing future ones.
+- **Fallback Logic:** The application has two fallback systems (client-side and a partially-built server-side one). The ultimate goal is to remove the client-side implementation in favor of the more powerful server-side orchestrator.
+
+**key api endpoints**
+- : The core flight search endpoint. The user's goal is for this endpoint to return a new, structured response containing both primary and fallback results, driven by the .
+
+**Critical Info for New Agent**
+- **URL Configuration is the #1 Priority:** Your immediate task is to fix all frontend API calls to use the  from the environment. Create a single, reusable API helper function for this. Do not use  or relative  paths anywhere.
+- **Two Fallback Systems Exist:** Be aware there's an active (but currently broken) *client-side* fallback in , and a more advanced, partially-built *server-side* fallback in . The user wants to eventually use the server-side one. Don't confuse the two.
+- **Backend Fragility:** The backend recently crashed due to a Python import cycle. Be cautious when adding or renaming directories in the backend; ensure  files are correct and that you don't create circular dependencies.
+- **Production API Limits:** Amadeus is in production and will return 429 (rate limit) errors if too many parallel requests are made. The system must handle this gracefully; it is expected behavior, not a bug.
+
+**documents created in this job**
+- 
+- 
+- 
+- 
+- 
+
+**Last 10 User Messages and any pending user messages**
+1.  **Request:** Implement a Skyscanner-like UI refactor. (Status: Not Started)
+2.  **Request:** Implement a global, multi-stage fallback system with international airport priority. (Status: Partially Implemented)
+3.  **Issue:** The console shows  because fallback searches are calling . (Status: In Progress - This is the highest priority)
+4.  **Request:** A detailed spec to fix the above issue by making all frontend API calls use a single remote base URL from an environment variable. (Status: In Progress)
+5.  **Request:** A comprehensive spec for the global fallback logic. (Status: Partially Implemented)
+6.  **Request:** Fix 502 errors on autocomplete and add local fallbacks. (Status: Completed)
+7.  **Request:** A comprehensive spec for the UI/UX refactor. (Status: Not Started)
+8.  **Request:** A detailed pre-launch validation task. (Status: Completed)
+9.  **Request:** Implement a simple smart fallback for no-flight scenarios. (Status: Completed, but now superseded by the global fallback spec)
+10. **(Implicit) User Goal:** The overarching goal is to make the application robust, user-friendly, and feature-complete to a Skyscanner standard. All pending tasks and issues align with this goal.
+
+**Project Health Check:**
+- **Broken:** The no flights found fallback feature is non-functional due to the  bug. The hotel search UI remains disconnected from the backend.
+- **Mocked:** The admin reconciliation page still displays mock data.
+
+**3rd Party Integrations**
+- **Amadeus (Production):** Primary source for flight and hotel data. Requires  and .
+- **Duffel (Test):** Secondary flight data source.
+- **Travelpayouts/Aviasales:** For affiliate link generation.
+- **Fuse.js (New):** Used in the frontend for client-side fuzzy search.
+- None of these integrations use the Emergent LLM Key.
+
+**Testing status**
+- **Testing agent used after significant changes:** NO
+- **Troubleshoot agent used after agent stuck in loop:** NO
+- **Test files created:**
+    - 
+    - 
+- **Known regressions:** The client-side fallback feature is currently broken due to the incorrect backend URL being used in API calls.
+
+**Credentials to test flow:**
+- **Amadeus (Production - sensitive):**
+    - 
+    - 
+- **Duffel:**
+    - 
+- **Travelpayouts/Aviasales:**
+    - 
+
+**What agent forgot to execute**
+- The agent started the complex server-side  but never fully integrated it, leaving the application with a simpler, now-broken client-side fallback.
+- The agent has consistently failed to prioritize the long-standing request to connect the hotel search UI to the existing backend endpoints.
+- The major UI/UX refactor to match Skyscanner has been acknowledged multiple times but has not been started.</analysis>
