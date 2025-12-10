@@ -77,8 +77,8 @@ async function fetchNearbyAirports(
   abortSignal?: AbortSignal
 ): Promise<Array<{iata: string, city: string, country: string, distance_km: number}>> {
   try {
-    const response = await fetch(
-      `${BACKEND_URL}/api/airports/${iata}/nearby?radius_km=${radiusKm}&limit=3`,
+    const response = await apiFetch(
+      `/api/airports/${iata}/nearby?radius_km=${radiusKm}&limit=3`,
       { signal: abortSignal }
     )
     
