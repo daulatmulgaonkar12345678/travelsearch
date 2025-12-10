@@ -149,7 +149,7 @@ class AmadeusAdapter:
                 response = await self._make_request_with_retry(
                     client,
                     "GET",
-                    f"{self.BASE_URL}/shopping/flight-offers",
+                    f"{self.base_url}/shopping/flight-offers",
                     headers={"Authorization": f"Bearer {token}"},
                     params=params,
                     timeout=15.0
