@@ -32,7 +32,30 @@ class SearchAggregator:
         self.ranking = RankingEngine()
         self.cache = CacheService()
         
+        # Load airport data for validation
+        self.airport_data = self._load_airport_data()
+        
         logger.info(f"SearchAggregator initialized with flight={self.flight_provider}, hotel={self.hotel_provider}")
+    
+    def _load_airport_data(self):
+        """Load airport dataset for duration validation"""
+        try:
+            airports_path = Path("/app/data/airports-full.json")
+            with open(airports_path, 'r', encoding='utf-8') as f:
+                airports_list = json.load(f)
+            
+            # Build IATA lookup dictionary
+            airport_dict = {
+                airport['iata']: airport
+                for airport in airports_list
+                if 'iata' in airport
+            }
+            
+            logger.info(f"✅ Loaded {len(airport_dict)} airports for validation")
+            return airport_dict
+        except Exception as e:
+            logger.error(f"❌ Failed to load airport data for validation: {e}")
+            return {}
     
     async def _get_nearby_airports(self, iata: str, radius_km: float = 250.0) -> List[str]:
         """Get nearby airport IATA codes for a given airport"""
