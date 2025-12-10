@@ -51,7 +51,10 @@ class AmadeusAdapter:
             raise ValueError("Amadeus API credentials are required for production mode")
     
     async def get_access_token(self) -> str:
-        """Get OAuth access token using client credentials flow"""
+        """Get OAuth access token using client credentials flow
+        
+        Security: Never logs credentials or full tokens
+        """
         # Return cached token if still valid
         if self.access_token and self.token_expires_at:
             if datetime.utcnow() < self.token_expires_at - timedelta(minutes=5):
@@ -68,6 +71,12 @@ class AmadeusAdapter:
                     },
                     timeout=10.0
                 )
+                
+                # Handle authentication errors explicitly
+                if response.status_code == 401:
+                    logger.error("Amadeus OAuth failed - invalid credentials")
+                    raise ValueError("Invalid Amadeus API credentials")
+                
                 response.raise_for_status()
                 
                 data = response.json()
@@ -75,11 +84,17 @@ class AmadeusAdapter:
                 expires_in = data.get("expires_in", 1800)  # Default 30 min
                 self.token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
                 
-                logger.info("Amadeus OAuth token obtained successfully")
+                # Security: Only log success, never token value
+                logger.info(f"Amadeus OAuth token obtained (expires in {expires_in}s)")
                 return self.access_token
         
+        except httpx.HTTPStatusError as e:
+            # Security: Log error without exposing credentials
+            logger.error(f"Amadeus OAuth HTTP error: {e.response.status_code}")
+            raise
         except Exception as e:
-            logger.error(f"Amadeus OAuth error: {e}")
+            # Security: Generic error message, no credential details
+            logger.error(f"Amadeus OAuth error: {type(e).__name__}")
             raise
     
     async def search_flights(self, request: FlightSearchRequest) -> List[FlightOffer]:
