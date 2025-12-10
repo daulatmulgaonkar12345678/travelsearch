@@ -61,7 +61,9 @@ export default function AirportAutocomplete({
       
       if (response.ok) {
         const data = await response.json()
-        setSuggestions(data)
+        // Extract results array from API response
+        const results = data.results || []
+        setSuggestions(results)
       } else {
         console.error(`Airport search failed: ${response.status} ${response.statusText}`)
         setSuggestions([])
