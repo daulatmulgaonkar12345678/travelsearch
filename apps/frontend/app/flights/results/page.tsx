@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 import React from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
@@ -12,8 +12,9 @@ import FlexibleDateBar from '@/components/results/FlexibleDateBar'
 import MonthView from '@/components/results/MonthView'
 import FlightLoadingState from '@/components/loading/FlightLoadingState'
 import { FlightOffer } from '@/components/results/ResultCard'
-import { Loader2 } from 'lucide-react'
+import { Loader2, RefreshCw } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
+import { requestCache } from '@/lib/requestCache'
 
 function SearchResultsContent() {
   const searchParams = useSearchParams()
@@ -23,6 +24,11 @@ function SearchResultsContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
+  const [loadingTimeout, setLoadingTimeout] = useState(false)
+  const [showRetry, setShowRetry] = useState(false)
+  
+  // Abort controller ref for cancelling requests
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Flexible dates state
   const [dateOptions, setDateOptions] = useState<any[]>([])
