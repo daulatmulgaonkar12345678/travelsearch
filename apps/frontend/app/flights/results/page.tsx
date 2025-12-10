@@ -303,6 +303,10 @@ function SearchResultsContent() {
 
       // Cache the response
       requestCache.set('flights', searchParamsObj, data)
+      
+      // Check if results are from fallback (backend nearby airport expansion)
+      const hasFallbackResults = fetchedOffers.some((offer: FlightOffer) => offer.nearby_origin)
+      setShowingFallbackResults(hasFallbackResults)
 
       setOffers(fetchedOffers)
       processFlightData(fetchedOffers)
