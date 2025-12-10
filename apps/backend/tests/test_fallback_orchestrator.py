@@ -174,8 +174,8 @@ def test_route_pnq_to_ams_distance(airport_data):
         ams['lat'], ams['lon']
     )
     
-    # PNQ to AMS is approximately 6300 km
-    assert 6200 < distance < 6500, f"PNQ→AMS distance should be ~6300km, got {distance}km"
+    # PNQ to AMS is approximately 6970 km (great-circle)
+    assert 6900 < distance < 7100, f"PNQ→AMS distance should be ~6970km, got {distance}km"
 
 
 def test_route_pnq_to_cdg_distance(airport_data):
@@ -188,8 +188,8 @@ def test_route_pnq_to_cdg_distance(airport_data):
         cdg['lat'], cdg['lon']
     )
     
-    # PNQ to CDG is approximately 6500 km
-    assert 6400 < distance < 6700, f"PNQ→CDG distance should be ~6500km, got {distance}km"
+    # PNQ to CDG is approximately 7110 km (great-circle)
+    assert 7000 < distance < 7200, f"PNQ→CDG distance should be ~7110km, got {distance}km"
 
 
 def test_route_pnq_to_dxb_distance(airport_data):
@@ -202,8 +202,8 @@ def test_route_pnq_to_dxb_distance(airport_data):
         dxb['lat'], dxb['lon']
     )
     
-    # PNQ to DXB is approximately 1900 km
-    assert 1800 < distance < 2000, f"PNQ→DXB distance should be ~1900km, got {distance}km"
+    # PNQ to DXB is approximately 2050 km (great-circle)
+    assert 2000 < distance < 2150, f"PNQ→DXB distance should be ~2050km, got {distance}km"
 
 
 def test_route_bom_to_del_distance(airport_data):
