@@ -79,7 +79,7 @@ function SearchResultsContent() {
       const children = parseInt(searchParams.get('children') || '0', 10)
       const infants = parseInt(searchParams.get('infants') || '0', 10)
       
-      const response = await apiFetch(API_ENDPOINTS.pricingDateRange, {
+      const response = await apiFetch('/api/pricing/date-range', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,7 +128,7 @@ function SearchResultsContent() {
       const children = parseInt(searchParams.get('children') || '0', 10)
       const infants = parseInt(searchParams.get('infants') || '0', 10)
       
-      const response = await apiFetch(API_ENDPOINTS.pricingDateRange, {
+      const response = await apiFetch('/api/pricing/date-range', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
