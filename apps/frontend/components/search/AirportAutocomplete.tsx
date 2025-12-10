@@ -96,8 +96,8 @@ export default function AirportAutocomplete({
     setUsingFallback(false)
     
     try {
-      const url = `${API_ENDPOINTS.airports}?query=${encodeURIComponent(searchQuery)}&limit=10`
-      const response = await apiFetch(url, { timeout: 5000 })
+      const url = `/api/airports?query=${encodeURIComponent(searchQuery)}&limit=10`
+      const response = await apiFetch(url)
       
       if (response.ok) {
         const data = await response.json()
