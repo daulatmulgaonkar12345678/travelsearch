@@ -32,6 +32,7 @@ function SearchResultsContent() {
   // Fallback suggestions state
   const [fallbackSuggestions, setFallbackSuggestions] = useState<FallbackSuggestions | null>(null)
   const [loadingFallback, setLoadingFallback] = useState(false)
+  const [showingFallbackResults, setShowingFallbackResults] = useState(false)
   
   // Abort controller ref for cancelling requests
   const abortControllerRef = useRef<AbortController | null>(null)
