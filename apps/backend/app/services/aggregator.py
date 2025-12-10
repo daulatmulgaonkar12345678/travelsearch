@@ -171,11 +171,76 @@ class SearchAggregator:
         # Rank results
         ranked_offers = self.ranking.rank_flights(unique_offers)
         
+        # FALLBACK: If zero results and not already using nearby/hubs, trigger intelligent fallback
+        if len(ranked_offers) == 0 and not (request.include_nearby_origin or request.include_nearby_destination):
+            logger.warning(f"⚠️  Zero results for {request.origin} → {request.destination}, activating fallback")
+            
+            try:
+                # Execute fallback with expanded origins
+                fallback_offers, fallback_metadata = await self.fallback_orchestrator.execute_fallback_search(
+                    original_request=request,
+                    search_function=self._execute_provider_search,
+                )
+                
+                if fallback_offers:
+                    # Validate fallback offers
+                    validated_fallback = validate_flight_offers(fallback_offers, self.airport_data)
+                    
+                    # Deduplicate
+                    unique_fallback = self._deduplicate_flights(validated_fallback)
+                    
+                    # Rank
+                    ranked_offers = self.ranking.rank_flights(unique_fallback)
+                    
+                    logger.info(f"✅ Fallback SUCCESS: Returning {len(ranked_offers)} offers from {fallback_metadata['used_origins']}")
+                else:
+                    logger.warning(f"⚠️  Fallback FAILED: Still zero results after trying expanded origins")
+            
+            except Exception as e:
+                logger.error(f"❌ Fallback error: {e}")
+                # Continue with zero results (graceful degradation)
+        
         # Cache for 15 minutes
         await self.cache.set(cache_key, ranked_offers, ttl=settings.cache_ttl)
         
         logger.info(f"Returning {len(ranked_offers)} flight offers")
         return ranked_offers
+    
+    async def _execute_provider_search(self, request: FlightSearchRequest) -> List[FlightOffer]:
+        """
+        Execute search against configured providers (used by fallback).
+        
+        Args:
+            request: Flight search request
+        
+        Returns:
+            List of flight offers
+        """
+        tasks = []
+        
+        if self.flight_provider == "amadeus":
+            tasks.append(self.amadeus_flights.search_flights(request))
+        elif self.flight_provider == "duffel":
+            tasks.append(self.duffel_flights.search_flights(request))
+        elif self.flight_provider == "amadeus+duffel":
+            tasks.append(self.amadeus_flights.search_flights(request))
+            tasks.append(self.duffel_flights.search_flights(request))
+        else:
+            logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
+            tasks.append(self.amadeus_flights.search_flights(request))
+        
+        # Execute searches
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Flatten results
+        all_offers = []
+        for result in results:
+            if isinstance(result, list):
+                all_offers.extend(result)
+            elif isinstance(result, Exception):
+                logger.error(f"Provider error in fallback: {result}")
+        
+        return all_offers
     
     async def search_hotels(self, request: HotelSearchRequest) -> List[HotelOffer]:
         """Search hotels from configured provider"""
