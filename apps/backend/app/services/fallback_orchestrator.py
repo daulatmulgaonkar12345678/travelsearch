@@ -15,7 +15,7 @@ import logging
 import httpx
 from typing import List, Set, Optional, Dict
 from app.models.flight import FlightOffer, FlightSearchRequest
-from app.config.hub_airports import get_top_hubs
+from app.config import hub_airports
 from app.services.flight_validator import haversine_distance
 
 logger = logging.getLogger(__name__)
