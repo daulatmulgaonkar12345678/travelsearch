@@ -245,7 +245,8 @@ metadata:
           comment: "Implemented flight duration display feature in Sort Tabs to match Skyscanner behavior. Created formatDuration() utility in /app/apps/frontend/lib/formatters.ts, updated SortTabs component to display durations below prices, enhanced flight results page to calculate and pass both prices and durations. Need comprehensive testing of visual display, data consistency, duration formatting, filter interactions, and tab switching behavior."
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Flight Duration Display in Sort Tabs (Best/Cheapest/Fastest)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
