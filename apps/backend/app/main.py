@@ -49,6 +49,8 @@ app.include_router(redirect.router, prefix="/api", tags=["redirect"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api", tags=["admin"])
 app.include_router(pricing.router, prefix="/api", tags=["pricing"])
+app.include_router(airports.router, prefix="/api", tags=["airports"])
+app.include_router(cities.router, prefix="/api", tags=["cities"])
 
 # Import and include reconciliation routes
 from app.routers import webhooks_reconcile
