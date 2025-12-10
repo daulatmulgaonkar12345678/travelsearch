@@ -196,7 +196,54 @@ function HotelResultsContent() {
 
   if (loading) {
     return (
-      <HotelLoadingState city={city} />
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        <HotelLoadingState city={city} />
+        
+        {/* Loading timeout message */}
+        {loadingTimeout && (
+          <div className="max-w-2xl mx-auto mt-8 px-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+              <div className="flex items-center justify-center mb-3">
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600 mr-2" />
+                <p className="text-blue-900 font-medium">
+                  This is taking longer than usual
+                </p>
+              </div>
+              <p className="text-sm text-blue-700">
+                Prices will be confirmed on the partner site. We're still searching...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Retry option after 12 seconds */}
+        {showRetry && (
+          <div className="max-w-2xl mx-auto mt-4 px-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+              <p className="text-yellow-900 mb-4">
+                The search is taking unusually long. This may be due to slow provider responses.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={handleRetry}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry Search
+                </button>
+                <button
+                  onClick={() => router.push('/hotels')}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     )
   }
 
