@@ -1,36 +1,44 @@
 {
   "pages": {
     "/_not-found": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/app/_not-found-ad35abd2caabc157.js"
     ],
     "/layout": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
-      "static/css/d3c87c3c9e380ff9.css",
-      "static/chunks/app/layout-445ccf16cd1d2055.js"
-    ],
-    "/flights/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
-      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
-      "static/chunks/938-95416e7af06c57d9.js",
-      "static/chunks/main-app-7a0885f190dcd632.js",
-      "static/chunks/app/flights/page-bdb1bbce80d3918d.js"
+      "static/css/57d7fbb89edcfe74.css",
+      "static/chunks/app/layout-ebc77bd450a9aef5.js"
     ],
     "/admin/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/app/admin/page-b6db5d3284d048cd.js"
     ],
+    "/admin/reconciliations/page": [
+      "static/chunks/webpack-570a14ba5667db02.js",
+      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
+      "static/chunks/938-95416e7af06c57d9.js",
+      "static/chunks/main-app-7a0885f190dcd632.js",
+      "static/chunks/627-fd71d8afb27a4e0b.js",
+      "static/chunks/app/admin/reconciliations/page-f1f4e38d9e63add8.js"
+    ],
+    "/flights/page": [
+      "static/chunks/webpack-570a14ba5667db02.js",
+      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
+      "static/chunks/938-95416e7af06c57d9.js",
+      "static/chunks/main-app-7a0885f190dcd632.js",
+      "static/chunks/app/flights/page-bdb1bbce80d3918d.js"
+    ],
     "/flights/results/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
@@ -39,16 +47,8 @@
       "static/chunks/725-e93e6bf19573bfbe.js",
       "static/chunks/app/flights/results/page-c2d454b47ba5e453.js"
     ],
-    "/admin/reconciliations/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
-      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
-      "static/chunks/938-95416e7af06c57d9.js",
-      "static/chunks/main-app-7a0885f190dcd632.js",
-      "static/chunks/627-fd71d8afb27a4e0b.js",
-      "static/chunks/app/admin/reconciliations/page-f1f4e38d9e63add8.js"
-    ],
     "/flights/vendors/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
@@ -58,7 +58,7 @@
       "static/chunks/app/flights/vendors/page-1bede9f92406c811.js"
     ],
     "/hotels/results/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
@@ -67,7 +67,7 @@
       "static/chunks/app/hotels/results/page-84069ed1cdf65dfa.js"
     ],
     "/hotels/vendors/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
@@ -77,22 +77,24 @@
       "static/chunks/app/hotels/vendors/page-60261b05b708cfb2.js"
     ],
     "/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/627-fd71d8afb27a4e0b.js",
-      "static/chunks/925-ea98202e348bdd42.js",
-      "static/chunks/app/page-816d983326178c83.js"
+      "static/chunks/424-e6e0bb36561ff754.js",
+      "static/chunks/925-fdc2a2115abb20ae.js",
+      "static/chunks/app/page-cbe98382f84cc12a.js"
     ],
     "/hotels/page": [
-      "static/chunks/webpack-88201ce22dcb9190.js",
+      "static/chunks/webpack-570a14ba5667db02.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
       "static/chunks/938-95416e7af06c57d9.js",
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/627-fd71d8afb27a4e0b.js",
-      "static/chunks/925-ea98202e348bdd42.js",
-      "static/chunks/app/hotels/page-a1b61a90db562226.js"
+      "static/chunks/424-e6e0bb36561ff754.js",
+      "static/chunks/925-fdc2a2115abb20ae.js",
+      "static/chunks/app/hotels/page-dcc8f97fff0072e0.js"
     ]
   }
 }
