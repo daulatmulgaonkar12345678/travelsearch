@@ -31,6 +31,14 @@ class AmadeusAdapter:
         self.api_key = api_key or settings.amadeus_api_key
         self.api_secret = api_secret or settings.amadeus_api_secret
         
+        # Determine base URL from settings (production vs test)
+        base_url = settings.amadeus_base_url or "https://api.amadeus.com"
+        # Extract version from URL or default to v2
+        if "/v" in base_url:
+            self.base_url = base_url
+        else:
+            self.base_url = f"{base_url}/v2"
+        
         # Never use mock mode in production unless explicitly set
         environment = settings.amadeus_environment or "production"
         self.mock_mode = mock_mode if mock_mode is not None else (environment == "test")
@@ -43,10 +51,10 @@ class AmadeusAdapter:
         self.rate_limit_reset_at: Optional[datetime] = None
         
         # Security: Never log credentials
-        logger.info(f"AmadeusAdapter initialized (environment={environment}, mock_mode={self.mock_mode})")
+        logger.info(f"AmadeusAdapter initialized (environment={environment}, base_url={self.base_url}, mock_mode={self.mock_mode})")
         
         # Verify credentials are set
-        if not self.mock_mode and (not self.api_key or not self.api_secret):
+        if not self.mock_mode and (not self.api_key or not self.api_secret or self.api_key == "REPLACE_ME"):
             logger.error("Amadeus credentials not configured!")
             raise ValueError("Amadeus API credentials are required for production mode")
     
