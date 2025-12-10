@@ -222,7 +222,7 @@ function SearchResultsContent() {
         abortControllerRef.current.abort()
       }
     }
-  }, [origin, destination, selectedDate, tripType, returnDate, cabinClass])
+  }, [origin, destination, selectedDate, tripType, returnDate, cabinClass, includeNearbyOrigin, includeNearbyDestination])
 
   const fetchResults = async () => {
     try {
