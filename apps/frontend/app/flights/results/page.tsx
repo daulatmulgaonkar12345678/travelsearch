@@ -52,6 +52,8 @@ function SearchResultsContent() {
   const tripType = searchParams.get('trip_type') || 'oneway'
   const returnDate = searchParams.get('return_date') || ''
   const cabinClass = searchParams.get('cabin_class') || 'economy'
+  const includeNearbyOrigin = searchParams.get('include_nearby_origin') === 'true'
+  const includeNearbyDestination = searchParams.get('include_nearby_destination') === 'true'
 
   // Fetch real per-day prices for date strip
   const fetchDateRangePrices = async (centerDate: string) => {
