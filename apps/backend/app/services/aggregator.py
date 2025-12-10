@@ -1,5 +1,6 @@
 from typing import List
 import asyncio
+import httpx
 from app.models.flight import FlightOffer, FlightSearchRequest
 from app.models.hotel import HotelOffer, HotelSearchRequest
 from app.services.adapters.amadeus_flights import AmadeusFlightsAdapter
