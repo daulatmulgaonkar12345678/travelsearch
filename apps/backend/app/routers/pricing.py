@@ -75,6 +75,10 @@ async def get_date_range_prices(request: DatePriceRequest):
         
         logger.info(f"Fetching prices for {len(request.dates)} dates: {request.origin} -> {request.destination}")
         
+        # First, check cache for all dates
+        dates_to_fetch = []
+        cached_results = []
+        
         for date_str in request.dates:
             cache_key = get_cache_key(
                 request.origin, 
@@ -87,67 +91,80 @@ async def get_date_range_prices(request: DatePriceRequest):
             # Check cache first
             cached_price = get_cached_price(cache_key)
             if cached_price is not None:
-                results.append(DatePriceResponse(
+                cached_results.append(DatePriceResponse(
                     date=date_str,
                     min_price=cached_price,
                     currency="INR",
                     cached=True
                 ))
-                continue
+            else:
+                dates_to_fetch.append(date_str)
+        
+        # Fetch uncached dates in parallel
+        if dates_to_fetch:
+            import asyncio
             
-            # Fetch from Amadeus
-            try:
-                search_request = FlightSearchRequest(
-                    trip_type=request.trip_type,
-                    origin=request.origin,
-                    destination=request.destination,
-                    departure_date=date_str,
-                    return_date=None,
-                    adults=request.adults,
-                    children=None,
-                    infants=request.infants,
-                    cabin_class=request.cabin_class,
-                    direct_only=False,
-                    max_price=None,
-                    max_duration_minutes=None,
-                    refundable_only=False,
-                    include_red_eye=True,
-                    green_only=False
+            async def fetch_date_price(date_str: str) -> DatePriceResponse:
+                """Fetch price for a single date"""
+                cache_key = get_cache_key(
+                    request.origin, 
+                    request.destination, 
+                    date_str, 
+                    request.adults, 
+                    request.cabin_class
                 )
                 
-                offers = await amadeus.search_flights(search_request)
-                
-                if offers and len(offers) > 0:
-                    # Find minimum price
-                    min_price = min(offer.price for offer in offers)
+                try:
+                    search_request = FlightSearchRequest(
+                        trip_type=request.trip_type,
+                        origin=request.origin,
+                        destination=request.destination,
+                        departure_date=date_str,
+                        return_date=None,
+                        adults=request.adults,
+                        children=None,
+                        infants=request.infants,
+                        cabin_class=request.cabin_class,
+                        direct_only=False,
+                        max_price=None,
+                        max_duration_minutes=None,
+                        refundable_only=False,
+                        include_red_eye=True,
+                        green_only=False
+                    )
                     
-                    # Cache it
-                    set_cached_price(cache_key, min_price)
+                    offers = await amadeus.search_flights(search_request)
                     
-                    results.append(DatePriceResponse(
-                        date=date_str,
-                        min_price=min_price,
-                        currency="INR",
-                        cached=False
-                    ))
-                    logger.info(f"Date {date_str}: min price = {min_price}")
-                else:
-                    # No flights for this date
-                    set_cached_price(cache_key, None)
-                    results.append(DatePriceResponse(
+                    if offers and len(offers) > 0:
+                        # Find minimum price
+                        min_price = min(offer.price for offer in offers)
+                        
+                        # Cache it
+                        set_cached_price(cache_key, min_price)
+                        
+                        logger.info(f"Date {date_str}: min price = {min_price}")
+                        return DatePriceResponse(
+                            date=date_str,
+                            min_price=min_price,
+                            currency="INR",
+                            cached=False
+                        )
+                    else:
+                        # No flights for this date
+                        set_cached_price(cache_key, None)
+                        logger.info(f"Date {date_str}: no flights")
+                        return DatePriceResponse(
+                            date=date_str,
+                            min_price=None,
+                            currency="INR",
+                            cached=False
+                        )
+                        
+                except Exception as e:
+                    logger.error(f"Error fetching price for {date_str}: {str(e)}")
+                    return DatePriceResponse(
                         date=date_str,
                         min_price=None,
-                        currency="INR",
-                        cached=False
-                    ))
-                    logger.info(f"Date {date_str}: no flights")
-                    
-            except Exception as e:
-                logger.error(f"Error fetching price for {date_str}: {str(e)}")
-                # Return None for this date but continue
-                results.append(DatePriceResponse(
-                    date=date_str,
-                    min_price=None,
                     currency="INR",
                     cached=False
                 ))
