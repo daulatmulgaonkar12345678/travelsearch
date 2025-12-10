@@ -206,15 +206,31 @@ function SearchResultsContent() {
       return
     }
 
+    // Abort previous request if search params changed
+    if (abortControllerRef.current) {
+      console.log('[Flights] Aborting previous search')
+      abortControllerRef.current.abort()
+    }
+
     fetchResults()
+
+    // Cleanup on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [origin, destination, selectedDate, tripType, returnDate, cabinClass])
 
   const fetchResults = async () => {
     try {
       setLoading(true)
       setError(null)
+      setLoadingTimeout(false)
+      setShowRetry(false)
 
-      const params = new URLSearchParams({
+      // Create search params object for cache
+      const searchParamsObj = {
         origin,
         destination,
         departure_date: selectedDate,
@@ -223,14 +239,49 @@ function SearchResultsContent() {
         children: searchParams.get('children') || '0',
         infants: searchParams.get('infants') || '0',
         cabin_class: cabinClass,
-      })
-
-      if (returnDate && tripType === 'roundtrip') {
-        params.set('return_date', returnDate)
+        ...(returnDate && tripType === 'roundtrip' && { return_date: returnDate })
       }
 
+      // Check cache first
+      const cached = requestCache.get<any>('flights', searchParamsObj)
+      if (cached) {
+        console.log('[Flights] Using cached data')
+        const fetchedOffers = cached.offers || []
+        setOffers(fetchedOffers)
+        processFlightData(fetchedOffers)
+        setLoading(false)
+        return
+      }
+
+      // Create new abort controller for this request
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+
+      // Set up loading timeouts
+      const timeout8s = setTimeout(() => {
+        if (loading) {
+          setLoadingTimeout(true)
+        }
+      }, 8000)
+
+      const timeout12s = setTimeout(() => {
+        if (loading) {
+          setShowRetry(true)
+        }
+      }, 12000)
+
+      // Build URL
+      const params = new URLSearchParams(searchParamsObj as any)
       const url = `${API_ENDPOINTS.searchFlights}?${params}`
-      const response = await apiFetch(url)
+
+      // Fetch with abort signal
+      const response = await fetch(url, {
+        signal: controller.signal
+      })
+
+      // Clear timeouts on success
+      clearTimeout(timeout8s)
+      clearTimeout(timeout12s)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -238,37 +289,60 @@ function SearchResultsContent() {
 
       const data = await response.json()
       const fetchedOffers = data.offers || []
+
+      // Cache the response
+      requestCache.set('flights', searchParamsObj, data)
+
       setOffers(fetchedOffers)
+      processFlightData(fetchedOffers)
 
-      // Cache minimum price for this date
-      if (fetchedOffers.length > 0) {
-        const minPrice = Math.min(...fetchedOffers.map((o: FlightOffer) => o.price))
-        setDatePriceCache((prev) => {
-          const newCache = new Map(prev)
-          newCache.set(selectedDate, minPrice)
-          return newCache
-        })
+    } catch (err: any) {
+      // Don't show error if request was aborted (user changed search)
+      if (err.name === 'AbortError') {
+        console.log('[Flights] Request aborted')
+        return
       }
 
-      // Initialize filters based on available data
-      if (fetchedOffers.length > 0) {
-        const durations = fetchedOffers.map((o: FlightOffer) => o.total_duration_minutes || 0)
-        const uniqueAirlines = Array.from(
-          new Set(fetchedOffers.flatMap((o: FlightOffer) => o.segments.map((s) => s.carrier_name)))
-        ).sort()
-
-        setFilters((prev) => ({
-          ...prev,
-          durationRange: [Math.min(...durations), Math.max(...durations)],
-          airlines: uniqueAirlines,
-        }))
-      }
-    } catch (err) {
       console.error('Search error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch results')
     } finally {
       setLoading(false)
+      setLoadingTimeout(false)
+      setShowRetry(false)
     }
+  }
+
+  // Helper function to process flight data
+  const processFlightData = (fetchedOffers: FlightOffer[]) => {
+    // Cache minimum price for this date
+    if (fetchedOffers.length > 0) {
+      const minPrice = Math.min(...fetchedOffers.map((o: FlightOffer) => o.price))
+      setDatePriceCache((prev) => {
+        const newCache = new Map(prev)
+        newCache.set(selectedDate, minPrice)
+        return newCache
+      })
+
+      // Initialize filters based on available data
+      const durations = fetchedOffers.map((o: FlightOffer) => o.total_duration_minutes || 0)
+      const uniqueAirlines = Array.from(
+        new Set(fetchedOffers.flatMap((o: FlightOffer) => o.segments.map((s) => s.carrier_name)))
+      ).sort()
+
+      setFilters((prev) => ({
+        ...prev,
+        durationRange: [Math.min(...durations), Math.max(...durations)],
+        airlines: uniqueAirlines,
+      }))
+    }
+  }
+
+  // Manual retry function
+  const handleRetry = () => {
+    setError(null)
+    setLoadingTimeout(false)
+    setShowRetry(false)
+    fetchResults()
   }
 
   // Calculate tab prices and durations (Best/Cheapest/Fastest)
