@@ -62,6 +62,11 @@ class FlightSearchRequest(BaseModel):
     include_red_eye: bool = True
     green_only: bool = False
     
+    # Nearby airports
+    include_nearby_origin: bool = False
+    include_nearby_destination: bool = False
+    nearby_radius_km: float = 250.0
+    
 class FlightSearchResponse(BaseModel):
     """Search response with offers"""
     offers: List[FlightOffer]
