@@ -157,8 +157,12 @@ class SearchAggregator:
             elif isinstance(result, Exception):
                 logger.error(f"Provider error: {result}")
         
+        # Validate flight data quality and recompute durations
+        validated_offers = validate_flight_offers(all_offers, self.airport_data)
+        logger.info(f"✅ Validated {len(validated_offers)} offers (dropped {len(all_offers) - len(validated_offers)} invalid)")
+        
         # Remove duplicates (same route, carrier, time)
-        unique_offers = self._deduplicate_flights(all_offers)
+        unique_offers = self._deduplicate_flights(validated_offers)
         
         # Rank results
         ranked_offers = self.ranking.rank_flights(unique_offers)
