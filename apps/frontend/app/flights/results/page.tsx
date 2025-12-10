@@ -92,6 +92,9 @@ function SearchResultsContent() {
           cabin_class: cabinClass,
           trip_type: tripType
         })
+      }, {
+        timeoutMs: 15000,  // 15 second timeout for pricing (makes multiple API calls)
+        maxRetries: 1      // Only 1 retry for pricing to avoid long waits
       })
       
       if (response.ok) {
@@ -141,6 +144,9 @@ function SearchResultsContent() {
           cabin_class: cabinClass,
           trip_type: tripType
         })
+      }, {
+        timeoutMs: 15000,  // 15 second timeout for pricing (makes multiple API calls)
+        maxRetries: 1      // Only 1 retry for pricing to avoid long waits
       })
       
       if (response.ok) {
