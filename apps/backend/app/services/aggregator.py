@@ -11,6 +11,7 @@ from app.services.adapters.duffel_flights import DuffelFlightsAdapter
 from app.services.ranking import RankingEngine
 from app.services.cache import CacheService
 from app.services.flight_validator import validate_flight_offers
+from app.services.fallback_orchestrator import FallbackOrchestrator
 from app.config import settings, is_mock_mode
 import logging
 
