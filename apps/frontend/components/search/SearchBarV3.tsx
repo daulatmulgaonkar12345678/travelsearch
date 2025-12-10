@@ -235,6 +235,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       passengers.children.forEach((child, idx) => {
         params.append(`child_${idx}_age`, child.age.toString())
       })
+      // Add nearby airports flags
+      if (includeNearbyOrigin) {
+        params.append('include_nearby_origin', 'true')
+      }
+      if (includeNearbyDestination) {
+        params.append('include_nearby_destination', 'true')
+      }
       window.location.href = `/flights/results?${params}`
     }
   }
