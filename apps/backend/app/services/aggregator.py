@@ -108,13 +108,25 @@ class SearchAggregator:
                     tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
         
         # Query providers in parallel
-        logger.info(f"Searching flights: {request.origin} -> {request.destination} via {self.flight_provider}")
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        logger.info(f"Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
         
-        # Flatten results and handle errors
+        # Extract just the coroutines for asyncio.gather
+        search_coroutines = [task[2] for task in tasks]
+        results = await asyncio.gather(*search_coroutines, return_exceptions=True)
+        
+        # Flatten results, handle errors, and tag with nearby metadata
         all_offers = []
-        for result in results:
+        for idx, result in enumerate(results):
             if isinstance(result, list):
+                origin_code, dest_code = tasks[idx][0], tasks[idx][1]
+                
+                # Tag offers with nearby airport metadata
+                for offer in result:
+                    offer.nearby_origin = (origin_code != original_origin)
+                    offer.nearby_destination = (dest_code != original_destination)
+                    if offer.nearby_origin:
+                        offer.source_airport = origin_code
+                    
                 all_offers.extend(result)
             elif isinstance(result, Exception):
                 logger.error(f"Provider error: {result}")
