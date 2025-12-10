@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class AmadeusAdapter:
     """Production Amadeus Flight Offers API adapter with OAuth, rate limiting, and error handling"""
     
-    BASE_URL = settings.amadeus_base_url or "https://api.amadeus.com/v2"
+    # Base URLs determined at runtime from settings
     AUTH_URL = "https://api.amadeus.com/v1/security/oauth2/token"
     
     def __init__(self, api_key: str = None, api_secret: str = None, mock_mode: bool = False):
