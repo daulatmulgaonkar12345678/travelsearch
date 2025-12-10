@@ -30,6 +30,11 @@ class FlightOffer(BaseModel):
     deep_link: str          # Provider booking URL
     rating: Optional[float] = None  # Composite rating 0-100
     
+    # Nearby airports metadata
+    nearby_origin: bool = False
+    nearby_destination: bool = False
+    source_airport: Optional[str] = None  # Actual departure airport if different from requested
+    
 class FlightSearchRequest(BaseModel):
     """Flight search parameters"""
     # Trip configuration
