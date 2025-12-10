@@ -241,7 +241,9 @@ function SearchResultsContent() {
         children: searchParams.get('children') || '0',
         infants: searchParams.get('infants') || '0',
         cabin_class: cabinClass,
-        ...(returnDate && tripType === 'roundtrip' && { return_date: returnDate })
+        ...(returnDate && tripType === 'roundtrip' && { return_date: returnDate }),
+        ...(includeNearbyOrigin && { include_nearby_origin: 'true' }),
+        ...(includeNearbyDestination && { include_nearby_destination: 'true' })
       }
 
       // Check cache first
