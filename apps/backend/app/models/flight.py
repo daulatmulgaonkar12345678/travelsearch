@@ -35,6 +35,11 @@ class FlightOffer(BaseModel):
     nearby_destination: bool = False
     source_airport: Optional[str] = None  # Actual departure airport if different from requested
     
+    # Global fallback metadata
+    origin_type: Optional[str] = None  # "exact", "nearby", "international", "hub"
+    destination_type: Optional[str] = None  # "exact", "nearby", "international", "hub"
+    fallback_stage: Optional[str] = None  # "primary", "origin_international", etc.
+    
 class FlightSearchRequest(BaseModel):
     """Flight search parameters"""
     # Trip configuration
