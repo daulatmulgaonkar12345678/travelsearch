@@ -5,6 +5,7 @@ import { Plane, Clock, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from
 import { FlightOffer, Segment } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
+import { formatDuration } from '@/lib/formatters'
 import PriceDisplay from '@/components/ui/PriceDisplay'
 import RedirectScreen from '@/components/common/RedirectScreen'
 
@@ -26,12 +27,6 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
   const formatTime = (isoDate: string) => {
     const date = new Date(isoDate)
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${hours}h ${mins}m`
   }
 
   const getDayOffset = (dep: string, arr: string) => {
