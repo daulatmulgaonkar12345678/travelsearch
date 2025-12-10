@@ -11,21 +11,10 @@
  * - Graceful error handling
  */
 
-import { API_ENDPOINTS } from './config'
+import { API_BASE_URL } from './config'
 
-// Get backend URL from config (handles both dev and production)
-const getBackendURL = () => {
-  // Extract base URL from API_ENDPOINTS
-  try {
-    const url = new URL(API_ENDPOINTS.flights)
-    return url.origin
-  } catch {
-    // Fallback for dev environment
-    return typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8001'
-  }
-}
-
-const BACKEND_URL = getBackendURL()
+// Use centralized config
+const BACKEND_URL = API_BASE_URL
 
 // Simple cache for fallback searches (5 minute TTL)
 const fallbackCache = new Map<string, {data: any, timestamp: number}>()
