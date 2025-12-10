@@ -55,7 +55,7 @@ export default function CityAutocomplete({
 
     setIsLoading(true)
     try {
-      const url = `${API_BASE_URL}/api/cities?query=${encodeURIComponent(searchQuery)}&limit=10`
+      const url = `/api/cities?query=${encodeURIComponent(searchQuery)}&limit=10`
       const response = await apiFetch(url)
       
       if (response.ok) {
