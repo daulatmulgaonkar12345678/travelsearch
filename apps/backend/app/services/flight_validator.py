@@ -160,9 +160,9 @@ def validate_segment_duration(
     )
     
     # Step 3: Compute allowed min/max duration
-    # minAllowed = max(30, distance_km * 0.004 * 60)
-    # This assumes minimum average speed of ~250 km/h, with floor of 30 min
-    min_allowed = max(30, distance_km * 0.004 * 60)
+    # minAllowed = max(30, distance_km / 900 * 60)
+    # This assumes minimum average speed of ~900 km/h (generous for jets), with floor of 30 min
+    min_allowed = max(30, distance_km / 900 * 60)
     
     # maxAllowed = (distance_km / 150) * 60 + 240
     # Very generous: slow flight (150 km/h) + 4 hours buffer for connections/delays
