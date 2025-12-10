@@ -441,20 +441,61 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             ) : (
               <>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <AirportAutocomplete
-                    value={origin}
-                    onChange={setOrigin}
-                    label="From"
-                    placeholder="Origin city or airport"
-                    testId="origin-input"
-                  />
-                  <AirportAutocomplete
-                    value={destination}
-                    onChange={setDestination}
-                    label="To"
-                    placeholder="Destination city or airport"
-                    testId="destination-input"
-                  />
+                  <div>
+                    <AirportAutocomplete
+                      value={origin}
+                      onChange={setOrigin}
+                      label="From"
+                      placeholder="Origin city or airport"
+                      testId="origin-input"
+                    />
+                    {/* Nearby airports toggle for origin */}
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="nearby-origin"
+                        checked={includeNearbyOrigin}
+                        onChange={(e) => setIncludeNearbyOrigin(e.target.checked)}
+                        disabled={!origin}
+                        data-testid="nearby-origin-checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <label 
+                        htmlFor="nearby-origin" 
+                        className={`text-sm select-none ${!origin ? 'text-gray-400' : 'text-gray-700 cursor-pointer'}`}
+                      >
+                        Add nearby airports (within 250 km)
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <AirportAutocomplete
+                      value={destination}
+                      onChange={setDestination}
+                      label="To"
+                      placeholder="Destination city or airport"
+                      testId="destination-input"
+                    />
+                    {/* Nearby airports toggle for destination */}
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="nearby-destination"
+                        checked={includeNearbyDestination}
+                        onChange={(e) => setIncludeNearbyDestination(e.target.checked)}
+                        disabled={!destination}
+                        data-testid="nearby-destination-checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <label 
+                        htmlFor="nearby-destination" 
+                        className={`text-sm select-none ${!destination ? 'text-gray-400' : 'text-gray-700 cursor-pointer'}`}
+                      >
+                        Add nearby airports (within 250 km)
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
