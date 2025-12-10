@@ -138,7 +138,8 @@ class SearchAggregator:
                     tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
         
         # Query providers in parallel
-        logger.info(f"Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
+        logger.info(f"🔍 Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
+        logger.info(f"📍 Routes: {origin_airports} → {destination_airports}")
         
         # Extract just the coroutines for asyncio.gather
         search_coroutines = [task[2] for task in tasks]
