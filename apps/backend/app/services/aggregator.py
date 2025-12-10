@@ -36,6 +36,9 @@ class SearchAggregator:
         # Load airport data for validation
         self.airport_data = self._load_airport_data()
         
+        # Initialize fallback orchestrator
+        self.fallback_orchestrator = FallbackOrchestrator(self.airport_data)
+        
         logger.info(f"SearchAggregator initialized with flight={self.flight_provider}, hotel={self.hotel_provider}")
     
     def _load_airport_data(self):
