@@ -594,17 +594,19 @@ function SearchResultsContent() {
 
   if (offers.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-12">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No flights found</h3>
-        <p className="text-gray-600 mb-4">
-          We couldn't find any flights from {origin} to {destination} on {selectedDate}.
-        </p>
-        <button
-          onClick={() => router.push('/')}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Try Another Search
-        </button>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        
+        <NoFlightsWithSuggestions
+          origin={origin}
+          destination={destination}
+          date={selectedDate}
+          tripType={tripType}
+          suggestions={fallbackSuggestions}
+          isLoadingSuggestions={loadingFallback}
+          onTryAgain={() => router.push('/')}
+        />
       </div>
     )
   }
