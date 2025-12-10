@@ -36,6 +36,11 @@ async def search_flights(
     refundable_only: bool = Query(False),
     include_red_eye: bool = Query(True),
     green_only: bool = Query(False),
+    
+    # Nearby airports
+    include_nearby_origin: bool = Query(False),
+    include_nearby_destination: bool = Query(False),
+    nearby_radius_km: float = Query(250.0),
 ):
     """Search flights from multiple providers (GET endpoint for simple queries)"""
     try:
