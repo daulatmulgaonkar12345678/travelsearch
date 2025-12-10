@@ -31,9 +31,35 @@ class SearchAggregator:
         
         logger.info(f"SearchAggregator initialized with flight={self.flight_provider}, hotel={self.hotel_provider}")
     
+    async def _get_nearby_airports(self, iata: str, radius_km: float = 250.0) -> List[str]:
+        """Get nearby airport IATA codes for a given airport"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"http://localhost:8001/api/airports/{iata}/nearby",
+                    params={"radius_km": radius_km, "limit": 5},
+                    timeout=5.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    nearby_iatas = [item['airport']['iata'] for item in data.get('results', [])]
+                    logger.info(f"Found {len(nearby_iatas)} nearby airports for {iata}: {nearby_iatas}")
+                    return nearby_iatas
+                else:
+                    logger.warning(f"Failed to fetch nearby airports for {iata}: {response.status_code}")
+                    return []
+        except Exception as e:
+            logger.error(f"Error fetching nearby airports for {iata}: {e}")
+            return []
+    
     async def search_flights(self, request: FlightSearchRequest) -> List[FlightOffer]:
         """Search flights from configured providers and aggregate"""
-        cache_key = f"flights:{request.origin}:{request.destination}:{request.departure_date}:{request.cabin_class}"
+        # Build cache key including nearby flags
+        nearby_suffix = ""
+        if request.include_nearby_origin or request.include_nearby_destination:
+            nearby_suffix = f":nearby_o{request.include_nearby_origin}_d{request.include_nearby_destination}"
+        cache_key = f"flights:{request.origin}:{request.destination}:{request.departure_date}:{request.cabin_class}{nearby_suffix}"
         
         # Check cache first
         cached = await self.cache.get(cache_key)
