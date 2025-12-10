@@ -55,6 +55,11 @@ function HotelResultsContent() {
   const [offers, setOffers] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loadingTimeout, setLoadingTimeout] = useState(false)
+  const [showRetry, setShowRetry] = useState(false)
+
+  // Abort controller ref for cancelling requests
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Get search parameters
   const city = searchParams.get('city') || ''
@@ -73,7 +78,23 @@ function HotelResultsContent() {
       return
     }
 
-    const fetchResults = async () => {
+    // Abort previous request if search params changed
+    if (abortControllerRef.current) {
+      console.log('[Hotels] Aborting previous search')
+      abortControllerRef.current.abort()
+    }
+
+    fetchResults()
+
+    // Cleanup on unmount
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [city, checkIn, checkOut, roomsKey])
+
+  const fetchResults = async () => {
       try {
         setLoading(true)
         setError(null)
