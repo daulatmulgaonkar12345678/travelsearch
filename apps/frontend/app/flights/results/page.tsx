@@ -292,13 +292,6 @@ function SearchResultsContent() {
     })
     const bestFlight = bestSorted[0]
 
-    // Debug log (remove after testing)
-    console.log('Tab calculations:', {
-      best: { price: bestFlight?.price, duration: bestFlight?.total_duration_minutes },
-      cheapest: { price: cheapestFlight?.price, duration: cheapestFlight?.total_duration_minutes },
-      fastest: { price: fastestFlight?.price, duration: fastestFlight?.total_duration_minutes }
-    })
-
     return {
       tabPrices: {
         best: bestFlight?.price,
