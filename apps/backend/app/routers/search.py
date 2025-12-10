@@ -65,6 +65,9 @@ async def search_flights(
             refundable_only=refundable_only,
             include_red_eye=include_red_eye,
             green_only=green_only,
+            include_nearby_origin=include_nearby_origin,
+            include_nearby_destination=include_nearby_destination,
+            nearby_radius_km=nearby_radius_km,
         )
         
         logger.info(f"Flight search request: {request.trip_type} {request.origin} -> {request.destination}")
