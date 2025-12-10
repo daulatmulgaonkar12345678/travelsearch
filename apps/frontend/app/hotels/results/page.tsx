@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import TrustStrip from '@/components/layout/TrustStrip'
 import HotelLoadingState from '@/components/loading/HotelLoadingState'
-import { Loader2, MapPin, Star, Hotel as HotelIcon } from 'lucide-react'
+import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
+import { requestCache } from '@/lib/requestCache'
 
 interface HotelOffer {
   offer_id: string
