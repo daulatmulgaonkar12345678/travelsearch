@@ -2,11 +2,12 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 class Settings(BaseSettings):
-    # Provider API Keys
+    # Provider API Keys (Production)
+    # SECURITY: Never hardcode credentials - always load from .env
     amadeus_api_key: str = "REPLACE_ME"
     amadeus_api_secret: str = "REPLACE_ME"
-    amadeus_base_url: str = "https://test.api.amadeus.com"
-    amadeus_environment: str = "test"
+    amadeus_base_url: str = "https://api.amadeus.com"  # Production URL
+    amadeus_environment: str = "production"
     
     # Duffel (optional secondary flight provider)
     duffel_test_token: Optional[str] = "REPLACE_ME"
