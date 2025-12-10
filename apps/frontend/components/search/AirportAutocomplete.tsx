@@ -86,26 +86,54 @@ export default function AirportAutocomplete({
   const fetchSuggestions = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setSuggestions([])
+      setErrorState('none')
+      setUsingFallback(false)
       return
     }
 
     setIsLoading(true)
+    setErrorState('none')
+    setUsingFallback(false)
+    
     try {
       const url = `${API_ENDPOINTS.airports}?query=${encodeURIComponent(searchQuery)}&limit=10`
-      const response = await apiFetch(url)
+      const response = await apiFetch(url, { timeout: 5000 })
       
       if (response.ok) {
         const data = await response.json()
-        // Extract results array from API response
         const results = data.results || []
+        
+        if (results.length === 0) {
+          setErrorState('no_results')
+        }
+        
         setSuggestions(results)
+      } else if (response.status >= 500) {
+        // 5xx error - try local fallback
+        console.warn(`⚠️ Airport API returned ${response.status}, using local fallback`)
+        setErrorState('server_error')
+        setUsingFallback(true)
+        
+        const localResults = await searchLocalAirports(searchQuery)
+        setSuggestions(localResults)
       } else {
         console.error(`Airport search failed: ${response.status} ${response.statusText}`)
+        setErrorState('no_results')
         setSuggestions([])
       }
     } catch (error) {
-      console.error('Failed to fetch airports:', error)
-      setSuggestions([])
+      // Network error or timeout - try local fallback
+      console.warn('⚠️ Airport API unreachable, using local fallback:', error)
+      setErrorState('server_error')
+      setUsingFallback(true)
+      
+      try {
+        const localResults = await searchLocalAirports(searchQuery)
+        setSuggestions(localResults)
+      } catch (fallbackError) {
+        console.error('❌ Local fallback also failed:', fallbackError)
+        setSuggestions([])
+      }
     } finally {
       setIsLoading(false)
     }
