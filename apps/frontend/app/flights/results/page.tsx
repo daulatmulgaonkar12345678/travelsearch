@@ -642,6 +642,22 @@ function SearchResultsContent() {
         destination={destination}
         fetchPricesForMonth={fetchPricesForMonth}
       />
+      
+      {/* Fallback Results Banner */}
+      {showingFallbackResults && (
+        <div className="bg-blue-50 border-b border-blue-200">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-2 text-sm">
+              <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-blue-900">
+                <strong>Showing flights from nearby airports.</strong> No direct flights were available from <strong>{origin}</strong> to <strong>{destination}</strong> on this date. Results include flights from regional hubs and nearby departure airports.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sort Tabs */}
       <SortTabs
