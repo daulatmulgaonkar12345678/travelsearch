@@ -212,9 +212,10 @@ class FallbackOrchestrator:
         """
         fallback_metrics["total_fallback_searches"] += 1
         
+        distance_str = f"{route_distance:.0f}" if route_distance else "N/A"
         logger.info(
             f"[Fallback] ACTIVATED for {original_origin} → {destination} | "
-            f"Distance: {route_distance:.0f if route_distance else 'N/A'} km | "
+            f"Distance: {distance_str} km | "
             f"Requires stop: {requires_stop} | "
             f"Expanded origins: {expanded_origins} ({len(expanded_origins)} total)"
         )
