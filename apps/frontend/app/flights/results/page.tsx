@@ -277,12 +277,12 @@ function SearchResultsContent() {
     // Cheapest: flight with minimum price
     const cheapestFlight = filteredOffers.reduce((min, offer) => 
       offer.price < min.price ? offer : min
-    )
+    , filteredOffers[0]) // Provide initial value
 
     // Fastest: flight with minimum duration
     const fastestFlight = filteredOffers.reduce((min, offer) => 
       (offer.total_duration_minutes || 0) < (min.total_duration_minutes || 0) ? offer : min
-    )
+    , filteredOffers[0]) // Provide initial value
 
     // Best: first flight when sorted by "best" logic (balanced price + duration)
     const bestSorted = [...filteredOffers].sort((a, b) => {
@@ -292,6 +292,13 @@ function SearchResultsContent() {
     })
     const bestFlight = bestSorted[0]
 
+    // Debug log (remove after testing)
+    console.log('Tab calculations:', {
+      best: { price: bestFlight?.price, duration: bestFlight?.total_duration_minutes },
+      cheapest: { price: cheapestFlight?.price, duration: cheapestFlight?.total_duration_minutes },
+      fastest: { price: fastestFlight?.price, duration: fastestFlight?.total_duration_minutes }
+    })
+
     return {
       tabPrices: {
         best: bestFlight?.price,
@@ -299,9 +306,9 @@ function SearchResultsContent() {
         fastest: fastestFlight?.price
       },
       tabDurations: {
-        best: bestFlight?.total_duration_minutes,
-        cheapest: cheapestFlight?.total_duration_minutes,
-        fastest: fastestFlight?.total_duration_minutes
+        best: bestFlight?.total_duration_minutes || undefined,
+        cheapest: cheapestFlight?.total_duration_minutes || undefined,
+        fastest: fastestFlight?.total_duration_minutes || undefined
       }
     }
   }, [filteredOffers])
