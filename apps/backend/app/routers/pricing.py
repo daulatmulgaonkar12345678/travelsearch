@@ -165,10 +165,22 @@ async def get_date_range_prices(request: DatePriceRequest):
                     return DatePriceResponse(
                         date=date_str,
                         min_price=None,
-                    currency="INR",
-                    cached=False
-                ))
+                        currency="INR",
+                        cached=False
+                    )
+            
+            # Fetch all dates in parallel
+            logger.info(f"Fetching {len(dates_to_fetch)} dates in parallel")
+            fetched_results = await asyncio.gather(*[fetch_date_price(date) for date in dates_to_fetch])
+            results.extend(fetched_results)
         
+        # Combine cached and fetched results
+        results.extend(cached_results)
+        
+        # Sort by date
+        results.sort(key=lambda x: x.date)
+        
+        logger.info(f"Returning {len(results)} date prices ({len(cached_results)} cached, {len(dates_to_fetch)} fetched)")
         return results
         
     except Exception as e:
