@@ -281,12 +281,12 @@ function SearchResultsContent() {
         }
       }, 12000)
 
-      // Build URL
+      // Build API path
       const params = new URLSearchParams(searchParamsObj as any)
-      const url = `${API_ENDPOINTS.searchFlights}?${params}`
+      const apiPath = `/api/search/flights?${params}`
 
-      // Fetch with abort signal
-      const response = await fetch(url, {
+      // Fetch with abort signal using robust apiFetch
+      const response = await apiFetch(apiPath, {
         signal: controller.signal
       })
 
