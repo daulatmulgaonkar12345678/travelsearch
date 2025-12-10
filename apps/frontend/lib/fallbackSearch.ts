@@ -128,7 +128,15 @@ async function tryAlternativeDates(
       
       // Use cached request
       const url = `${BACKEND_URL}/api/search/flights?${altParams.toString()}`
-      const data = await getCachedRequest(url, abortSignal)
+      
+      // Check cache first
+      let data = getCached(url)
+      if (!data) {
+        const response = await fetch(url, { signal: abortSignal })
+        if (!response.ok) continue
+        data = await response.json()
+        setCache(url, data)
+      }
       
       callCount++
       
