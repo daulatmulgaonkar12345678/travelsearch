@@ -40,10 +40,10 @@ def orchestrator(airport_data):
 
 def test_calculate_route_distance(orchestrator):
     """Test distance calculation between airports"""
-    # PNQ to AMS (approximately 6300 km)
+    # PNQ to AMS (approximately 6970 km great-circle)
     distance = orchestrator.calculate_route_distance("PNQ", "AMS")
     assert distance is not None
-    assert 6200 < distance < 6500, f"Expected ~6300km, got {distance}km"
+    assert 6900 < distance < 7100, f"Expected ~6970km, got {distance}km"
     
     # BOM to DEL (approximately 1150 km)
     distance = orchestrator.calculate_route_distance("BOM", "DEL")
