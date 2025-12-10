@@ -6,7 +6,7 @@ import Navigation from '@/components/layout/Navigation'
 import TrustStrip from '@/components/layout/TrustStrip'
 import HotelLoadingState from '@/components/loading/HotelLoadingState'
 import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
-import { API_ENDPOINTS, apiFetch } from '@/lib/config'
+import { apiFetch } from '@/lib/api'
 import { requestCache } from '@/lib/requestCache'
 
 interface HotelOffer {
