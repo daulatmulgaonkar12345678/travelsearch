@@ -24,13 +24,16 @@ logger = logging.getLogger(__name__)
 class AmadeusAdapter:
     """Production Amadeus Flight Offers API adapter with OAuth, rate limiting, and error handling"""
     
-    BASE_URL = "https://api.amadeus.com/v2"
+    BASE_URL = settings.amadeus_base_url or "https://api.amadeus.com/v2"
     AUTH_URL = "https://api.amadeus.com/v1/security/oauth2/token"
     
-    def __init__(self, api_key: str = None, api_secret: str = None, mock_mode: bool = True):
+    def __init__(self, api_key: str = None, api_secret: str = None, mock_mode: bool = False):
         self.api_key = api_key or settings.amadeus_api_key
         self.api_secret = api_secret or settings.amadeus_api_secret
-        self.mock_mode = mock_mode or (self.api_key == "REPLACE_ME")
+        
+        # Never use mock mode in production unless explicitly set
+        environment = settings.amadeus_environment or "production"
+        self.mock_mode = mock_mode if mock_mode is not None else (environment == "test")
         
         self.access_token: Optional[str] = None
         self.token_expires_at: Optional[datetime] = None
@@ -39,7 +42,13 @@ class AmadeusAdapter:
         self.rate_limit_remaining = 100
         self.rate_limit_reset_at: Optional[datetime] = None
         
-        logger.info(f"AmadeusAdapter initialized (mock_mode={self.mock_mode})")
+        # Security: Never log credentials
+        logger.info(f"AmadeusAdapter initialized (environment={environment}, mock_mode={self.mock_mode})")
+        
+        # Verify credentials are set
+        if not self.mock_mode and (not self.api_key or not self.api_secret):
+            logger.error("Amadeus credentials not configured!")
+            raise ValueError("Amadeus API credentials are required for production mode")
     
     async def get_access_token(self) -> str:
         """Get OAuth access token using client credentials flow"""
