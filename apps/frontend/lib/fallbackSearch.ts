@@ -11,10 +11,7 @@
  * - Graceful error handling
  */
 
-import { API_BASE_URL } from './config'
-
-// Use centralized config
-const BACKEND_URL = API_BASE_URL
+import { apiFetch, apiUrl } from './api'
 
 // Simple cache for fallback searches (5 minute TTL)
 const fallbackCache = new Map<string, {data: any, timestamp: number}>()
