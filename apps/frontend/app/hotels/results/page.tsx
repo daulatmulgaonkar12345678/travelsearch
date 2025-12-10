@@ -134,8 +134,7 @@ function HotelResultsContent() {
         }
       }, 12000)
 
-      const url = API_ENDPOINTS.searchHotels
-      const response = await fetch(url, {
+      const response = await apiFetch('/api/search/hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
