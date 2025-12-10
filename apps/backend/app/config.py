@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     kiwi_api_key: str = "REPLACE_ME"
     
     # Provider selection
-    flight_provider: str = "amadeus"  # amadeus, duffel, amadeus+duffel
+    flight_provider: str = "amadeus+duffel"  # amadeus, duffel, amadeus+duffel - Using both for better coverage like Skyscanner!
     hotel_provider: str = "amadeus"   # amadeus
     
     # Email & Captcha
