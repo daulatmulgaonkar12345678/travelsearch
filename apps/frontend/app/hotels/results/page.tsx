@@ -95,40 +95,90 @@ function HotelResultsContent() {
   }, [city, checkIn, checkOut, roomsKey])
 
   const fetchResults = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    try {
+      setLoading(true)
+      setError(null)
+      setLoadingTimeout(false)
+      setShowRetry(false)
 
-        const requestBody = {
-          city,
-          check_in: checkIn,
-          check_out: checkOut,
-          rooms
-        }
-
-        const url = API_ENDPOINTS.searchHotels
-        const response = await apiFetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setOffers(data.offers || [])
-      } catch (err) {
-        console.error('Hotel search error:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch hotels')
-      } finally {
-        setLoading(false)
+      const requestBody = {
+        city,
+        check_in: checkIn,
+        check_out: checkOut,
+        rooms
       }
-    }
 
+      // Check cache first
+      const cached = requestCache.get<any>('hotels', requestBody)
+      if (cached) {
+        console.log('[Hotels] Using cached data')
+        setOffers(cached.offers || [])
+        setLoading(false)
+        return
+      }
+
+      // Create new abort controller for this request
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+
+      // Set up loading timeouts
+      const timeout8s = setTimeout(() => {
+        if (loading) {
+          setLoadingTimeout(true)
+        }
+      }, 8000)
+
+      const timeout12s = setTimeout(() => {
+        if (loading) {
+          setShowRetry(true)
+        }
+      }, 12000)
+
+      const url = API_ENDPOINTS.searchHotels
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      })
+
+      // Clear timeouts on success
+      clearTimeout(timeout8s)
+      clearTimeout(timeout12s)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Cache the response
+      requestCache.set('hotels', requestBody, data)
+
+      setOffers(data.offers || [])
+    } catch (err: any) {
+      // Don't show error if request was aborted (user changed search)
+      if (err.name === 'AbortError') {
+        console.log('[Hotels] Request aborted')
+        return
+      }
+
+      console.error('Hotel search error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch hotels')
+    } finally {
+      setLoading(false)
+      setLoadingTimeout(false)
+      setShowRetry(false)
+    }
+  }
+
+  // Manual retry function
+  const handleRetry = () => {
+    setError(null)
+    setLoadingTimeout(false)
+    setShowRetry(false)
     fetchResults()
-  }, [city, checkIn, checkOut, roomsKey])
+  }
 
   const handleSelectHotel = (offer: HotelOffer) => {
     // Navigate to vendor selection page
