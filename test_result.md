@@ -232,6 +232,18 @@ metadata:
           agent: "testing"
           comment: "✅ COMPREHENSIVE TESTING PASSED - REDIRECT PERFORMANCE FIX FULLY VERIFIED! Hotel redirect testing shows PERFECT PERFORMANCE: 1) Redirect screen appears in 0.076s (target: ≤500ms) ✅, 2) No blocking backend API calls detected ✅, 3) Progress bar and rotating messages working ✅, 4) Redirect completes successfully to www.aviasales.com with correct affiliate marker 689331 ✅, 5) All performance targets exceeded. The critical fix is working - users will no longer experience stuck redirects. Frontend URL building via buildAviasalesHotelUrl() function works perfectly, fire-and-forget logging is non-blocking, and safety timeout ensures reliable redirects. MAJOR PERFORMANCE IMPROVEMENT ACHIEVED."
 
+  - task: "Flight Duration Display in Sort Tabs (Best/Cheapest/Fastest)"
+    implemented: true
+    working: "NA"
+    file: "/app/apps/frontend/components/results/SortTabs.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented flight duration display feature in Sort Tabs to match Skyscanner behavior. Created formatDuration() utility in /app/apps/frontend/lib/formatters.ts, updated SortTabs component to display durations below prices, enhanced flight results page to calculate and pass both prices and durations. Need comprehensive testing of visual display, data consistency, duration formatting, filter interactions, and tab switching behavior."
+
 test_plan:
   current_focus: []
   stuck_tasks: []
