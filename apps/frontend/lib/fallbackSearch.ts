@@ -126,16 +126,17 @@ async function tryAlternativeDates(
       const altParams = new URLSearchParams(params)
       altParams.set('departure_date', newDate)
       
-      // Use cached request
-      const url = `${BACKEND_URL}/api/search/flights?${altParams.toString()}`
+      // Build API path
+      const apiPath = `/api/search/flights?${altParams.toString()}`
+      const fullUrl = apiUrl(apiPath)
       
       // Check cache first
-      let data = getCached(url)
+      let data = getCached(fullUrl)
       if (!data) {
-        const response = await fetch(url, { signal: abortSignal })
+        const response = await apiFetch(apiPath, { signal: abortSignal })
         if (!response.ok) continue
         data = await response.json()
-        setCache(url, data)
+        setCache(fullUrl, data)
       }
       
       callCount++
