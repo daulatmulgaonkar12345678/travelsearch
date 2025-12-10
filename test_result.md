@@ -234,15 +234,18 @@ metadata:
 
   - task: "Flight Duration Display in Sort Tabs (Best/Cheapest/Fastest)"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/apps/frontend/components/results/SortTabs.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Implemented flight duration display feature in Sort Tabs to match Skyscanner behavior. Created formatDuration() utility in /app/apps/frontend/lib/formatters.ts, updated SortTabs component to display durations below prices, enhanced flight results page to calculate and pass both prices and durations. Need comprehensive testing of visual display, data consistency, duration formatting, filter interactions, and tab switching behavior."
+        - working: false
+          agent: "testing"
+          comment: "❌ PARTIAL IMPLEMENTATION - Flight duration display testing shows mixed results. WORKING: ✅ Best tab shows duration (15m), ✅ Fastest tab shows duration (15m), ✅ Duration formatting correct (minutes-only format), ✅ Price display working (INR 9,794), ✅ Tab switching works correctly, ✅ No console errors, ✅ Found 48 flight results. ISSUES: ❌ Cheapest tab missing duration display (shows price but no duration), ❌ Flight cards don't show duration in expected format. The core feature is implemented but has data consistency issues where the Cheapest tab doesn't receive duration data. Need to fix duration extraction/calculation logic for cheapest flight in /app/apps/frontend/app/flights/results/page.tsx lines 268-307."
 
 test_plan:
   current_focus:
