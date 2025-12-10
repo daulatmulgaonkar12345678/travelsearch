@@ -165,15 +165,35 @@ class AmadeusAdapter:
                 return response
             
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 429:  # Rate limit
+                status_code = e.response.status_code
+                
+                # Handle production-specific errors
+                if status_code == 401:
+                    # Unauthorized - token may be invalid, force refresh
+                    logger.error("Amadeus 401 Unauthorized - refreshing token")
+                    self.access_token = None
+                    self.token_expires_at = None
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(1)
+                        continue
+                    raise ValueError("Amadeus authentication failed - check credentials")
+                
+                elif status_code == 403:
+                    # Forbidden - insufficient permissions or invalid scope
+                    logger.error("Amadeus 403 Forbidden - check API permissions/scope")
+                    raise ValueError("Amadeus access denied - verify API key has required permissions")
+                
+                elif status_code == 429:
+                    # Rate limit - backoff with Retry-After header
                     retry_after = int(e.response.headers.get("Retry-After", 60))
-                    logger.warning(f"Rate limited, waiting {retry_after}s")
+                    logger.warning(f"Amadeus rate limited, waiting {retry_after}s before retry")
                     await asyncio.sleep(retry_after)
                     continue
                 
-                elif e.response.status_code >= 500 and attempt < max_retries - 1:
-                    wait_time = 2 ** attempt  # Exponential backoff
-                    logger.warning(f"Server error, retry {attempt+1}/{max_retries} in {wait_time}s")
+                elif status_code >= 500 and attempt < max_retries - 1:
+                    # Server error - exponential backoff
+                    wait_time = 2 ** attempt
+                    logger.warning(f"Amadeus server error {status_code}, retry {attempt+1}/{max_retries} in {wait_time}s")
                     await asyncio.sleep(wait_time)
                     continue
                 
