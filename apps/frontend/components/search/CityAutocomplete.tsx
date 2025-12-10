@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
-import { API_BASE_URL, apiFetch } from '@/lib/config'
+import { apiFetch } from '@/lib/api'
 
 interface City {
   city: string
