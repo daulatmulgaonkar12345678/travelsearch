@@ -16,14 +16,26 @@
 
 /**
  * Get the API base URL from environment
- * Defaults to localhost for local development if not set
+ * Returns empty string for production (uses relative paths via Kubernetes ingress)
+ * Defaults to localhost for local development if explicitly set
  */
 export function getApiBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_API_BASE ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    'http://localhost:8001'
-  )
+  const envBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_BASE_URL
+  
+  // If environment variable is explicitly set and not empty, use it
+  if (envBase && envBase.trim() !== '') {
+    return envBase
+  }
+  
+  // In production/preview, use empty string (relative paths)
+  // Kubernetes ingress will route /api/* to backend
+  if (typeof window !== 'undefined') {
+    // Browser: use relative paths
+    return ''
+  }
+  
+  // Server-side rendering: use localhost for build time
+  return 'http://localhost:8001'
 }
 
 /**
