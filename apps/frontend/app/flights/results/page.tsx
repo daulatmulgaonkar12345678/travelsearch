@@ -465,6 +465,7 @@ function SearchResultsContent() {
         activeSort={sortType}
         onSortChange={setSortType}
         prices={tabPrices}
+        durations={tabDurations}
         currency="INR"
       />
 
