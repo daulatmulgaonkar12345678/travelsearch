@@ -159,7 +159,7 @@ def test_log_fallback_activation(orchestrator, caplog):
     assert "PNQ" in caplog.text
     assert "AMS" in caplog.text
     assert "6300" in caplog.text
-    assert "requires_stop: True" in caplog.text.lower()
+    assert "requires stop: true" in caplog.text.lower()
 
 
 # Integration test scenarios (test actual routes)
