@@ -42,16 +42,22 @@ export function getApiBaseUrl(): string {
  * Construct full API URL from a path
  * 
  * @param path - API path (e.g., '/api/search/flights' or 'api/airports')
- * @returns Full URL with base URL prepended
+ * @returns Full URL with base URL prepended, or relative path for production
  * 
  * @example
- * apiUrl('/api/airports?query=NYC') // => 'https://metasearch-app.preview.emergentagent.com/api/airports?query=NYC'
+ * // Production (empty base): apiUrl('/api/airports?query=NYC') => '/api/airports?query=NYC'
+ * // Development: apiUrl('/api/airports?query=NYC') => 'http://localhost:8001/api/airports?query=NYC'
  */
 export function apiUrl(path: string): string {
   const baseUrl = getApiBaseUrl()
   
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  
+  // If no base URL (production), return relative path
+  if (!baseUrl || baseUrl === '') {
+    return normalizedPath
+  }
   
   // Remove trailing slash from base URL if present
   const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
