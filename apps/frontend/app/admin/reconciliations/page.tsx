@@ -31,7 +31,7 @@ export default function ReconciliationsPage() {
   const fetchReconciliations = async () => {
     try {
       setLoading(true);
-      const response = await apiFetch(API_ENDPOINTS.adminReconciliations);
+      const response = await apiFetch('/api/admin/reconciliations');
       if (!response.ok) throw new Error('Failed to fetch reconciliations');
       const data = await response.json();
       setItems(data);
