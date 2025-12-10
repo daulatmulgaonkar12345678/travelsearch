@@ -151,6 +151,11 @@ class SearchAggregator:
             if isinstance(result, list):
                 origin_code, dest_code = tasks[idx][0], tasks[idx][1]
                 
+                # Log which provider returned results
+                if result:
+                    provider_name = result[0].provider if result else "unknown"
+                    logger.info(f"✅ {provider_name.upper()}: {len(result)} offers for {origin_code}→{dest_code}")
+                
                 # Tag offers with nearby airport metadata
                 for offer in result:
                     offer.nearby_origin = (origin_code != original_origin)
@@ -160,7 +165,7 @@ class SearchAggregator:
                     
                 all_offers.extend(result)
             elif isinstance(result, Exception):
-                logger.error(f"Provider error: {result}")
+                logger.error(f"❌ Provider error: {result}")
         
         # Validate flight data quality and recompute durations
         validated_offers = validate_flight_offers(all_offers, self.airport_data)
