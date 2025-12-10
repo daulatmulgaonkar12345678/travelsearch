@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
-import { Plane, MapPin } from 'lucide-react'
+import { Plane, MapPin, AlertCircle } from 'lucide-react'
 import { API_ENDPOINTS, apiFetch } from '@/lib/config'
+import Fuse from 'fuse.js'
 
 interface Airport {
   iata: string
@@ -19,6 +20,38 @@ interface AirportAutocompleteProps {
   testId?: string
 }
 
+// Local fallback search using Fuse.js
+let airportDataCache: Airport[] | null = null
+let fuseInstance: Fuse<Airport> | null = null
+
+async function loadLocalAirportData(): Promise<Airport[]> {
+  if (airportDataCache) return airportDataCache
+  
+  try {
+    const response = await fetch('/data/airports-full.json')
+    const data = await response.json()
+    airportDataCache = data
+    return data
+  } catch (error) {
+    console.error('Failed to load local airport data:', error)
+    return []
+  }
+}
+
+async function searchLocalAirports(query: string): Promise<Airport[]> {
+  if (!fuseInstance) {
+    const data = await loadLocalAirportData()
+    fuseInstance = new Fuse(data, {
+      keys: ['iata', 'city', 'name', 'country'],
+      threshold: 0.3,
+      distance: 100,
+    })
+  }
+  
+  const results = fuseInstance.search(query)
+  return results.slice(0, 10).map(r => r.item)
+}
+
 export default function AirportAutocomplete({
   value,
   onChange,
@@ -31,6 +64,8 @@ export default function AirportAutocomplete({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
+  const [errorState, setErrorState] = useState<'none' | 'server_error' | 'no_results'>('none')
+  const [usingFallback, setUsingFallback] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
 
