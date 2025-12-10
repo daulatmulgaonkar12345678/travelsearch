@@ -265,30 +265,45 @@ function SearchResultsContent() {
     }
   }
 
-  // Calculate tab prices (Best/Cheapest/Fastest)
-  const tabPrices = React.useMemo(() => {
+  // Calculate tab prices and durations (Best/Cheapest/Fastest)
+  const { tabPrices, tabDurations } = React.useMemo(() => {
     if (filteredOffers.length === 0) {
-      return { best: undefined, cheapest: undefined, fastest: undefined }
+      return { 
+        tabPrices: { best: undefined, cheapest: undefined, fastest: undefined },
+        tabDurations: { best: undefined, cheapest: undefined, fastest: undefined }
+      }
     }
 
-    // Cheapest: minimum price
-    const cheapestPrice = Math.min(...filteredOffers.map(o => o.price))
+    // Cheapest: flight with minimum price
+    const cheapestFlight = filteredOffers.reduce((min, offer) => 
+      offer.price < min.price ? offer : min
+    )
 
-    // Fastest: price of the flight with minimum duration
+    // Fastest: flight with minimum duration
     const fastestFlight = filteredOffers.reduce((min, offer) => 
       (offer.total_duration_minutes || 0) < (min.total_duration_minutes || 0) ? offer : min
     )
-    const fastestPrice = fastestFlight.price
 
-    // Best: price of the first flight when sorted by "best" logic
+    // Best: first flight when sorted by "best" logic (balanced price + duration)
     const bestSorted = [...filteredOffers].sort((a, b) => {
       const scoreA = a.price / 1000 + (a.total_duration_minutes || 0) / 60
       const scoreB = b.price / 1000 + (b.total_duration_minutes || 0) / 60
       return scoreA - scoreB
     })
-    const bestPrice = bestSorted[0]?.price
+    const bestFlight = bestSorted[0]
 
-    return { best: bestPrice, cheapest: cheapestPrice, fastest: fastestPrice }
+    return {
+      tabPrices: {
+        best: bestFlight?.price,
+        cheapest: cheapestFlight?.price,
+        fastest: fastestFlight?.price
+      },
+      tabDurations: {
+        best: bestFlight?.total_duration_minutes,
+        cheapest: cheapestFlight?.total_duration_minutes,
+        fastest: fastestFlight?.total_duration_minutes
+      }
+    }
   }, [filteredOffers])
 
   // Apply filters and sorting
