@@ -126,10 +126,16 @@ class AmadeusFlightsAdapter:
                 response.raise_for_status()
                 data = response.json()
                 
+                # Debug: Log raw data count
+                raw_offers = data.get("data", [])
+                logger.info(f"Amadeus raw response: {len(raw_offers)} offers")
+                if len(raw_offers) == 0:
+                    logger.warning(f"No offers from Amadeus for {request.origin} → {request.destination}")
+                
                 # Normalize response to our FlightOffer model
                 offers = self._normalize_response(data, request)
                 
-                logger.info(f"Amadeus returned {len(offers)} flight offers")
+                logger.info(f"Amadeus returned {len(offers)} flight offers after normalization")
                 return offers
                 
         except httpx.HTTPStatusError as e:
