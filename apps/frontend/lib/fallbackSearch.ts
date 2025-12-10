@@ -11,9 +11,23 @@
  * - Graceful error handling
  */
 
-import { getCachedRequest } from './requestCache'
-
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
+
+// Simple cache for fallback searches (5 minute TTL)
+const fallbackCache = new Map<string, {data: any, timestamp: number}>()
+const FALLBACK_CACHE_TTL = 300000 // 5 minutes
+
+function getCached(key: string): any | null {
+  const entry = fallbackCache.get(key)
+  if (entry && Date.now() - entry.timestamp < FALLBACK_CACHE_TTL) {
+    return entry.data
+  }
+  return null
+}
+
+function setCache(key: string, data: any) {
+  fallbackCache.set(key, { data, timestamp: Date.now() })
+}
 
 export interface AlternativeDate {
   date: string
