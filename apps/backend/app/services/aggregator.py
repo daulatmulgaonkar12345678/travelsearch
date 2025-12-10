@@ -67,19 +67,45 @@ class SearchAggregator:
             logger.info(f"Cache hit for {cache_key}")
             return cached
         
-        # Select providers based on configuration
-        tasks = []
+        # Handle nearby airports if enabled
+        origin_airports = [request.origin] if request.origin else []
+        destination_airports = [request.destination] if request.destination else []
         
-        if self.flight_provider == "amadeus":
-            tasks.append(self.amadeus_flights.search_flights(request))
-        elif self.flight_provider == "duffel":
-            tasks.append(self.duffel_flights.search_flights(request))
-        elif self.flight_provider == "amadeus+duffel":
-            tasks.append(self.amadeus_flights.search_flights(request))
-            tasks.append(self.duffel_flights.search_flights(request))
-        else:
-            logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
-            tasks.append(self.amadeus_flights.search_flights(request))
+        if request.include_nearby_origin and request.origin:
+            logger.info(f"Fetching nearby airports for origin: {request.origin}")
+            nearby_origins = await self._get_nearby_airports(request.origin, request.nearby_radius_km)
+            origin_airports.extend(nearby_origins)
+            logger.info(f"Total origin airports: {origin_airports}")
+        
+        if request.include_nearby_destination and request.destination:
+            logger.info(f"Fetching nearby airports for destination: {request.destination}")
+            nearby_destinations = await self._get_nearby_airports(request.destination, request.nearby_radius_km)
+            destination_airports.extend(nearby_destinations)
+            logger.info(f"Total destination airports: {destination_airports}")
+        
+        # Create search tasks for all combinations
+        tasks = []
+        original_origin = request.origin
+        original_destination = request.destination
+        
+        for origin_code in origin_airports:
+            for dest_code in destination_airports:
+                # Create a modified request for this combination
+                modified_request = request.model_copy(deep=True)
+                modified_request.origin = origin_code
+                modified_request.destination = dest_code
+                
+                # Add search tasks based on provider configuration
+                if self.flight_provider == "amadeus":
+                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                elif self.flight_provider == "duffel":
+                    tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                elif self.flight_provider == "amadeus+duffel":
+                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                    tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                else:
+                    logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
+                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
         
         # Query providers in parallel
         logger.info(f"Searching flights: {request.origin} -> {request.destination} via {self.flight_provider}")
