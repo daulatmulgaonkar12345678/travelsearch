@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     duffel_test_token: Optional[str] = "REPLACE_ME"
     duffel_environment: str = "test"
     
+    # FlightAPI.io (backup supplier)
+    flightapi_enabled: bool = False  # Enable when key is available
+    flightapi_key: Optional[str] = None
+    
     # Travelpayouts / Aviasales (affiliate redirect)
     travelpayouts_aviasales_base_url: str = "REPLACE_ME"
     travelpayouts_marker: str = "REPLACE_ME"
