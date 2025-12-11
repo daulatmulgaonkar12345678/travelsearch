@@ -40,6 +40,11 @@ class FlightOffer(BaseModel):
     destination_type: Optional[str] = None  # "exact", "nearby", "international", "hub"
     fallback_stage: Optional[str] = None  # "primary", "origin_international", etc.
     
+    # Hub composition metadata
+    composed_via_hub: Optional[str] = None  # Hub airport IATA if this is a composed multi-leg
+    connection_time_minutes: Optional[int] = None  # Layover time at hub
+    requires_separate_bookings: bool = False  # True if legs need separate bookings
+    
 class FlightSearchRequest(BaseModel):
     """Flight search parameters"""
     # Trip configuration
