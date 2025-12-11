@@ -96,6 +96,41 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   })
   const [showRoomModal, setShowRoomModal] = useState(false)
 
+  // Synchronize dates between flights and hotels
+  useEffect(() => {
+    if (searchType === 'flights') {
+      // When switching to flights, sync hotel dates to flight dates
+      setCheckIn(departureDate)
+      setCheckOut(returnDate)
+    } else if (searchType === 'hotels') {
+      // When switching to hotels, sync flight dates to hotel dates
+      setDepartureDate(checkIn)
+      setReturnDate(checkOut)
+    }
+  }, [searchType])  // Only run when searchType changes
+
+  // Sync dates when user changes flight dates
+  const handleDepartureDateChange = (date: string) => {
+    setDepartureDate(date)
+    setCheckIn(date)  // Sync to hotel check-in
+  }
+
+  const handleReturnDateChange = (date: string) => {
+    setReturnDate(date)
+    setCheckOut(date)  // Sync to hotel check-out
+  }
+
+  // Sync dates when user changes hotel dates
+  const handleCheckInChange = (date: string) => {
+    setCheckIn(date)
+    setDepartureDate(date)  // Sync to flight departure
+  }
+
+  const handleCheckOutChange = (date: string) => {
+    setCheckOut(date)
+    setReturnDate(date)  // Sync to flight return
+  }
+
   useEffect(() => {
     setMounted(true)
   }, [])
