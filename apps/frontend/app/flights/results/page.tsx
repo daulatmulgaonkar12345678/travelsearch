@@ -307,20 +307,38 @@ function SearchResultsContent() {
       const data = await response.json()
       const fetchedOffers = data.offers || []
 
+      // Log orchestrator response
+      console.log('[Orchestrator] Response:', {
+        status: data.status,
+        outcome: data.outcome,
+        flights: fetchedOffers.length,
+        suggestions: data.suggestions?.length || 0,
+        total_calls: data.total_calls,
+        elapsed: data.elapsed_seconds
+      })
+
       // Cache the response
       requestCache.set('flights', searchParamsObj, data)
       
-      // Check if results are from fallback (backend nearby airport expansion)
-      const hasFallbackResults = fetchedOffers.some((offer: FlightOffer) => offer.nearby_origin)
+      // Check if results are from fallback (backend nearby airport expansion or hub composition)
+      const hasFallbackResults = fetchedOffers.some((offer: FlightOffer) => 
+        offer.nearby_origin || offer.nearby_destination || offer.composed_via_hub
+      )
       setShowingFallbackResults(hasFallbackResults)
 
       setOffers(fetchedOffers)
       processFlightData(fetchedOffers)
       
-      // Trigger fallback search if 0 results
-      if (fetchedOffers.length === 0) {
-        console.log('[Flights] 0 results - triggering fallback search')
-        triggerFallbackSearch(controller.signal)
+      // IMPORTANT: Do NOT trigger client-side fallback if orchestrator already ran all fallbacks
+      // The orchestrator response includes status="completed" and outcome="no_results" when all fallbacks are exhausted
+      if (fetchedOffers.length === 0 && data.outcome !== 'no_results') {
+        console.log('[Flights] 0 results - checking if client-side fallback needed')
+        // Only trigger client fallback if orchestrator didn't run (backward compatibility)
+        if (!data.outcome) {
+          triggerFallbackSearch(controller.signal)
+        } else {
+          console.log('[Flights] Orchestrator already ran all fallbacks - skipping client-side fallback')
+        }
       }
 
     } catch (err: any) {
