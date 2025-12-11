@@ -35,9 +35,13 @@ class KiwiAdapter:
     
     def __init__(self):
         self.base_url = "https://api.tequila.kiwi.com"
-        self.enabled = True  # Free API, always available
+        self.api_key = getattr(settings, 'kiwi_api_key', None)
+        self.enabled = bool(self.api_key)  # Only enabled if API key is provided
         
-        logger.info("✅ Kiwi.com adapter initialized (free tier)")
+        if self.enabled:
+            logger.info("✅ Kiwi.com adapter initialized")
+        else:
+            logger.info("⚠️  Kiwi.com adapter disabled (no API key)")
     
     async def search_flights(self, request: FlightSearchRequest) -> List[FlightOffer]:
         """
