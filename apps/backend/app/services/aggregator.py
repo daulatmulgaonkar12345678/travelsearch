@@ -129,31 +129,46 @@ class SearchAggregator:
                 # Check circuit breaker before adding tasks
                 from app.services.circuit_breaker import circuit_breaker
                 
+                # Track if we added any primary suppliers
+                primary_added = False
+                
                 # Add search tasks based on provider configuration
                 if self.flight_provider == "amadeus":
                     if circuit_breaker.is_available("amadeus"):
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                        primary_added = True
                     else:
-                        logger.warning("⚠️ Amadeus circuit breaker OPEN - skipping")
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will use FlightAPI fallback")
+                        
                 elif self.flight_provider == "duffel":
                     if circuit_breaker.is_available("duffel"):
                         tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                        primary_added = True
                     else:
-                        logger.warning("⚠️ Duffel circuit breaker OPEN - skipping")
+                        logger.warning("⚠️ Duffel circuit breaker OPEN - will use FlightAPI fallback")
+                        
                 elif self.flight_provider == "amadeus+duffel":
                     if circuit_breaker.is_available("amadeus"):
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                        primary_added = True
                     else:
-                        logger.warning("⚠️ Amadeus circuit breaker OPEN - skipping, using Duffel only")
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will try Duffel and FlightAPI")
                     
                     if circuit_breaker.is_available("duffel"):
                         tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                        primary_added = True
                     else:
-                        logger.warning("⚠️ Duffel circuit breaker OPEN - skipping")
+                        logger.warning("⚠️ Duffel circuit breaker OPEN - will use FlightAPI if needed")
                 else:
                     logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
                     if circuit_breaker.is_available("amadeus"):
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                        primary_added = True
+                
+                # Add FlightAPI as fallback if all primary suppliers are unavailable
+                if not primary_added and flightapi_adapter.enabled:
+                    logger.info("🔄 Using FlightAPI as fallback (all primary suppliers unavailable)")
+                    tasks.append((origin_code, dest_code, flightapi_adapter.search_flights(modified_request)))
         
         # Query providers in parallel
         logger.info(f"🔍 Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
