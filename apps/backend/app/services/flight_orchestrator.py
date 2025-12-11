@@ -97,6 +97,7 @@ class FlightOrchestrator:
                 "outcome": "results",
                 "flights": [self._serialize_offer(o) for o in primary_offers],
                 "suggestions": [],
+                "warnings": self._get_supplier_warnings(),
                 "logs": search_logs,
                 "total_calls": self.call_count,
                 "elapsed_seconds": elapsed
