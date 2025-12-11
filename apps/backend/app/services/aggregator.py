@@ -165,10 +165,10 @@ class SearchAggregator:
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
                         primary_added = True
                 
-                # Add FlightAPI as fallback if all primary suppliers are unavailable
-                if not primary_added and flightapi_adapter.enabled:
-                    logger.info("🔄 Using FlightAPI as fallback (all primary suppliers unavailable)")
-                    tasks.append((origin_code, dest_code, flightapi_adapter.search_flights(modified_request)))
+                # Add Kiwi as fallback if all primary suppliers are unavailable
+                if not primary_added and kiwi_adapter.enabled:
+                    logger.info("🔄 Using Kiwi as fallback (all primary suppliers unavailable)")
+                    tasks.append((origin_code, dest_code, kiwi_adapter.search_flights(modified_request)))
         
         # Query providers in parallel
         logger.info(f"🔍 Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
