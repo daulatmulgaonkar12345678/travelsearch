@@ -287,13 +287,17 @@ function SearchResultsContent() {
         }
       }, 12000)
 
-      // Build API path
+      // Build API path with cache-busting
       const params = new URLSearchParams(searchParamsObj as any)
+      // Add cache-busting params
+      params.set('request_id', crypto.randomUUID())
+      params.set('ts', Date.now().toString())
       const apiPath = `/api/search/flights?${params}`
 
-      // Fetch with abort signal using robust apiFetch
+      // Fetch with abort signal using robust apiFetch and cache: 'no-store'
       const response = await apiFetch(apiPath, {
-        signal: controller.signal
+        signal: controller.signal,
+        cache: 'no-store'
       })
 
       // Clear timeouts on success
