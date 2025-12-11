@@ -15,6 +15,13 @@
       "static/css/bd240d828500484b.css",
       "static/chunks/app/layout-988f7f5ba7fbbe12.js"
     ],
+    "/admin/page": [
+      "static/chunks/webpack-2565bcd150f048d7.js",
+      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
+      "static/chunks/938-95416e7af06c57d9.js",
+      "static/chunks/main-app-7a0885f190dcd632.js",
+      "static/chunks/app/admin/page-b6db5d3284d048cd.js"
+    ],
     "/admin/reconciliations/page": [
       "static/chunks/webpack-2565bcd150f048d7.js",
       "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
@@ -22,13 +29,6 @@
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/627-fd71d8afb27a4e0b.js",
       "static/chunks/app/admin/reconciliations/page-deb15f90b7aee252.js"
-    ],
-    "/admin/page": [
-      "static/chunks/webpack-2565bcd150f048d7.js",
-      "static/chunks/fd9d1056-34fb3bcc3b93ca60.js",
-      "static/chunks/938-95416e7af06c57d9.js",
-      "static/chunks/main-app-7a0885f190dcd632.js",
-      "static/chunks/app/admin/page-b6db5d3284d048cd.js"
     ],
     "/flights/page": [
       "static/chunks/webpack-2565bcd150f048d7.js",
@@ -83,7 +83,7 @@
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/627-fd71d8afb27a4e0b.js",
       "static/chunks/424-e6e0bb36561ff754.js",
-      "static/chunks/925-ded442085ddafdcd.js",
+      "static/chunks/925-68867121051fde21.js",
       "static/chunks/app/page-cbe98382f84cc12a.js"
     ],
     "/hotels/page": [
@@ -93,7 +93,7 @@
       "static/chunks/main-app-7a0885f190dcd632.js",
       "static/chunks/627-fd71d8afb27a4e0b.js",
       "static/chunks/424-e6e0bb36561ff754.js",
-      "static/chunks/925-ded442085ddafdcd.js",
+      "static/chunks/925-68867121051fde21.js",
       "static/chunks/app/hotels/page-dcc8f97fff0072e0.js"
     ]
   }
