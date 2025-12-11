@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 from datetime import datetime, timedelta
 
 from app.models.flight import FlightOffer, FlightSegment, FlightSearchRequest
-from app.config.hubs import get_candidate_hubs
+from app.hubs.hub_config import get_candidate_hubs
 
 logger = logging.getLogger(__name__)
 
