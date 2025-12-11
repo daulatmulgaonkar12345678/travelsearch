@@ -427,6 +427,29 @@ class FlightOrchestrator:
     def _serialize_offer(self, offer: FlightOffer) -> Dict:
         """Convert FlightOffer to dict for JSON response."""
         return offer.dict()
+    
+    def _get_supplier_warnings(self) -> List[Dict]:
+        """Get warnings for degraded suppliers."""
+        from app.services.circuit_breaker import circuit_breaker
+        import time
+        
+        warnings = []
+        stats = circuit_breaker.get_stats()
+        
+        for supplier_id, stat in stats.items():
+            if stat.get("circuit_open"):
+                # Calculate when circuit will close
+                health = circuit_breaker.get_health(supplier_id)
+                if health and health.circuit_open_until > time.time():
+                    warnings.append({
+                        "supplier": supplier_id,
+                        "status": "degraded",
+                        "reason": "429 - quota exceeded",
+                        "opened_until": datetime.fromtimestamp(health.circuit_open_until).isoformat() + "Z",
+                        "message": f"{supplier_id.title()} is temporarily rate-limited. Using alternate providers."
+                    })
+        
+        return warnings
 
 # Global orchestrator instance
 orchestrator = FlightOrchestrator()
