@@ -125,17 +125,34 @@ class SearchAggregator:
                 modified_request.origin = origin_code
                 modified_request.destination = dest_code
                 
+                # Check circuit breaker before adding tasks
+                from app.services.circuit_breaker import circuit_breaker
+                
                 # Add search tasks based on provider configuration
                 if self.flight_provider == "amadeus":
-                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                    if circuit_breaker.is_available("amadeus"):
+                        tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                    else:
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - skipping")
                 elif self.flight_provider == "duffel":
-                    tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                    if circuit_breaker.is_available("duffel"):
+                        tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                    else:
+                        logger.warning("⚠️ Duffel circuit breaker OPEN - skipping")
                 elif self.flight_provider == "amadeus+duffel":
-                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
-                    tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                    if circuit_breaker.is_available("amadeus"):
+                        tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                    else:
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - skipping, using Duffel only")
+                    
+                    if circuit_breaker.is_available("duffel"):
+                        tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
+                    else:
+                        logger.warning("⚠️ Duffel circuit breaker OPEN - skipping")
                 else:
                     logger.warning(f"Unknown flight provider: {self.flight_provider}, defaulting to Amadeus")
-                    tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
+                    if circuit_breaker.is_available("amadeus"):
+                        tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
         
         # Query providers in parallel
         logger.info(f"🔍 Searching flights: {len(tasks)} route combinations via {self.flight_provider}")
