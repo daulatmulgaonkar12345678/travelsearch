@@ -79,11 +79,22 @@ async def search_flights(
         result["offers"] = result.get("flights", [])
         result["search_id"] = result["request_id"]
         result["cached"] = False
-            timestamp=datetime.utcnow()
-        )
+        result["timestamp"] = datetime.utcnow().isoformat()
+        
+        return result
+        
     except Exception as e:
-        logger.error(f"Flight search error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"❌ Flight search error: {e}", exc_info=True)
+        return {
+            "request_id": str(uuid.uuid4()),
+            "status": "completed",
+            "outcome": "error",
+            "message": "Something went wrong. Please try again.",
+            "flights": [],
+            "offers": [],
+            "suggestions": [],
+            "logs": []
+        }
 
 @router.post("/search/flights", response_model=FlightSearchResponse)
 async def search_flights_post(request: FlightSearchRequest):
