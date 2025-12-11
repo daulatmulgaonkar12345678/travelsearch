@@ -80,6 +80,19 @@ class CircuitBreaker:
         if time.time() < health.circuit_open_until:
             return False
         
+        # Check 429 count from rate limiter
+        from app.services.rate_limiter import rate_limiter
+        recent_429s = rate_limiter.get_429_count_last_minute(supplier_id)
+        
+        # Open circuit if too many 429s (3+ in last minute)
+        if recent_429s >= 3:
+            health.circuit_open_until = time.time() + self.circuit_open_seconds
+            logger.warning(
+                f"🚫 Circuit breaker OPENED for {supplier_id} due to {recent_429s} "
+                f"429 errors in last minute. Will retry in {self.circuit_open_seconds}s"
+            )
+            return False
+        
         # Circuit was open but time has passed - reset
         if health.circuit_open_until > 0:
             logger.info(f"✅ Circuit breaker CLOSED for {supplier_id} - retrying")
