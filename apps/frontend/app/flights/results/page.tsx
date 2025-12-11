@@ -307,15 +307,41 @@ function SearchResultsContent() {
       const data = await response.json()
       const fetchedOffers = data.offers || []
 
-      // Log orchestrator response
-      console.log('[Orchestrator] Response:', {
-        status: data.status,
-        outcome: data.outcome,
-        flights: fetchedOffers.length,
-        suggestions: data.suggestions?.length || 0,
-        total_calls: data.total_calls,
-        elapsed: data.elapsed_seconds
-      })
+      // Log orchestrator response with fallback details
+      console.log('═══════════════════════════════════════════════')
+      console.log('🔍 ORCHESTRATOR RESPONSE')
+      console.log('═══════════════════════════════════════════════')
+      console.log('Status:', data.status)
+      console.log('Outcome:', data.outcome)
+      console.log('Flights found:', fetchedOffers.length)
+      console.log('Total API calls:', data.total_calls)
+      console.log('Time elapsed:', data.elapsed_seconds?.toFixed(2) + 's')
+      
+      // Show fallback logs if available
+      if (data.logs && data.logs.length > 0) {
+        console.log('\n📋 FALLBACK ATTEMPTS:')
+        data.logs.forEach((log: any, index: number) => {
+          if (log.step === 'primary') {
+            console.log(`  ${index + 1}. ✈️  PRIMARY SEARCH: ${log.results || 0} results (${log.latency_ms?.toFixed(0)}ms)`)
+          } else if (log.step === 'date_fallback') {
+            console.log(`  ${index + 1}. 📅 DATE FALLBACK (${log.date}): ${log.status} - ${log.results || 0} results`)
+          } else if (log.step === 'nearby_airports') {
+            console.log(`  ${index + 1}. 🗺️  NEARBY AIRPORTS: ${log.status} - ${log.results || 0} results`)
+          } else if (log.step === 'hub_composition') {
+            console.log(`  ${index + 1}. 🔄 HUB COMPOSITION: ${log.status} - ${log.results || 0} results (${log.latency_ms?.toFixed(0)}ms)`)
+          }
+        })
+      }
+      
+      // Show suggestions if no results
+      if (data.suggestions && data.suggestions.length > 0) {
+        console.log('\n💡 SUGGESTIONS:')
+        data.suggestions.forEach((sug: any, index: number) => {
+          console.log(`  ${index + 1}. ${sug.type.toUpperCase()}: ${sug.description}`)
+        })
+      }
+      
+      console.log('═══════════════════════════════════════════════\n')
 
       // Cache the response
       requestCache.set('flights', searchParamsObj, data)
