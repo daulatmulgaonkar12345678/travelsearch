@@ -27,8 +27,10 @@ class FlightOffer(BaseModel):
     cabin_class: str = "economy"  # economy, premium_economy, business, first
     fare_rules: Optional[str] = None
     emissions_kg: Optional[float] = None
-    deep_link: str          # Provider booking URL
+    deep_link: Optional[str] = None  # Provider booking URL (None for composed flights)
     rating: Optional[float] = None  # Composite rating 0-100
+    refundable: bool = False
+    booking_url: Optional[str] = None  # Alias for deep_link
     
     # Nearby airports metadata
     nearby_origin: bool = False
