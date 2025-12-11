@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     amadeus_api_secret: str = "REPLACE_ME"
     amadeus_base_url: str = "https://api.amadeus.com"  # Production URL
     amadeus_environment: str = "production"
+    amadeus_rate_limit_rps: int = 3  # Requests per second
+    amadeus_rate_limit_rpm: int = 100  # Requests per minute
     
     # Duffel (optional secondary flight provider)
     duffel_test_token: Optional[str] = "REPLACE_ME"
