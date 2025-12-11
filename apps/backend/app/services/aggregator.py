@@ -138,7 +138,7 @@ class SearchAggregator:
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
                         primary_added = True
                     else:
-                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will use FlightAPI fallback")
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will use Kiwi fallback")
                         
                 elif self.flight_provider == "duffel":
                     if circuit_breaker.is_available("duffel"):
