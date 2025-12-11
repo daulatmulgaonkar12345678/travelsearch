@@ -543,7 +543,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         type="date"
                         value={departureDate}
                         min={getTomorrowDate()}
-                        onChange={(e) => setDepartureDate(e.target.value)}
+                        onChange={(e) => handleDepartureDateChange(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
