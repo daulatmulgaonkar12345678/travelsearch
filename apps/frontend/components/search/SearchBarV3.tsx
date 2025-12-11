@@ -600,8 +600,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 checkIn={checkIn}
                 checkOut={checkOut}
                 onChange={({ checkIn: ci, checkOut: co }) => {
-                  setCheckIn(ci)
-                  setCheckOut(co)
+                  handleCheckInChange(ci)
+                  handleCheckOutChange(co)
                 }}
               />
               <div>
