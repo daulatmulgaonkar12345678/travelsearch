@@ -152,7 +152,7 @@ class SearchAggregator:
                         tasks.append((origin_code, dest_code, self.amadeus_flights.search_flights(modified_request)))
                         primary_added = True
                     else:
-                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will try Duffel and FlightAPI")
+                        logger.warning("⚠️ Amadeus circuit breaker OPEN - will try Duffel and Kiwi")
                     
                     if circuit_breaker.is_available("duffel"):
                         tasks.append((origin_code, dest_code, self.duffel_flights.search_flights(modified_request)))
