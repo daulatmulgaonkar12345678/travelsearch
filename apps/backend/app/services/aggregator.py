@@ -8,7 +8,7 @@ from app.models.hotel import HotelOffer, HotelSearchRequest
 from app.services.adapters.amadeus_flights import AmadeusFlightsAdapter
 from app.services.adapters.amadeus_hotels import AmadeusHotelsAdapter
 from app.services.adapters.duffel_flights import DuffelFlightsAdapter
-from app.services.adapters.flightapi_adapter import flightapi_adapter
+from app.services.adapters.kiwi_adapter import kiwi_adapter
 from app.services.ranking import RankingEngine
 from app.services.cache import CacheService
 from app.services.flight_validator import validate_flight_offers
