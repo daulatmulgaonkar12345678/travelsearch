@@ -92,6 +92,14 @@ class AmadeusFlightsAdapter:
             # Build request parameters
             params = self._build_search_params(request)
             
+            # Apply rate limiting BEFORE making request
+            from app.services.rate_limiter import rate_limiter
+            can_proceed = await rate_limiter.acquire("amadeus")
+            
+            if not can_proceed:
+                logger.error("⛔ Amadeus request blocked by rate limiter")
+                raise Exception("Rate limit exceeded - request blocked")
+            
             # Call Amadeus API
             search_url = f"{self.base_url}/v2/shopping/flight-offers"
             
