@@ -123,6 +123,13 @@ class AmadeusFlightsAdapter:
                         timeout=30.0
                     )
                 
+                # Handle 429 rate limiting
+                if response.status_code == 429:
+                    from app.services.circuit_breaker import circuit_breaker
+                    circuit_breaker.record_failure("amadeus", "429")
+                    logger.error(f"🚨 Amadeus 429 - Quota exceeded. Circuit breaker opened.")
+                    raise Exception(f"Amadeus rate limit exceeded (429)")
+                
                 response.raise_for_status()
                 data = response.json()
                 
@@ -134,6 +141,10 @@ class AmadeusFlightsAdapter:
                 
                 # Normalize response to our FlightOffer model
                 offers = self._normalize_response(data, request)
+                
+                # Record success with circuit breaker
+                from app.services.circuit_breaker import circuit_breaker
+                circuit_breaker.record_success("amadeus")
                 
                 logger.info(f"Amadeus returned {len(offers)} flight offers after normalization")
                 return offers
