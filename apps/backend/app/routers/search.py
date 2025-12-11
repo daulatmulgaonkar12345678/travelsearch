@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 aggregator = SearchAggregator()
 
-@router.get("/search/flights", response_model=FlightSearchResponse)
+@router.get("/search/flights")
 async def search_flights(
     # Trip type
     trip_type: str = Query("roundtrip", description="Trip type: oneway, roundtrip, multicity"),
@@ -42,14 +42,13 @@ async def search_flights(
     include_nearby_origin: bool = Query(False),
     include_nearby_destination: bool = Query(False),
     nearby_radius_km: float = Query(250.0),
-):
-    """Search flights from multiple providers (GET endpoint for simple queries)"""
+) -> Dict[str, Any]:
+    """
+    Search flights with comprehensive fallback strategy.
+    
+    Returns orchestrated response with status, outcome, flights, and suggestions.
+    """
     try:
-        # Parse children ages from query params (child_0_age, child_1_age, etc.)
-        from fastapi import Request
-        # For simplicity in GET, we'll accept a children count
-        # Real implementation would parse dynamic params
-        
         request = FlightSearchRequest(
             trip_type=trip_type,
             origin=origin.upper() if origin else None,
@@ -57,7 +56,7 @@ async def search_flights(
             departure_date=departure_date,
             return_date=return_date,
             adults=adults,
-            children=None,  # Will be parsed from query params in real implementation
+            children=None,
             infants=infants,
             cabin_class=cabin_class,
             direct_only=direct_only,
@@ -71,14 +70,15 @@ async def search_flights(
             nearby_radius_km=nearby_radius_km,
         )
         
-        logger.info(f"Flight search request: {request.trip_type} {request.origin} -> {request.destination}")
+        logger.info(f"🔍 Flight search: {request.origin} → {request.destination} on {request.departure_date}")
         
-        offers = await aggregator.search_flights(request)
+        # Use orchestrator for comprehensive search
+        result = await orchestrator.search(request)
         
-        return FlightSearchResponse(
-            offers=offers,
-            search_id=str(uuid.uuid4()),
-            cached=False,
+        # For backward compatibility, also provide old format fields
+        result["offers"] = result.get("flights", [])
+        result["search_id"] = result["request_id"]
+        result["cached"] = False
             timestamp=datetime.utcnow()
         )
     except Exception as e:
