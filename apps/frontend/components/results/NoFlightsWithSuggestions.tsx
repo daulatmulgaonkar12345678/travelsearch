@@ -286,8 +286,14 @@ export default function NoFlightsWithSuggestions({
         </div>
       )}
       
-      {/* Try another search button */}
-      <div className="text-center">
+      {/* Action buttons */}
+      <div className="flex gap-4 justify-center flex-wrap">
+        <button
+          onClick={() => router.push('/')}
+          className="inline-flex items-center justify-center px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 font-medium rounded-lg border-2 border-gray-300 transition-colors"
+        >
+          Modify Search
+        </button>
         <button
           onClick={onTryAgain}
           className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
