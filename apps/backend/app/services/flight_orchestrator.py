@@ -165,6 +165,9 @@ class FlightOrchestrator:
         elapsed = time.time() - start_time
         logger.warning(f"❌ [{request_id}] NO RESULTS after all fallbacks ({elapsed:.2f}s, {self.call_count} calls)")
         
+        # Check for degraded suppliers
+        warnings = self._get_supplier_warnings()
+        
         return {
             "request_id": request_id,
             "status": "completed",
@@ -173,6 +176,7 @@ class FlightOrchestrator:
             "flights": [],
             "suggestions": self._build_suggestions("all"),
             "logs": search_logs,
+            "warnings": warnings,
             "total_calls": self.call_count,
             "elapsed_seconds": elapsed
         }
