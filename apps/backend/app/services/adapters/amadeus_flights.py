@@ -134,7 +134,11 @@ class AmadeusFlightsAdapter:
                 # Handle 429 rate limiting
                 if response.status_code == 429:
                     from app.services.circuit_breaker import circuit_breaker
+                    from app.services.rate_limiter import rate_limiter
+                    
                     circuit_breaker.record_failure("amadeus", "429")
+                    rate_limiter.record_429("amadeus")
+                    
                     logger.error(f"🚨 Amadeus 429 - Quota exceeded. Circuit breaker opened.")
                     raise Exception(f"Amadeus rate limit exceeded (429)")
                 
