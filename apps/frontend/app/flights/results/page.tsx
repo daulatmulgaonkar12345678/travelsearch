@@ -317,6 +317,18 @@ function SearchResultsContent() {
       console.log('Total API calls:', data.total_calls)
       console.log('Time elapsed:', data.elapsed_seconds?.toFixed(2) + 's')
       
+      // Show warnings if any
+      if (data.warnings && data.warnings.length > 0) {
+        console.log('\n⚠️ WARNINGS:')
+        data.warnings.forEach((warn: any) => {
+          console.log(`  ${warn.supplier.toUpperCase()}: ${warn.status} - ${warn.reason}`)
+          console.log(`  Message: ${warn.message}`)
+          if (warn.opened_until) {
+            console.log(`  Will retry after: ${warn.opened_until}`)
+          }
+        })
+      }
+      
       // Show fallback logs if available
       if (data.logs && data.logs.length > 0) {
         console.log('\n📋 FALLBACK ATTEMPTS:')
