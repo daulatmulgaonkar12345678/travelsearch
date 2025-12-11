@@ -69,9 +69,13 @@ class KiwiAdapter:
             # Build params
             params = self._build_params(request)
             
-            # Make API request
+            # Make API request with API key in header
+            headers = {
+                "apikey": self.api_key
+            }
+            
             async with httpx.AsyncClient(timeout=15.0) as client:
-                response = await client.get(url, params=params)
+                response = await client.get(url, params=params, headers=headers)
                 
                 if response.status_code != 200:
                     logger.error(
