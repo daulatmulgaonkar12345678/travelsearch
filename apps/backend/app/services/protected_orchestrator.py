@@ -159,28 +159,55 @@ class ProtectedOrchestrator:
         amadeus_offers, amadeus_logs = await self._try_amadeus(request, request_id)
         search_logs.extend(amadeus_logs)
         
+        # Record Amadeus call
+        for log in amadeus_logs:
+            if log.get("step") == "amadeus":
+                call_records.append({
+                    "supplier": "amadeus",
+                    "status": log.get("status", "unknown"),
+                    "latency_ms": log.get("latency_ms", 0),
+                    "results": log.get("results", 0)
+                })
+        
         if amadeus_offers:
             # Amadeus success - return immediately
             self.metrics["amadeus_success"] += 1
             elapsed = time.time() - start_time
             
             # Launch FlightAPI in background (non-blocking)
-            asyncio.create_task(self._background_enrich(request, request_id, amadeus_offers))
+            asyncio.create_task(self._background_enrich(request, request_id, amadeus_offers, async_call_records))
             
             logger.info(
                 f"✅ [{request_id}] Amadeus SUCCESS: {len(amadeus_offers)} offers in {elapsed:.2f}s"
             )
             
-            return {
-                "request_id": request_id,
-                "status": "completed",
-                "outcome": "results",
-                "flights": [self._serialize_offer(o) for o in amadeus_offers],
-                "supplier": "amadeus",
-                "same_day_metadata": same_day_meta,
-                "logs": search_logs,
-                "elapsed_seconds": elapsed
-            }
+            try:
+                response = {
+                    "request_id": request_id,
+                    "status": "completed",
+                    "outcome": "results",
+                    "flights": [self._serialize_offer(o) for o in amadeus_offers],
+                    "supplier": "amadeus",
+                    "same_day_metadata": same_day_meta,
+                    "logs": search_logs,
+                    "total_calls": len(call_records),  # Synchronous calls only
+                    "call_records": call_records,
+                    "elapsed_seconds": elapsed
+                }
+                logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+                return response
+            except Exception as e:
+                logger.error(f"❌ [{request_id}] Error building total_calls: {e}", exc_info=True)
+                return {
+                    "request_id": request_id,
+                    "status": "completed",
+                    "outcome": "results",
+                    "flights": [self._serialize_offer(o) for o in amadeus_offers],
+                    "supplier": "amadeus",
+                    "total_calls": 0,
+                    "call_records": [],
+                    "elapsed_seconds": elapsed
+                }
         
         # Step 3: Amadeus failed/empty - try FlightAPI (fallback)
         self.metrics["amadeus_fallback"] += 1
@@ -189,6 +216,16 @@ class ProtectedOrchestrator:
         flightapi_offers, flightapi_logs = await self._try_flightapi(request, request_id)
         search_logs.extend(flightapi_logs)
         
+        # Record FlightAPI call
+        for log in flightapi_logs:
+            if log.get("step") == "flightapi":
+                call_records.append({
+                    "supplier": "flightapi",
+                    "status": log.get("status", "unknown"),
+                    "latency_ms": log.get("latency_ms", 0),
+                    "results": log.get("results", 0)
+                })
+        
         if flightapi_offers:
             self.metrics["flightapi_used"] += 1
             elapsed = time.time() - start_time
@@ -196,7 +233,7 @@ class ProtectedOrchestrator:
                 f"✅ [{request_id}] FlightAPI SUCCESS: {len(flightapi_offers)} offers in {elapsed:.2f}s"
             )
             
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "results",
@@ -204,14 +241,20 @@ class ProtectedOrchestrator:
                 "supplier": "flightapi",
                 "same_day_metadata": same_day_meta,
                 "logs": search_logs,
+                "total_calls": len(call_records),
+                "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+            return response
         
         # Step 4: Both suppliers failed - try hub composition
         logger.warning(f"🔄 [{request_id}] All suppliers failed - trying hub composition")
         
         hub_offers, hub_logs = await self._try_hub_composition(request, request_id)
         search_logs.extend(hub_logs)
+        
+        # Hub composition doesn't make external calls - it uses existing suppliers
         
         if hub_offers:
             self.metrics["hub_composition_used"] += 1
@@ -220,7 +263,7 @@ class ProtectedOrchestrator:
                 f"✅ [{request_id}] HUB COMPOSITION SUCCESS: {len(hub_offers)} offers in {elapsed:.2f}s"
             )
             
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "results",
@@ -228,6 +271,8 @@ class ProtectedOrchestrator:
                 "supplier": "hub_composition",
                 "same_day_metadata": same_day_meta,
                 "logs": search_logs,
+                "total_calls": len(call_records),
+                "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
         
