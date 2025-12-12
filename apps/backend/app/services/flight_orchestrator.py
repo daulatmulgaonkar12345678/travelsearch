@@ -235,7 +235,7 @@ class FlightOrchestrator:
         # Check for degraded suppliers
         warnings = self._get_supplier_warnings()
         
-        return {
+        response = {
             "request_id": request_id,
             "status": "completed",
             "outcome": "no_results",
@@ -244,9 +244,12 @@ class FlightOrchestrator:
             "suggestions": self._build_suggestions("all"),
             "logs": search_logs,
             "warnings": warnings,
-            "total_calls": self.call_count,
+            "total_calls": len(call_records),  # Use call_records length
+            "call_records": call_records,
             "elapsed_seconds": elapsed
         }
+        logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+        return response
     
     def _validate_request(self, request: FlightSearchRequest) -> Optional[str]:
         """Validate request inputs. Returns error message or None."""
