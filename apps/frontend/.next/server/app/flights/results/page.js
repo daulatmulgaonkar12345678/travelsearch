@@ -58,4 +58,4 @@
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */let r=(0,s(9224).Z)("X",[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]])},9253:(e,t,s)=>{"use strict";s.r(t),s.d(t,{$$typeof:()=>n,__esModule:()=>a,default:()=>l});let r=(0,s(6843).createProxy)(String.raw`/app/apps/frontend/app/flights/results/page.tsx`),{__esModule:a,$$typeof:n}=r,l=r.default}};var t=require("../../../webpack-runtime.js");t.C(e);var s=e=>t(t.s=e),r=t.X(0,[974,314,467,281],()=>s(2309));module.exports=r})();
+ */let r=(0,s(9224).Z)("X",[["path",{d:"M18 6 6 18",key:"1bl5f8"}],["path",{d:"m6 6 12 12",key:"d8bk6v"}]])},9253:(e,t,s)=>{"use strict";s.r(t),s.d(t,{$$typeof:()=>n,__esModule:()=>a,default:()=>l});let r=(0,s(6843).createProxy)(String.raw`/app/apps/frontend/app/flights/results/page.tsx`),{__esModule:a,$$typeof:n}=r,l=r.default}};var t=require("../../../webpack-runtime.js");t.C(e);var s=e=>t(t.s=e),r=t.X(0,[974,314,467,320],()=>s(2309));module.exports=r})();
