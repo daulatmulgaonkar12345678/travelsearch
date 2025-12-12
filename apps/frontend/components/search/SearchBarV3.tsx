@@ -53,6 +53,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [searchType, setSearchType] = useState<SearchType>(defaultTab)
   
   // Get deterministic default dates (SSR-safe)
+  const getTodayDate = () => {
+    const today = new Date()
+    return today.toISOString().split('T')[0]
+  }
+  
   const getTomorrowDate = () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
@@ -169,8 +174,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       for (let i = 0; i < segments.length; i++) {
         const currentDate = new Date(segments[i].date)
         
-        if (i === 0 && currentDate <= today) {
-          alert('First flight must be at least tomorrow')
+        if (i === 0 && currentDate < today) {
+          alert('First flight date cannot be in the past')
           return false
         }
         
@@ -199,8 +204,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       today.setHours(0, 0, 0, 0)
       const depDate = new Date(departureDate)
       
-      if (depDate <= today) {
-        alert('Departure date must be at least tomorrow')
+      if (depDate < today) {
+        alert('Departure date cannot be in the past')
         return false
       }
       
@@ -292,8 +297,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     const checkInDate = new Date(checkIn)
     const checkOutDate = new Date(checkOut)
     
-    if (checkInDate <= today) {
-      alert('Check-in date must be at least tomorrow')
+    if (checkInDate < today) {
+      alert('Check-in date cannot be in the past')
       return
     }
     
@@ -456,7 +461,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                           <input
                             type="date"
                             value={segment.date}
-                            min={index === 0 ? getTomorrowDate() : multiCitySegments[index - 1]?.date}
+                            min={index === 0 ? getTodayDate() : multiCitySegments[index - 1]?.date}
                             onChange={(e) => handleMultiCitySegmentUpdate(segment.id, 'date', e.target.value)}
                             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
@@ -542,7 +547,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         data-testid="departure-date-input"
                         type="date"
                         value={departureDate}
-                        min={getTomorrowDate()}
+                        min={getTodayDate()}
                         onChange={(e) => handleDepartureDateChange(e.target.value)}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />

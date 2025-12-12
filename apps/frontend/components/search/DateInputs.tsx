@@ -11,12 +11,11 @@ interface DateInputsProps {
 }
 
 export default function DateInputs({ checkIn, checkOut, onChange, minCheckIn }: DateInputsProps) {
-  // Calculate min check-in (tomorrow by default)
+  // Calculate min check-in (today by default)
   const getMinCheckIn = () => {
     if (minCheckIn) return minCheckIn
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
+    const today = new Date()
+    return today.toISOString().split('T')[0]
   }
 
   const [ci, setCi] = useState(checkIn || getMinCheckIn())
