@@ -145,38 +145,63 @@ class FlightOrchestrator:
         date_offers, date_logs = await self._date_window_fallback(request)
         search_logs.extend(date_logs)
         
+        # Record date fallback calls
+        for log in date_logs:
+            if log.get("step") == "date_fallback":
+                call_records.append({
+                    "supplier": "amadeus_date_fallback",
+                    "status": log.get("status", "unknown"),
+                    "date": log.get("date", ""),
+                    "results": log.get("results", 0)
+                })
+        
         if date_offers:
             elapsed = time.time() - start_time
             logger.info(f"✅ [{request_id}] DATE FALLBACK SUCCESS: {len(date_offers)} flights")
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "results",
                 "flights": [self._serialize_offer(o) for o in date_offers],
                 "suggestions": self._build_suggestions("date"),
                 "logs": search_logs,
-                "total_calls": self.call_count,
+                "total_calls": len(call_records),
+                "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+            return response
         
         # Step 4: NEARBY AIRPORTS FALLBACK
         logger.info(f"🗺️ [{request_id}] NEARBY AIRPORTS FALLBACK")
         nearby_offers, nearby_logs = await self._nearby_airports_fallback(request)
         search_logs.extend(nearby_logs)
         
+        # Record nearby calls
+        for log in nearby_logs:
+            if log.get("step") == "nearby_airports":
+                call_records.append({
+                    "supplier": "amadeus_nearby",
+                    "status": log.get("status", "unknown"),
+                    "results": log.get("results", 0)
+                })
+        
         if nearby_offers:
             elapsed = time.time() - start_time
             logger.info(f"✅ [{request_id}] NEARBY FALLBACK SUCCESS: {len(nearby_offers)} flights")
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "results",
                 "flights": [self._serialize_offer(o) for o in nearby_offers],
                 "suggestions": self._build_suggestions("nearby"),
                 "logs": search_logs,
-                "total_calls": self.call_count,
+                "total_calls": len(call_records),
+                "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+            return response
         
         # Step 5: HUB COMPOSITION FALLBACK (THE KEY FIX!)
         logger.info(f"🔄 [{request_id}] HUB COMPOSITION FALLBACK")
