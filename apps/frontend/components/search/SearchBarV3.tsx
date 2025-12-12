@@ -74,8 +74,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [tripType, setTripType] = useState<TripType>('roundtrip')
   const [origin, setOrigin] = useState('')
   const [destination, setDestination] = useState('')
-  const [departureDate, setDepartureDate] = useState(getTomorrowDate())
-  const [returnDate, setReturnDate] = useState(getDayAfterTomorrow())
+  const [departureDate, setDepartureDate] = useState(getTodayDate())
+  const [returnDate, setReturnDate] = useState(getTomorrowDate())
   const [cabinClass, setCabinClass] = useState<CabinClass>('economy')
   const [passengers, setPassengers] = useState<PassengerData>({
     adults: 1,
@@ -83,8 +83,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     infants: 0,
   })
   const [multiCitySegments, setMultiCitySegments] = useState<FlightSegment[]>([
-    { id: 'seg-1', origin: '', destination: '', date: getTomorrowDate() },
-    { id: 'seg-2', origin: '', destination: '', date: getDayAfterTomorrow() },
+    { id: 'seg-1', origin: '', destination: '', date: getTodayDate() },
+    { id: 'seg-2', origin: '', destination: '', date: getTomorrowDate() },
   ])
   const [showPassengerModal, setShowPassengerModal] = useState(false)
   
@@ -94,8 +94,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   
   // Hotels state
   const [city, setCity] = useState('')
-  const [checkIn, setCheckIn] = useState(getTomorrowDate())
-  const [checkOut, setCheckOut] = useState(getDayAfterTomorrow())
+  const [checkIn, setCheckIn] = useState(getTodayDate())
+  const [checkOut, setCheckOut] = useState(getTomorrowDate())
   const [hotelRooms, setHotelRooms] = useState<EnhancedHotelRoomData>({
     rooms: [{ adults: 2, children: [], roomType: 'Standard', ac: true }],
   })
@@ -356,7 +356,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
 
   const addMultiCitySegment = () => {
     const lastSegment = multiCitySegments[multiCitySegments.length - 1]
-    const lastDate = new Date(lastSegment.date || getTomorrowDate())
+    const lastDate = new Date(lastSegment.date || getTodayDate())
     lastDate.setDate(lastDate.getDate() + 1)
     
     setMultiCitySegments([...multiCitySegments, {
