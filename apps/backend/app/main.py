@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete
+from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete, internal_health
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
@@ -32,10 +32,26 @@ app.add_middleware(RateLimitMiddleware)
 @app.on_event("startup")
 async def startup():
     await connect_db()
+    
+    # Initialize protected orchestrator if enabled
+    if settings.supplier_protection:
+        try:
+            from app.services.protected_orchestrator import protected_orchestrator
+            await protected_orchestrator.initialize()
+            print("✅ Protected orchestrator initialized")
+        except Exception as e:
+            print(f"⚠️  Failed to initialize protected orchestrator: {e}")
 
 @app.on_event("shutdown")
 async def shutdown():
     await close_db()
+    
+    # Disconnect Redis
+    try:
+        from app.services.redis_client import redis_client
+        await redis_client.disconnect()
+    except:
+        pass
 
 # Health check
 @app.get("/api/health")
@@ -60,6 +76,9 @@ app.include_router(webhooks_reconcile.router, prefix="/api", tags=["webhooks", "
 # Import and include airports routes
 from app.routers import airports
 app.include_router(airports.router, prefix="/api", tags=["airports"])
+
+# Include internal health routes
+app.include_router(internal_health.router, tags=["internal-health"])
 
 if __name__ == "__main__":
     import uvicorn
