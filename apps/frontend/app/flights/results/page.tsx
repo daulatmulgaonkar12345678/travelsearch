@@ -318,7 +318,23 @@ function SearchResultsContent() {
       console.log('Status:', data.status)
       console.log('Outcome:', data.outcome)
       console.log('Flights found:', fetchedOffers.length)
-      console.log('Total API calls:', data.total_calls)
+      
+      // Defensive fallback for total_calls
+      if (data.total_calls === undefined || data.total_calls === null) {
+        console.warn('⚠️  WARNING: total_calls field missing from orchestrator response!')
+        console.log('Total API calls: N/A (field missing)')
+      } else {
+        console.log('Total API calls:', data.total_calls)
+      }
+      
+      // Log call_records if available
+      if (data.call_records && Array.isArray(data.call_records)) {
+        console.log('Call records:', data.call_records.length, 'entries')
+        data.call_records.forEach((record: any, idx: number) => {
+          console.log(`  ${idx + 1}. ${record.supplier}: ${record.status} (${record.latency_ms || 0}ms, ${record.results || 0} results)`)
+        })
+      }
+      
       console.log('Time elapsed:', data.elapsed_seconds?.toFixed(2) + 's')
       
       // Show warnings if any
