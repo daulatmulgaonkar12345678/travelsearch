@@ -126,6 +126,10 @@ class ProtectedOrchestrator:
         if not request_id:
             request_id = str(uuid.uuid4())
         
+        # Initialize call tracking
+        call_records = []  # Track all synchronous API calls
+        async_call_records = []  # Track background enrichment calls
+        
         self.metrics["total_searches"] += 1
         search_logs = []
         start_time = time.time()
