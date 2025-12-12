@@ -18,7 +18,7 @@ Triggers:
 
 import time
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -308,5 +308,3 @@ class RedisCircuitBreaker:
     def get_metrics(self) -> Dict:
         """Get aggregated metrics."""
         return self.metrics
-
-from typing import Tuple
