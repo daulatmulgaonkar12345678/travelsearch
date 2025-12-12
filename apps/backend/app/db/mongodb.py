@@ -32,6 +32,10 @@ def get_db():
     """Get database instance"""
     return mongodb.db
 
+async def get_database():
+    """Get database instance (async compatible)"""
+    return mongodb.db
+
 # Collections
 def get_users_collection():
     return get_db()["users"]
