@@ -208,23 +208,29 @@ class FlightOrchestrator:
         hub_offers, hub_logs = await self._hub_composition_fallback(request)
         search_logs.extend(hub_logs)
         
+        # Record hub composition calls (these are internal, but count as 0 external calls)
+        # Hub composition uses existing suppliers internally
+        
         if hub_offers:
             elapsed = time.time() - start_time
             logger.info(f"✅ [{request_id}] HUB COMPOSITION SUCCESS: {len(hub_offers)} connecting flights")
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "results",
                 "flights": [self._serialize_offer(o) for o in hub_offers],
                 "suggestions": self._build_suggestions("hub"),
                 "logs": search_logs,
-                "total_calls": self.call_count,
+                "total_calls": len(call_records),  # Hub uses existing calls
+                "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+            return response
         
         # Step 6: ALL FALLBACKS EXHAUSTED - NO RESULTS
         elapsed = time.time() - start_time
-        logger.warning(f"❌ [{request_id}] NO RESULTS after all fallbacks ({elapsed:.2f}s, {self.call_count} calls)")
+        logger.warning(f"❌ [{request_id}] NO RESULTS after all fallbacks ({elapsed:.2f}s, {len(call_records)} calls)")
         
         # Check for degraded suppliers
         warnings = self._get_supplier_warnings()
