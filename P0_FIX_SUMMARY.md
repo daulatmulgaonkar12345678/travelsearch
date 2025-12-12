@@ -9,7 +9,7 @@ All frontend API calls have been migrated from localhost to the remote backend U
 ## 🎯 Objective
 
 Move ALL frontend API calls to use the remote backend:
-- **Remote Backend URL:** `https://metasearch-app.preview.emergentagent.com`
+- **Remote Backend URL:** `https://travel-search-hub-2.preview.emergentagent.com`
 - **Remove all references to:** `http://localhost:8001`
 
 ---
@@ -21,8 +21,8 @@ Move ALL frontend API calls to use the remote backend:
 **File:** `/app/apps/frontend/.env.local`
 
 ```diff
-- NEXT_PUBLIC_API_BASE_URL=https://skycompare-meta.preview.emergentagent.com
-+ NEXT_PUBLIC_API_BASE=https://metasearch-app.preview.emergentagent.com
+- NEXT_PUBLIC_API_BASE_URL=https://travel-search-hub-2.preview.emergentagent.com
++ NEXT_PUBLIC_API_BASE=https://travel-search-hub-2.preview.emergentagent.com
 ```
 
 ✅ **Updated** to use correct preview domain with simplified variable name
