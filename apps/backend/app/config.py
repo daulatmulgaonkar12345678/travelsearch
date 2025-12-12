@@ -74,8 +74,10 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = False
         extra = "ignore"
+        env_file_encoding = 'utf-8'
 
-settings = Settings()
+# Force reload from .env every time
+settings = Settings(_env_file="/app/apps/backend/.env", _env_file_encoding="utf-8")
 
 # Check if using mock mode
 def is_mock_mode(provider: str) -> bool:

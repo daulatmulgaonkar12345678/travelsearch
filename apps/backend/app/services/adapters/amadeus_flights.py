@@ -20,6 +20,10 @@ class AmadeusFlightsAdapter:
         self.base_url = settings.amadeus_base_url
         self.environment = settings.amadeus_environment
         
+        # DEBUG: Log what credentials were loaded
+        logger.info(f"AmadeusAdapter initialized with key: {self.api_key[:10]}...{self.api_key[-4:]}")
+        logger.info(f"AmadeusAdapter base URL: {self.base_url}")
+        
         # Token caching
         self._access_token: Optional[str] = None
         self._token_expiry: Optional[datetime] = None
