@@ -63,7 +63,9 @@ class FlightOrchestrator:
         if not request_id:
             request_id = str(uuid.uuid4())
         
+        # Initialize call tracking
         self.call_count = 0
+        call_records = []  # Track all API calls
         search_logs = []
         start_time = time.time()
         
@@ -73,35 +75,68 @@ class FlightOrchestrator:
         validation_error = self._validate_request(request)
         if validation_error:
             logger.warning(f"❌ [{request_id}] Validation failed: {validation_error}")
-            return {
+            response = {
                 "request_id": request_id,
                 "status": "completed",
                 "outcome": "invalid_input",
                 "message": validation_error,
                 "flights": [],
                 "suggestions": [],
-                "logs": []
+                "logs": [],
+                "total_calls": 0,  # No API calls made
+                "call_records": call_records,
+                "elapsed_seconds": time.time() - start_time
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}")
+            return response
         
         # Step 2: Primary supplier search
         logger.info(f"📡 [{request_id}] PRIMARY SEARCH")
         primary_offers, primary_logs = await self._primary_search(request)
         search_logs.extend(primary_logs)
         
+        # Record primary calls
+        for log in primary_logs:
+            if log.get("step") == "primary":
+                call_records.append({
+                    "supplier": log.get("supplier", "aggregated"),
+                    "status": log.get("status", "unknown"),
+                    "latency_ms": log.get("latency_ms", 0),
+                    "results": log.get("results", 0)
+                })
+        
         if primary_offers:
             elapsed = time.time() - start_time
             logger.info(f"✅ [{request_id}] PRIMARY SUCCESS: {len(primary_offers)} flights in {elapsed:.2f}s")
-            return {
-                "request_id": request_id,
-                "status": "completed",
-                "outcome": "results",
-                "flights": [self._serialize_offer(o) for o in primary_offers],
-                "suggestions": [],
-                "warnings": self._get_supplier_warnings(),
-                "logs": search_logs,
-                "total_calls": self.call_count,
-                "elapsed_seconds": elapsed
-            }
+            
+            try:
+                response = {
+                    "request_id": request_id,
+                    "status": "completed",
+                    "outcome": "results",
+                    "flights": [self._serialize_offer(o) for o in primary_offers],
+                    "suggestions": [],
+                    "warnings": self._get_supplier_warnings(),
+                    "logs": search_logs,
+                    "total_calls": len(call_records),  # Canonical count
+                    "call_records": call_records,
+                    "elapsed_seconds": elapsed
+                }
+                logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+                return response
+            except Exception as e:
+                logger.error(f"❌ [{request_id}] Error building total_calls: {e}", exc_info=True)
+                # Return safe response with defaults
+                return {
+                    "request_id": request_id,
+                    "status": "completed",
+                    "outcome": "results",
+                    "flights": [self._serialize_offer(o) for o in primary_offers],
+                    "suggestions": [],
+                    "total_calls": 0,
+                    "call_records": [],
+                    "elapsed_seconds": elapsed
+                }
         
         logger.info(f"⚠️ [{request_id}] No primary results - starting fallbacks...")
         
