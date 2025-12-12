@@ -3,7 +3,8 @@ from typing import List, Optional, Dict, Any
 from app.models.flight import FlightSearchRequest, FlightSearchResponse, FlightOffer
 from app.models.hotel import HotelSearchRequest, HotelSearchResponse, HotelOffer
 from app.services.aggregator import SearchAggregator
-from app.services.flight_orchestrator import orchestrator
+from app.services.flight_orchestrator import orchestrator as legacy_orchestrator
+from app.config import settings
 import uuid
 from datetime import datetime
 import logging
@@ -11,6 +12,17 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 aggregator = SearchAggregator()
+
+# Select orchestrator based on feature flag
+def get_orchestrator():
+    if settings.supplier_protection:
+        try:
+            from app.services.protected_orchestrator import protected_orchestrator
+            return protected_orchestrator
+        except Exception as e:
+            logger.warning(f"Failed to load protected orchestrator: {e}. Using legacy.")
+            return legacy_orchestrator
+    return legacy_orchestrator
 
 @router.get("/search/flights")
 async def search_flights(
@@ -73,6 +85,7 @@ async def search_flights(
         logger.info(f"🔍 Flight search: {request.origin} → {request.destination} on {request.departure_date}")
         
         # Use orchestrator for comprehensive search
+        orchestrator = get_orchestrator()
         result = await orchestrator.search(request)
         
         # For backward compatibility, also provide old format fields
