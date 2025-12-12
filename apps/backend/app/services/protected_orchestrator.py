@@ -275,15 +275,17 @@ class ProtectedOrchestrator:
                 "call_records": call_records,
                 "elapsed_seconds": elapsed
             }
+            logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+            return response
         
         # Step 5: All fallbacks exhausted - no results
         elapsed = time.time() - start_time
-        logger.error(f"❌ [{request_id}] NO RESULTS after all fallbacks ({elapsed:.2f}s)")
+        logger.error(f"❌ [{request_id}] NO RESULTS after all fallbacks ({elapsed:.2f}s, {len(call_records)} calls)")
         
         # Get supplier warnings
         warnings = await self._get_supplier_warnings()
         
-        return {
+        response = {
             "request_id": request_id,
             "status": "completed",
             "outcome": "no_results",
@@ -292,8 +294,12 @@ class ProtectedOrchestrator:
             "warnings": warnings,
             "same_day_metadata": same_day_meta,
             "logs": search_logs,
+            "total_calls": len(call_records),
+            "call_records": call_records,
             "elapsed_seconds": elapsed
         }
+        logger.info(f"📊 [{request_id}] Response keys: {list(response.keys())}, total_calls: {response['total_calls']}")
+        return response
     
     async def _try_amadeus(
         self,
@@ -508,7 +514,8 @@ class ProtectedOrchestrator:
         self,
         request: FlightSearchRequest,
         request_id: str,
-        primary_offers: List[FlightOffer]
+        primary_offers: List[FlightOffer],
+        async_call_records: List[Dict]
     ):
         """Launch FlightAPI in background to enrich results (non-blocking)."""
         try:
