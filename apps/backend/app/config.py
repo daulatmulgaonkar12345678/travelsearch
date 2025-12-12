@@ -11,13 +11,28 @@ class Settings(BaseSettings):
     amadeus_rate_limit_rps: int = 3  # Requests per second
     amadeus_rate_limit_rpm: int = 100  # Requests per minute
     
+    # Supplier Protection System
+    supplier_protection: bool = True
+    amadeus_rps: int = 3
+    amadeus_rpm: int = 100
+    amadeus_burst: int = 5
+    amadeus_circuit_failures: int = 3
+    amadeus_circuit_cooldown_seconds: int = 300
+    amadeus_timeout_ms: int = 2500
+    
     # Duffel (optional secondary flight provider)
     duffel_test_token: Optional[str] = "REPLACE_ME"
     duffel_environment: str = "test"
+    duffel_enabled: bool = False
     
     # FlightAPI.io (backup supplier)
-    flightapi_enabled: bool = False  # Enable when key is available
+    flightapi_enabled: bool = True  # Enable when key is available
     flightapi_key: Optional[str] = None
+    flightapi_base: str = "https://api.flightapi.io"
+    flightapi_timeout_ms: int = 3000
+    
+    # Kiwi
+    kiwi_enabled: bool = False
     
     # Travelpayouts / Aviasales (affiliate redirect)
     travelpayouts_aviasales_base_url: str = "REPLACE_ME"
