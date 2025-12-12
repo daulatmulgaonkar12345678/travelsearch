@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete, internal_health
+from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete, internal_health, hybrid_health
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
@@ -33,12 +33,20 @@ app.add_middleware(RateLimitMiddleware)
 async def startup():
     await connect_db()
     
-    # Initialize protected orchestrator if enabled
-    if settings.supplier_protection:
+    # Initialize hybrid supplier protection (MongoDB-backed)
+    try:
+        from app.services.supplier_protection_controller import get_controller
+        controller = await get_controller()
+        print("✅ Hybrid supplier protection initialized")
+    except Exception as e:
+        print(f"⚠️  Failed to initialize hybrid protection: {e}")
+    
+    # Initialize protected orchestrator if enabled (Redis-backed - deprecated)
+    if getattr(settings, 'supplier_protection', False) and getattr(settings, 'redis_url', None):
         try:
             from app.services.protected_orchestrator import protected_orchestrator
             await protected_orchestrator.initialize()
-            print("✅ Protected orchestrator initialized")
+            print("✅ Protected orchestrator initialized (Redis mode)")
         except Exception as e:
             print(f"⚠️  Failed to initialize protected orchestrator: {e}")
 
@@ -79,6 +87,7 @@ app.include_router(airports.router, prefix="/api", tags=["airports"])
 
 # Include internal health routes
 app.include_router(internal_health.router, tags=["internal-health"])
+app.include_router(hybrid_health.router, tags=["hybrid-protection"])
 
 if __name__ == "__main__":
     import uvicorn
