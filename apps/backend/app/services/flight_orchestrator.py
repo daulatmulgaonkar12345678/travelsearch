@@ -21,7 +21,7 @@ from app.models.flight import FlightOffer, FlightSearchRequest
 from app.services.aggregator import SearchAggregator
 from app.services.hub_composer import HubComposer
 from app.services.circuit_breaker import circuit_breaker
-from app.config import settings
+from app.core.config import settings  # CENTRALIZED CONFIG
 
 logger = logging.getLogger(__name__)
 
