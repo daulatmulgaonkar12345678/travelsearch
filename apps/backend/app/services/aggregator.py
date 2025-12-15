@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from app.models.flight import FlightOffer, FlightSearchRequest
 from app.models.hotel import HotelOffer, HotelSearchRequest
-from app.services.adapters.amadeus_flights import AmadeusFlightsAdapter
+from app.services.adapters.amadeus_flights_v2 import AmadeusFlightsAdapterV2  # NEW V2 ADAPTER
 from app.services.adapters.amadeus_hotels import AmadeusHotelsAdapter
 from app.services.adapters.duffel_flights import DuffelFlightsAdapter
 from app.services.adapters.kiwi_adapter import kiwi_adapter
@@ -13,7 +13,7 @@ from app.services.ranking import RankingEngine
 from app.services.cache import CacheService
 from app.services.flight_validator import validate_flight_offers
 from app.services.fallback_orchestrator import FallbackOrchestrator
-from app.config import settings, is_mock_mode
+from app.core.config import settings  # CENTRALIZED CONFIG
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ class SearchAggregator:
     """Aggregates search results from multiple providers"""
     
     def __init__(self):
-        # Initialize new real adapters
-        self.amadeus_flights = AmadeusFlightsAdapter()
+        # Initialize new V2 adapter with centralized config
+        self.amadeus_flights = AmadeusFlightsAdapterV2()  # NEW V2
         self.duffel_flights = DuffelFlightsAdapter()
         self.amadeus_hotels = AmadeusHotelsAdapter()
         
