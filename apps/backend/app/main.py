@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
-from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete, internal_health, hybrid_health
+from app.core.config import settings  # CENTRALIZED CONFIG - SINGLE SOURCE OF TRUTH
+from app.routers import search, providers, redirect, auth, admin, pricing, airports, cities, hotels_autocomplete, internal_health, hybrid_health, health_amadeus
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Metasearch API",
@@ -31,24 +34,36 @@ app.add_middleware(RateLimitMiddleware)
 # Database lifecycle
 @app.on_event("startup")
 async def startup():
+    logger.info("="*60)
+    logger.info("STARTING BACKEND APPLICATION")
+    logger.info("="*60)
+    
+    # Log centralized config status
+    from app.core.config import log_config_status
+    log_config_status()
+    
     await connect_db()
     
     # Initialize hybrid supplier protection (MongoDB-backed)
     try:
         from app.services.supplier_protection_controller import get_controller
         controller = await get_controller()
-        print("✅ Hybrid supplier protection initialized")
+        logger.info("✅ Hybrid supplier protection initialized")
     except Exception as e:
-        print(f"⚠️  Failed to initialize hybrid protection: {e}")
+        logger.warning(f"⚠️  Failed to initialize hybrid protection: {e}")
     
     # Initialize protected orchestrator if enabled (Redis-backed - deprecated)
     if getattr(settings, 'supplier_protection', False) and getattr(settings, 'redis_url', None):
         try:
             from app.services.protected_orchestrator import protected_orchestrator
             await protected_orchestrator.initialize()
-            print("✅ Protected orchestrator initialized (Redis mode)")
+            logger.info("✅ Protected orchestrator initialized (Redis mode)")
         except Exception as e:
-            print(f"⚠️  Failed to initialize protected orchestrator: {e}")
+            logger.warning(f"⚠️  Failed to initialize protected orchestrator: {e}")
+    
+    logger.info("="*60)
+    logger.info("BACKEND STARTUP COMPLETE")
+    logger.info("="*60)
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -88,6 +103,7 @@ app.include_router(airports.router, prefix="/api", tags=["airports"])
 # Include internal health routes
 app.include_router(internal_health.router, tags=["internal-health"])
 app.include_router(hybrid_health.router, tags=["hybrid-protection"])
+app.include_router(health_amadeus.router, prefix="/api", tags=["health"])
 
 if __name__ == "__main__":
     import uvicorn
