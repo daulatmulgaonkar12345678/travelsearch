@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Plane, Hotel, Settings } from 'lucide-react'
+import { Plane, Hotel } from 'lucide-react'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -10,7 +10,6 @@ export default function Navigation() {
   const navItems = [
     { href: '/', label: 'Flights', icon: Plane },
     { href: '/hotels', label: 'Hotels', icon: Hotel },
-    { href: '/admin/reconciliations', label: 'Admin', icon: Settings },
   ]
   
   return (
