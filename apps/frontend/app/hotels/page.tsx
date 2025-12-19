@@ -1,5 +1,6 @@
 import SearchBarV3 from '@/components/search/SearchBarV3'
 import Navigation from '@/components/layout/Navigation'
+import Footer from '@/components/layout/Footer'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -27,13 +28,7 @@ export default function HotelsPage() {
         </div>
       </section>
 
-      <footer className="border-t bg-gray-50 mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-gray-600 text-sm">
-            © 2025 TravelSearch. We compare, you save.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
