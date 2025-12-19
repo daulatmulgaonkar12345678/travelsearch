@@ -1,5 +1,6 @@
 import SearchBarV3 from '@/components/search/SearchBarV3'
 import Navigation from '@/components/layout/Navigation'
+import Footer from '@/components/layout/Footer'
 import { Hotel, Shield, TrendingDown } from 'lucide-react'
 
 export default function Home() {
@@ -53,14 +54,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-gray-50 mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-gray-600 text-sm">
-            © 2025 TravelSearch. We compare, you save. Affiliate disclosure: We may earn commission from bookings.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
