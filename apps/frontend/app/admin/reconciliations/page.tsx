@@ -25,6 +25,12 @@ export default function ReconciliationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logoutAdmin();
+    router.push('/admin/login');
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -95,9 +101,23 @@ export default function ReconciliationsPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
-          <CardDescription>
-            Review pending affiliate bookings and match them with click records
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-3xl">Reconciliation Queue</CardTitle>
+              <CardDescription>
+                Review pending affiliate bookings and match them with click records
+              </CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
+          <CardDescription className="mt-2">
           </CardDescription>
         </CardHeader>
         <CardContent>
