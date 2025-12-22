@@ -24,6 +24,7 @@ motor==3.3.1
 # HTTP & APIs
 requests>=2.31.0
 requests-oauthlib>=2.0.0
+httpx>=0.27.0   # ✅ REQUIRED by SearchAggregator
 
 # Utilities
 tzdata>=2024.2
