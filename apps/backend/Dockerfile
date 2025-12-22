@@ -6,7 +6,11 @@ COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-COPY app/ ./app/
+# Copy backend code
+COPY apps/backend/app ./app
+
+# ✅ COPY DATA FILES (THIS FIXES AIRPORT/HOTEL ERRORS)
+COPY data ./data
 
 EXPOSE 8001
 
