@@ -2,14 +2,22 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install system deps (optional but safe)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
 COPY requirements.txt .
+
+# Install Python deps
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code
-COPY apps/backend/app ./app
+# ✅ Copy FastAPI app
+COPY app ./app
 
-# ✅ COPY DATA FILES (THIS FIXES AIRPORT/HOTEL ERRORS)
+# ✅ Copy data files (airports & hotels)
 COPY data ./data
 
 EXPOSE 8001
