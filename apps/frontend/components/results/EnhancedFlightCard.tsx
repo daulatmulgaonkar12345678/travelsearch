@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plane, Clock, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
-import { FlightOffer, Segment } from './ResultCard'
+import { Plane, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
+import { FlightOffer } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
 import { formatDuration } from '@/lib/formatters'
@@ -18,98 +18,43 @@ interface EnhancedFlightCardProps {
 export default function EnhancedFlightCard({ offer, badge, searchParams }: EnhancedFlightCardProps) {
   const [showVendors, setShowVendors] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
-  const [redirectUrl, setRedirectUrl] = useState<string>('')
+  const [redirectUrl, setRedirectUrl] = useState('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
 
-  const firstSegment = offer.segments[0]
-  const lastSegment = offer.segments[offer.segments.length - 1]
+  const first = offer.segments[0]
+  const last = offer.segments[offer.segments.length - 1]
 
-  const formatTime = (isoDate: string) => {
-    const date = new Date(isoDate)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
-  }
-
-  const getDayOffset = (dep: string, arr: string) => {
-    const depDate = new Date(dep)
-    const arrDate = new Date(arr)
-    const dayDiff = Math.floor((arrDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
-    return dayDiff > 0 ? `+${dayDiff}` : null
-  }
-
-  const dayOffset = getDayOffset(firstSegment.departure_time, lastSegment.arrival_time)
-
-  const badgeConfig = {
-    best: { label: 'Best value', bg: 'bg-blue-100', textColor: 'text-blue-700', borderColor: 'border-blue-200' },
-    cheapest: { label: 'Cheapest', bg: 'bg-green-100', textColor: 'text-green-700', borderColor: 'border-green-200' },
-    fastest: { label: 'Fastest', bg: 'bg-gray-100', textColor: 'text-gray-700', borderColor: 'border-gray-200' },
-  }
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   const handleVendorClick = async (vendorId: string) => {
-    if (vendorId !== 'aviasales') {
-      alert(`${vendorId} integration coming soon!`)
-      return
-    }
+    if (vendorId !== 'aviasales') return alert('Coming soon')
 
-    try {
-      setRedirecting(vendorId)
+    const url = buildAviasalesFlightUrl({
+      origin: first.departure_airport,
+      destination: last.arrival_airport,
+      departDate: first.departure_time.split('T')[0],
+      returnDate: searchParams?.get('return_date') || undefined,
+      adults: Number(searchParams?.get('adults') || 1),
+      children: Number(searchParams?.get('children') || 0),
+      infants: Number(searchParams?.get('infants') || 0),
+    })
 
-      const departDate = new Date(firstSegment.departure_time).toISOString().split('T')[0]
-      const returnDate = searchParams?.get('return_date')
-
-      // Build affiliate URL DIRECTLY on frontend (no backend call)
-      const finalRedirectUrl = buildAviasalesFlightUrl({
-        origin: firstSegment.departure_airport,
-        destination: lastSegment.arrival_airport,
-        departDate,
-        returnDate: returnDate || undefined,
-        adults: parseInt(searchParams?.get('adults') || '1', 10),
-        children: parseInt(searchParams?.get('children') || '0', 10),
-        infants: parseInt(searchParams?.get('infants') || '0', 10),
-      })
-
-      // Log click asynchronously (fire-and-forget, won't block redirect)
-      logAffiliateClick(
-        'aviasales',
-        `${firstSegment.departure_airport}-${lastSegment.arrival_airport}`,
-        offer.offer_id,
-        offer.price
-      ).catch(() => {}) // Silently fail
-      
-      // Show redirect screen - it will handle the actual redirect
-      setRedirectUrl(finalRedirectUrl)
-      setShowRedirectScreen(true)
-    } catch (error) {
-      console.error('Redirect error:', error)
-      alert('Failed to redirect. Please try again.')
-      setRedirecting(null)
-    }
+    logAffiliateClick('aviasales', `${first.departure_airport}-${last.arrival_airport}`, offer.offer_id, offer.price).catch(() => {})
+    setRedirectUrl(url)
+    setShowRedirectScreen(true)
   }
 
-  const getViaText = () => {
-    if (offer.stops === 0) return 'Non-stop'
-    if (offer.stops === 1) {
-      const viaAirport = offer.segments[0].arrival_airport
-      return `via ${viaAirport}`
-    }
-    return `${offer.stops} stops`
-  }
+  if (showRedirectScreen) {
+    const vendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
+    if (!vendor) return null
 
-  // Get vendor details for redirect screen
-  const selectedVendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
-
-  // Show redirect screen if triggered
-  if (showRedirectScreen && selectedVendor) {
     return (
       <RedirectScreen
-        vendor={{
-          name: selectedVendor.name,
-          logo: selectedVendor.logo,
-        }}
+        vendor={{ name: vendor.name, logo: vendor.logo }}
         redirectUrl={redirectUrl}
         type="flight"
-        contextInfo={{
-          route: `${firstSegment.departure_airport} → ${lastSegment.arrival_airport}`,
-        }}
+        contextInfo={{ route: `${first.departure_airport} → ${last.arrival_airport}` }}
         onRedirectComplete={() => {
           setShowRedirectScreen(false)
           setRedirecting(null)
@@ -119,161 +64,85 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all">
-      {/* Badge */}
+    <div className="bg-white border rounded-lg hover:shadow-md transition">
+
+      {/* BADGE */}
       {badge && (
-        <div className={`${badgeConfig[badge].bg} ${badgeConfig[badge].textColor} border ${badgeConfig[badge].borderColor} px-3 py-1 text-xs font-medium inline-block rounded-tl-lg rounded-br-lg`}>
-          {badgeConfig[badge].label}
+        <div className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-700 inline-block rounded-br-lg">
+          {badge.toUpperCase()}
         </div>
       )}
 
-      <div className="p-4">
-        {/* Main Flight Info - Single Line */}
-        <div className="flex items-center justify-between gap-4">
-          {/* Left: Airline */}
-          <div className="flex items-center space-x-3 min-w-0 flex-shrink-0">
+      <div className="p-4 space-y-4">
+
+        {/* MOBILE FIRST LAYOUT */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+          {/* Airline */}
+          <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
               <Plane className="h-5 w-5 text-gray-600" />
             </div>
-            <div className="min-w-0">
-              <div className="font-semibold text-gray-900 text-sm truncate">
-                {firstSegment.carrier_name}
-              </div>
+            <div className="font-semibold text-sm text-gray-900">
+              {first.carrier_name}
             </div>
           </div>
 
-          {/* Center: Route & Time */}
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <div className="text-center flex-shrink-0">
-              <div className="text-xl font-bold text-gray-900">
-                {formatTime(firstSegment.departure_time)}
-              </div>
-              <div className="text-xs text-gray-600">
-                {firstSegment.departure_airport}
-              </div>
+          {/* TIMES */}
+          <div className="flex items-center justify-between sm:justify-center gap-6 text-center">
+            <div>
+              <div className="text-lg font-bold">{formatTime(first.departure_time)}</div>
+              <div className="text-xs text-gray-600">{first.departure_airport}</div>
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="flex-1 border-t border-gray-300 relative">
-                  {offer.stops > 0 && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white">
-                      <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-center mt-1">
-                <div className="text-xs text-gray-600">
-                  {formatDuration(offer.total_duration_minutes)} · {getViaText()}
-                </div>
-              </div>
+            <div className="text-xs text-gray-600 whitespace-nowrap">
+              {formatDuration(offer.total_duration_minutes)} <br />
+              {offer.stops === 0 ? 'Non-stop' : `${offer.stops} stop(s)`}
             </div>
 
-            <div className="text-center flex-shrink-0">
-              <div className="text-xl font-bold text-gray-900">
-                {formatTime(lastSegment.arrival_time)}
-                {dayOffset && <span className="text-xs text-red-600 ml-1">{dayOffset}</span>}
-              </div>
-              <div className="text-xs text-gray-600">
-                {lastSegment.arrival_airport}
-              </div>
+            <div>
+              <div className="text-lg font-bold">{formatTime(last.arrival_time)}</div>
+              <div className="text-xs text-gray-600">{last.arrival_airport}</div>
             </div>
           </div>
 
-          {/* Right: Price & Action */}
-          <div className="text-right flex-shrink-0">
-            <PriceDisplay 
-              price={offer.price}
-              currency={offer.currency}
-              size="md"
-              showTrustLabel={true}
-              className="mb-2"
-            />
+          {/* PRICE + CTA */}
+          <div className="flex flex-col items-stretch sm:items-end gap-2">
+            <PriceDisplay price={offer.price} currency={offer.currency} />
             <button
               onClick={() => setShowVendors(!showVendors)}
-              className="mt-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm flex items-center space-x-2"
+              className="w-full sm:w-auto px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
             >
-              <span>Select</span>
-              {showVendors ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              Select {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
           </div>
         </div>
 
-        {/* Vendor Selection Panel */}
+        {/* VENDORS */}
         {showVendors && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Choose your booking site</h4>
-                <p className="text-xs text-gray-600 mb-1">
-                  You'll be redirected to complete your booking on the partner website.
-                </p>
-                <p className="text-xs text-gray-500">
-                  Price & availability will be confirmed there.
-                </p>
-              </div>
-              <div className="flex items-center space-x-1 text-xs text-gray-600 whitespace-nowrap ml-4">
-                <Lock className="h-3 w-3 text-green-600" />
-                <span>Secure redirection</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {FLIGHT_VENDORS.map((vendor) => {
-                const isActive = vendor.type === 'real'
-                const isRedirecting = redirecting === vendor.id
-
-                return (
-                  <button
-                    key={vendor.id}
-                    onClick={() => handleVendorClick(vendor.id)}
-                    disabled={!isActive || isRedirecting}
-                    className={`
-                      w-full p-3 rounded-lg border-2 transition-all text-left flex items-center justify-between
-                      ${
-                        isActive
-                          ? 'border-blue-500 bg-blue-50 hover:bg-blue-100 cursor-pointer'
-                          : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                      }
-                    `}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <div className="font-semibold text-gray-900 text-sm">{vendor.name}</div>
-                        {isActive && (
-                          <span className="inline-flex items-center space-x-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
-                            <Shield className="h-3 w-3" />
-                            <span>Official partner</span>
-                          </span>
-                        )}
-                      </div>
-                      {vendor.description && (
-                        <div className="text-xs text-gray-600 mt-0.5">{vendor.description}</div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      {isActive && (
-                        <PriceDisplay 
-                          price={offer.price}
-                          currency={offer.currency}
-                          size="sm"
-                          showTrustLabel={true}
-                        />
-                      )}
-
-                      {isActive ? (
-                        <ExternalLink className="h-5 w-5 text-blue-600" />
-                      ) : (
-                        <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-200 rounded">
-                          Coming Soon
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+          <div className="pt-4 border-t space-y-2">
+            {FLIGHT_VENDORS.map(v => (
+              <button
+                key={v.id}
+                onClick={() => handleVendorClick(v.id)}
+                disabled={v.type !== 'real'}
+                className={`w-full p-3 border rounded-lg flex justify-between items-center ${
+                  v.type === 'real'
+                    ? 'bg-blue-50 border-blue-400'
+                    : 'bg-gray-100 opacity-60 cursor-not-allowed'
+                }`}
+              >
+                <div>
+                  <div className="font-semibold">{v.name}</div>
+                  <div className="text-xs text-gray-600">{v.description}</div>
+                </div>
+                {v.type === 'real' ? (
+                  <ExternalLink className="text-blue-600" />
+                ) : (
+                  <span className="text-xs">Coming Soon</span>
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
