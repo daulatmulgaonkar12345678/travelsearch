@@ -1,0 +1,191 @@
+[
+  {
+    "id": "PUNE_IN",
+    "city": "Pune",
+    "country": "IN",
+    "label": "Pune, India",
+    "aliases": ["pune", "poona"]
+  },
+  {
+    "id": "MUMBAI_IN",
+    "city": "Mumbai",
+    "country": "IN",
+    "label": "Mumbai, India",
+    "aliases": ["mumbai", "bombay", "bom"]
+  },
+  {
+    "id": "DELHI_IN",
+    "city": "Delhi",
+    "country": "IN",
+    "label": "Delhi, India",
+    "aliases": ["delhi", "new delhi", "del"]
+  },
+  {
+    "id": "BENGALURU_IN",
+    "city": "Bengaluru",
+    "country": "IN",
+    "label": "Bengaluru, India",
+    "aliases": ["bengaluru", "bangalore", "blr"]
+  },
+  {
+    "id": "GOA_IN",
+    "city": "Goa",
+    "country": "IN",
+    "label": "Goa, India",
+    "aliases": ["goa", "panaji", "panjim"]
+  },
+  {
+    "id": "SHIRDI_IN",
+    "city": "Shirdi",
+    "country": "IN",
+    "label": "Shirdi, India",
+    "aliases": ["shirdi", "sai baba"]
+  },
+  {
+    "id": "SHIMLA_IN",
+    "city": "Shimla",
+    "country": "IN",
+    "label": "Shimla, India",
+    "aliases": ["shimla", "simla"]
+  },
+  {
+    "id": "CHENNAI_IN",
+    "city": "Chennai",
+    "country": "IN",
+    "label": "Chennai, India",
+    "aliases": ["chennai", "madras", "maa"]
+  },
+  {
+    "id": "HYDERABAD_IN",
+    "city": "Hyderabad",
+    "country": "IN",
+    "label": "Hyderabad, India",
+    "aliases": ["hyderabad", "hyd"]
+  },
+  {
+    "id": "KOCHI_IN",
+    "city": "Kochi",
+    "country": "IN",
+    "label": "Kochi, India",
+    "aliases": ["kochi", "cochin", "cok"]
+  },
+  {
+    "id": "JAIPUR_IN",
+    "city": "Jaipur",
+    "country": "IN",
+    "label": "Jaipur, India",
+    "aliases": ["jaipur", "pink city", "jai"]
+  },
+  {
+    "id": "KOLKATA_IN",
+    "city": "Kolkata",
+    "country": "IN",
+    "label": "Kolkata, India",
+    "aliases": ["kolkata", "calcutta", "ccu"]
+  },
+  {
+    "id": "AHMEDABAD_IN",
+    "city": "Ahmedabad",
+    "country": "IN",
+    "label": "Ahmedabad, India",
+    "aliases": ["ahmedabad", "amdavad", "amd"]
+  },
+  {
+    "id": "VARANASI_IN",
+    "city": "Varanasi",
+    "country": "IN",
+    "label": "Varanasi, India",
+    "aliases": ["varanasi", "benaras", "kashi", "vns"]
+  },
+  {
+    "id": "RISHIKESH_IN",
+    "city": "Rishikesh",
+    "country": "IN",
+    "label": "Rishikesh, India",
+    "aliases": ["rishikesh", "hrishikesh"]
+  },
+  {
+    "id": "TIRUPATI_IN",
+    "city": "Tirupati",
+    "country": "IN",
+    "label": "Tirupati, India",
+    "aliases": ["tirupati", "tirumala"]
+  },
+  {
+    "id": "UDAIPUR_IN",
+    "city": "Udaipur",
+    "country": "IN",
+    "label": "Udaipur, India",
+    "aliases": ["udaipur", "lake city"]
+  },
+  {
+    "id": "AGRA_IN",
+    "city": "Agra",
+    "country": "IN",
+    "label": "Agra, India",
+    "aliases": ["agra", "taj mahal city"]
+  },
+  {
+    "id": "MYSORE_IN",
+    "city": "Mysore",
+    "country": "IN",
+    "label": "Mysore, India",
+    "aliases": ["mysore", "mysuru", "mys"]
+  },
+  {
+    "id": "MANALI_IN",
+    "city": "Manali",
+    "country": "IN",
+    "label": "Manali, India",
+    "aliases": ["manali", "kullu manali"]
+  },
+  {
+    "id": "DUBAI_AE",
+    "city": "Dubai",
+    "country": "AE",
+    "label": "Dubai, UAE",
+    "aliases": ["dubai", "dxb"]
+  },
+  {
+    "id": "BANGKOK_TH",
+    "city": "Bangkok",
+    "country": "TH",
+    "label": "Bangkok, Thailand",
+    "aliases": ["bangkok", "bkk"]
+  },
+  {
+    "id": "SINGAPORE_SG",
+    "city": "Singapore",
+    "country": "SG",
+    "label": "Singapore",
+    "aliases": ["singapore", "sin"]
+  },
+  {
+    "id": "KUALA_LUMPUR_MY",
+    "city": "Kuala Lumpur",
+    "country": "MY",
+    "label": "Kuala Lumpur, Malaysia",
+    "aliases": ["kuala lumpur", "kl", "kul"]
+  },
+  {
+    "id": "LONDON_GB",
+    "city": "London",
+    "country": "GB",
+    "label": "London, UK",
+    "aliases": ["london", "lon"]
+  },
+  {
+    "id": "NEW_YORK_US",
+    "city": "New York",
+    "country": "US",
+    "label": "New York, USA",
+    "aliases": ["new york", "nyc", "ny"]
+  },
+  {
+    "id": "PARIS_FR",
+    "city": "Paris",
+    "country": "FR",
+    "label": "Paris, France",
+    "aliases": ["paris", "par"]
+  }
+]
