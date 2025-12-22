@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Plane, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
-import { useSwipeable } from 'react-swipeable'
 import { FlightOffer } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
@@ -16,7 +15,11 @@ interface EnhancedFlightCardProps {
   searchParams?: URLSearchParams
 }
 
-export default function EnhancedFlightCard({ offer, badge, searchParams }: EnhancedFlightCardProps) {
+export default function EnhancedFlightCard({
+  offer,
+  badge,
+  searchParams,
+}: EnhancedFlightCardProps) {
   const [showVendors, setShowVendors] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState('')
@@ -25,34 +28,30 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
   const firstSegment = offer.segments[0]
   const lastSegment = offer.segments[offer.segments.length - 1]
 
-  /* ✅ Swipe ONLY for flight info (NOT buttons) */
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => {},
-    onSwipedRight: () => {},
-    trackTouch: true,
-    preventScrollOnSwipe: true,
-  })
+  const formatTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
 
   const handleVendorClick = async (vendorId: string) => {
     if (vendorId !== 'aviasales') {
-      alert(`${vendorId} integration coming soon!`)
+      alert(`${vendorId} integration coming soon`)
       return
     }
 
     try {
       setRedirecting(vendorId)
 
-      const departDate = new Date(firstSegment.departure_time).toISOString().split('T')[0]
-      const returnDate = searchParams?.get('return_date')
-
       const finalUrl = buildAviasalesFlightUrl({
         origin: firstSegment.departure_airport,
         destination: lastSegment.arrival_airport,
-        departDate,
-        returnDate: returnDate || undefined,
-        adults: parseInt(searchParams?.get('adults') || '1', 10),
-        children: parseInt(searchParams?.get('children') || '0', 10),
-        infants: parseInt(searchParams?.get('infants') || '0', 10),
+        departDate: firstSegment.departure_time.split('T')[0],
+        returnDate: searchParams?.get('return_date') || undefined,
+        adults: parseInt(searchParams?.get('adults') || '1'),
+        children: parseInt(searchParams?.get('children') || '0'),
+        infants: parseInt(searchParams?.get('infants') || '0'),
       })
 
       logAffiliateClick(
@@ -65,18 +64,20 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
       setRedirectUrl(finalUrl)
       setShowRedirectScreen(true)
     } catch {
-      alert('Redirect failed. Please try again.')
       setRedirecting(null)
+      alert('Redirect failed')
     }
   }
 
   const selectedVendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
 
-  /* ✅ Redirect screen */
   if (showRedirectScreen && selectedVendor) {
     return (
       <RedirectScreen
-        vendor={{ name: selectedVendor.name, logo: selectedVendor.logo }}
+        vendor={{
+          name: selectedVendor.name,
+          logo: selectedVendor.logo,
+        }}
         redirectUrl={redirectUrl}
         type="flight"
         contextInfo={{
@@ -91,70 +92,83 @@ export default function EnhancedFlightCard({ offer, badge, searchParams }: Enhan
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition">
+    <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition">
 
-      {/* 🔹 Flight Info (Swipe Enabled) */}
-      <div {...swipeHandlers} className="p-4 touch-pan-y">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-              <Plane className="h-5 w-5 text-gray-600" />
-            </div>
-            <div>
-              <div className="font-semibold text-sm">{firstSegment.carrier_name}</div>
-              <div className="text-xs text-gray-500">
-                {formatDuration(offer.total_duration_minutes)} · {offer.stops === 0 ? 'Non-stop' : `${offer.stops} stops`}
-              </div>
+      {/* MAIN ROW */}
+      <div className="p-4 flex flex-col sm:flex-row gap-4">
+
+        {/* Airline */}
+        <div className="flex items-center gap-3 min-w-[140px]">
+          <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
+            <Plane className="h-5 w-5 text-gray-600" />
+          </div>
+          <div className="font-semibold text-sm truncate">
+            {firstSegment.carrier_name}
+          </div>
+        </div>
+
+        {/* Times */}
+        <div className="flex-1 flex justify-between text-sm">
+          <div>
+            <div className="font-bold">{formatTime(firstSegment.departure_time)}</div>
+            <div className="text-xs text-gray-500">
+              {firstSegment.departure_airport}
             </div>
           </div>
 
-          <PriceDisplay
-            price={offer.price}
-            currency={offer.currency}
-            size="md"
-            showTrustLabel
-          />
+          <div className="text-center text-xs text-gray-500">
+            {formatDuration(offer.total_duration_minutes)} · {offer.stops === 0 ? 'Non-stop' : `${offer.stops} stop(s)`}
+          </div>
+
+          <div className="text-right">
+            <div className="font-bold">{formatTime(lastSegment.arrival_time)}</div>
+            <div className="text-xs text-gray-500">
+              {lastSegment.arrival_airport}
+            </div>
+          </div>
+        </div>
+
+        {/* Price */}
+        <div className="text-right">
+          <PriceDisplay price={offer.price} currency={offer.currency} />
+          <button
+            onClick={() => setShowVendors(v => !v)}
+            className="mt-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center justify-center gap-1"
+          >
+            Select
+            {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
         </div>
       </div>
 
-      {/* 🔹 Action Area (NO swipe here) */}
-      <div className="px-4 pb-4">
-        <button
-          type="button"
-          onClick={() => setShowVendors(!showVendors)}
-          className="w-full mt-2 py-2 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
-        >
-          Select
-          {showVendors ? <ChevronUp /> : <ChevronDown />}
-        </button>
+      {/* VENDORS */}
+      {showVendors && (
+        <div className="border-t p-4 space-y-2">
+          {FLIGHT_VENDORS.map(v => (
+            <button
+              key={v.id}
+              onClick={() => handleVendorClick(v.id)}
+              disabled={v.type !== 'real' || redirecting === v.id}
+              className={`w-full p-3 rounded border flex justify-between items-center ${
+                v.type === 'real'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 bg-gray-100 opacity-60'
+              }`}
+            >
+              <div>
+                <div className="font-semibold">{v.name}</div>
+                <div className="text-xs text-gray-500">{v.description}</div>
+              </div>
 
-        {showVendors && (
-          <div className="mt-4 space-y-2">
-            {FLIGHT_VENDORS.map(vendor => {
-              const isActive = vendor.type === 'real'
-              return (
-                <button
-                  key={vendor.id}
-                  type="button"
-                  disabled={!isActive}
-                  onClick={() => handleVendorClick(vendor.id)}
-                  className={`w-full p-3 rounded-lg border flex justify-between items-center ${
-                    isActive
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-gray-100 opacity-60'
-                  }`}
-                >
-                  <div>
-                    <div className="font-semibold">{vendor.name}</div>
-                    <div className="text-xs text-gray-600">{vendor.description}</div>
-                  </div>
-                  {isActive ? <ExternalLink /> : <Lock />}
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
+              {v.type === 'real' ? (
+                <ExternalLink className="text-blue-600" />
+              ) : (
+                <span className="text-xs">Coming Soon</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
