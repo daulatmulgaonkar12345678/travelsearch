@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, Suspense, useRef } from 'react'
-import React from 'react'
+import { useEffect, useState, Suspense, useRef, useMemo } from 'react'
+						 
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import TrustStrip from '@/components/layout/TrustStrip'
@@ -14,20 +14,50 @@ import FlightLoadingState from '@/components/loading/FlightLoadingState'
 import ServiceUnavailable from '@/components/common/ServiceUnavailable'
 import { FlightOffer } from '@/components/results/ResultCard'
 import { Loader2, RefreshCw } from 'lucide-react'
-import { apiFetch, apiUrl } from '@/lib/api'
+import { apiFetch } from '@/lib/api'
 import { requestCache } from '@/lib/requestCache'
 import { runFallbackSearches, type FallbackSuggestions } from '@/lib/fallbackSearch'
 import NoFlightsWithSuggestions from '@/components/results/NoFlightsWithSuggestions'
 
+const isValidAirportCode = (value: string) =>
+  typeof value === 'string' &&
+  value.length === 3 &&
+  value === value.toUpperCase()
+
+  
 function SearchResultsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+
+  // 🔹 Search parameters FIRST
+  const origin = searchParams.get('origin') || ''
+  const destination = searchParams.get('destination') || ''
+  const tripType = searchParams.get('trip_type') || 'oneway'
+  const returnDate = searchParams.get('return_date') || ''
+  const cabinClass = searchParams.get('cabin_class') || 'economy'
+  const includeNearbyOrigin = searchParams.get('include_nearby_origin') === 'true'
+  const includeNearbyDestination = searchParams.get('include_nearby_destination') === 'true'
+
+  // 🔹 State that depends on search params
+  const [selectedDate, setSelectedDate] = useState(
+    searchParams.get('departure_date') || ''
+  )
+
+  // 🔹 NOW validation is safe
+  const isSearchValid =
+    isValidAirportCode(origin) &&
+    isValidAirportCode(destination) &&
+    Boolean(selectedDate)
+
+  // 🔹 Other state AFTER validation
   const [offers, setOffers] = useState<FlightOffer[]>([])
   const [filteredOffers, setFilteredOffers] = useState<FlightOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [serviceUnavailable, setServiceUnavailable] = useState(false)
-  const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
+  const [sortType, setSortType] =
+    useState<'best' | 'cheapest' | 'fastest'>('best')
+
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [showRetry, setShowRetry] = useState(false)
   
@@ -40,8 +70,8 @@ function SearchResultsContent() {
   const abortControllerRef = useRef<AbortController | null>(null)
 
   // Flexible dates state
-  const [dateOptions, setDateOptions] = useState<any[]>([])
-  const [selectedDate, setSelectedDate] = useState(searchParams.get('departure_date') || '')
+  const [dateOptions, setDateOptions] = useState<DateOption[]>([])
+																							
   const [datePriceCache, setDatePriceCache] = useState<Map<string, number>>(new Map())
   
   // Month View state
@@ -55,14 +85,14 @@ function SearchResultsContent() {
     airlines: [] as string[],
   })
 
-  // Search parameters
-  const origin = searchParams.get('origin') || ''
-  const destination = searchParams.get('destination') || ''
-  const tripType = searchParams.get('trip_type') || 'oneway'
-  const returnDate = searchParams.get('return_date') || ''
-  const cabinClass = searchParams.get('cabin_class') || 'economy'
-  const includeNearbyOrigin = searchParams.get('include_nearby_origin') === 'true'
-  const includeNearbyDestination = searchParams.get('include_nearby_destination') === 'true'
+					  
+												 
+														   
+															
+														  
+																 
+																				  
+																							
 
   // Fetch real per-day prices for date strip
   const fetchDateRangePrices = async (centerDate: string) => {
@@ -187,12 +217,12 @@ function SearchResultsContent() {
   }, [selectedDate, origin, destination, cabinClass, tripType])
 
   // Generate date options from cache
-  useEffect(() => {
-    if (selectedDate) {
-      const dates = generateDateOptions(selectedDate)
-      setDateOptions(dates)
-    }
-  }, [selectedDate, datePriceCache])
+  
+					   
+													 
+						   
+	 
+									
 
   const generateDateOptions = (centerDate: string) => {
     const center = new Date(centerDate)
@@ -215,29 +245,40 @@ function SearchResultsContent() {
 
     return options
   }
-
-  useEffect(() => {
-    if (!origin || !destination || !selectedDate) {
-      setError('Missing required search parameters')
-      setLoading(false)
-      return
+  
+useEffect(() => {
+    if (selectedDate) {
+      const dates = generateDateOptions(selectedDate)
+      setDateOptions(dates)
     }
+  }, [selectedDate, datePriceCache])  
 
-    // Abort previous request if search params changed
-    if (abortControllerRef.current) {
-      console.log('[Flights] Aborting previous search')
-      abortControllerRef.current.abort()
-    }
+ 
+useEffect(() => {
+  if (!isSearchValid) {
+    setOffers([])
+    setFilteredOffers([])
+    setLoading(false)
+    return
+  }
 
-    fetchResults()
+  if (abortControllerRef.current) {
+    abortControllerRef.current.abort()
+  }
 
-    // Cleanup on unmount
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-    }
-  }, [origin, destination, selectedDate, tripType, returnDate, cabinClass, includeNearbyOrigin, includeNearbyDestination])
+  fetchResults()
+
+  return () => abortControllerRef.current?.abort()
+}, [
+  origin,
+  destination,
+  selectedDate,
+  tripType,
+  returnDate,
+  cabinClass,
+  includeNearbyOrigin,
+  includeNearbyDestination,
+])
 
   const fetchResults = async () => {
     try {
@@ -497,7 +538,7 @@ function SearchResultsContent() {
   }
 
   // Calculate tab prices and durations (Best/Cheapest/Fastest)
-  const { tabPrices, tabDurations } = React.useMemo(() => {
+  const { tabPrices, tabDurations } = useMemo(() => {
     if (filteredOffers.length === 0) {
       return { 
         tabPrices: { best: undefined, cheapest: undefined, fastest: undefined },
