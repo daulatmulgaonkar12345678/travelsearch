@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Validation Test</title>
+</head>
+<body>
+    <h1>Frontend Airport Validation Test</h1>
+    
+    <h2>Test Cases:</h2>
+    <ul>
+        <li><a href="http://localhost:3000/flights/results?origin=INVALID&destination=TEST&departure_date=2024-01-01" target="_blank">Invalid airports (INVALID → TEST)</a> - Should show validation error</li>
+        <li><a href="http://localhost:3000/flights/results?origin=DEL&destination=DEL&departure_date=2024-01-01" target="_blank">Same airports (DEL → DEL)</a> - Should show validation error</li>
+        <li><a href="http://localhost:3000/flights/results?origin=&destination=BOM&departure_date=2024-01-01" target="_blank">Missing origin</a> - Should show validation error</li>
+        <li><a href="http://localhost:3000/flights/results?origin=DEL&destination=&departure_date=2024-01-01" target="_blank">Missing destination</a> - Should show validation error</li>
+        <li><a href="http://localhost:3000/flights/results?origin=DEL&destination=BOM&departure_date=2024-01-01" target="_blank">Valid airports (DEL → BOM)</a> - Should work normally</li>
+    </ul>
+    
+    <p><strong>Expected behavior:</strong> Invalid cases should show a yellow warning screen with "Invalid Search" message and redirect to home page after 3 seconds.</p>
+</body>
+</html>
