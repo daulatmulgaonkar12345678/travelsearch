@@ -1,7 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Plane, ChevronDown, ChevronUp, ExternalLink, Lock, Shield } from 'lucide-react'
+import {
+  Plane,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+} from 'lucide-react'
 import { FlightOffer } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
@@ -14,6 +19,21 @@ interface EnhancedFlightCardProps {
   badge?: 'best' | 'cheapest' | 'fastest'
   searchParams?: URLSearchParams
 }
+
+const BADGE_CONFIG = {
+  cheapest: {
+    label: 'Cheapest',
+    className: 'bg-green-100 text-green-700 border-green-300',
+  },
+  fastest: {
+    label: 'Fastest',
+    className: 'bg-purple-100 text-purple-700 border-purple-300',
+  },
+  best: {
+    label: 'Best',
+    className: 'bg-blue-100 text-blue-700 border-blue-300',
+  },
+} as const
 
 export default function EnhancedFlightCard({
   offer,
@@ -95,7 +115,18 @@ export default function EnhancedFlightCard({
     <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition">
 
       {/* MAIN ROW */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4">
+      <div className="relative p-4 flex flex-col sm:flex-row gap-4">
+
+        {/* BADGE */}
+        {badge && (
+          <span
+            className={`absolute top-3 right-3 px-2 py-0.5 text-xs font-semibold rounded border ${
+              BADGE_CONFIG[badge].className
+            }`}
+          >
+            {BADGE_CONFIG[badge].label}
+          </span>
+        )}
 
         {/* Airline */}
         <div className="flex items-center gap-3 min-w-[140px]">
@@ -110,18 +141,25 @@ export default function EnhancedFlightCard({
         {/* Times */}
         <div className="flex-1 flex justify-between text-sm">
           <div>
-            <div className="font-bold">{formatTime(firstSegment.departure_time)}</div>
+            <div className="font-bold">
+              {formatTime(firstSegment.departure_time)}
+            </div>
             <div className="text-xs text-gray-500">
               {firstSegment.departure_airport}
             </div>
           </div>
 
           <div className="text-center text-xs text-gray-500">
-            {formatDuration(offer.total_duration_minutes)} · {offer.stops === 0 ? 'Non-stop' : `${offer.stops} stop(s)`}
+            {formatDuration(offer.total_duration_minutes)} ·{' '}
+            {offer.stops === 0
+              ? 'Non-stop'
+              : `${offer.stops} stop(s)`}
           </div>
 
           <div className="text-right">
-            <div className="font-bold">{formatTime(lastSegment.arrival_time)}</div>
+            <div className="font-bold">
+              {formatTime(lastSegment.arrival_time)}
+            </div>
             <div className="text-xs text-gray-500">
               {lastSegment.arrival_airport}
             </div>
@@ -130,13 +168,20 @@ export default function EnhancedFlightCard({
 
         {/* Price */}
         <div className="text-right">
-          <PriceDisplay price={offer.price} currency={offer.currency} />
+          <PriceDisplay
+            price={offer.price}
+            currency={offer.currency}
+          />
           <button
             onClick={() => setShowVendors(v => !v)}
             className="mt-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center justify-center gap-1"
           >
             Select
-            {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {showVendors ? (
+              <ChevronUp size={16} />
+            ) : (
+              <ChevronDown size={16} />
+            )}
           </button>
         </div>
       </div>
@@ -157,7 +202,9 @@ export default function EnhancedFlightCard({
             >
               <div>
                 <div className="font-semibold">{v.name}</div>
-                <div className="text-xs text-gray-500">{v.description}</div>
+                <div className="text-xs text-gray-500">
+                  {v.description}
+                </div>
               </div>
 
               {v.type === 'real' ? (
