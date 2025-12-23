@@ -673,6 +673,23 @@ function SearchResultsContent() {
     )
   }
 
+  // Handle service unavailable
+  if (serviceUnavailable) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        <ServiceUnavailable 
+          service="Flights"
+          onRetry={() => {
+            setServiceUnavailable(false)
+            fetchResults()
+          }}
+        />
+      </div>
+    )
+  }
+
   if (error) {
     return (
       <div className="max-w-2xl mx-auto text-center py-12">
