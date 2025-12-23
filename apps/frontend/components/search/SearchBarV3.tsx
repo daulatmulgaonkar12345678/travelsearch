@@ -489,12 +489,15 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <AirportAutocomplete
+                    <ValidatedAirportInput
                       value={origin}
-                      onChange={setOrigin}
+                      onChange={(airport) => {
+                        setOrigin(airport)
+                        setValidationErrors([])
+                      }}
                       label="From"
                       placeholder="Origin city or airport"
-                      testId="origin-input"
+                      onValidationChange={setOriginValid}
                     />
                     {/* Nearby airports toggle for origin */}
                     <div className="mt-2 flex items-center gap-2">
@@ -517,12 +520,15 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   </div>
                   
                   <div>
-                    <AirportAutocomplete
+                    <ValidatedAirportInput
                       value={destination}
-                      onChange={setDestination}
+                      onChange={(airport) => {
+                        setDestination(airport)
+                        setValidationErrors([])
+                      }}
                       label="To"
                       placeholder="Destination city or airport"
-                      testId="destination-input"
+                      onValidationChange={setDestinationValid}
                     />
                     {/* Nearby airports toggle for destination */}
                     <div className="mt-2 flex items-center gap-2">
