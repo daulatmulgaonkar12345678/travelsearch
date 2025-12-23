@@ -248,7 +248,27 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleFlightSearch = () => {
-    if (!validateFlightDates()) return
+    // Validate using new validation function
+    const validation = validateFlightSearch(
+      origin,
+      destination,
+      departureDate,
+      tripType === 'roundtrip' ? returnDate : undefined,
+      tripType
+    )
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors)
+      alert(validation.errors.join('\n'))
+      return
+    }
+
+    // Extract IATA codes safely
+    const codes = extractIATACodes(origin, destination)
+    if (!codes) {
+      alert('Invalid airports selected. Please select valid airports from the list.')
+      return
+    }
 
     if (tripType === 'multicity') {
       const params = new URLSearchParams({
@@ -269,8 +289,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     } else {
       const params = new URLSearchParams({
         trip_type: tripType,
-        origin,
-        destination,
+        origin: codes.origin,
+        destination: codes.destination,
         departure_date: departureDate,
         cabin_class: cabinClass,
         adults: passengers.adults.toString(),
