@@ -127,13 +127,14 @@ export default function ValidatedAirportInput({
     setShowDropdown(false)
     setSuggestions([])
     setInternalError('')
+    setTouched(true)
     onValidationChange?.(true)
   }
 
   const handleBlur = () => {
     setTouched(true)
     
-    // Delay to allow click on dropdown
+    // Delay to allow click/mousedown on dropdown
     setTimeout(() => {
       if (!value && inputValue) {
         // Invalid input - clear it
@@ -142,7 +143,7 @@ export default function ValidatedAirportInput({
         onValidationChange?.(false)
       }
       setShowDropdown(false)
-    }, 200)
+    }, 300)
   }
 
   const handleClear = () => {
@@ -213,7 +214,10 @@ export default function ValidatedAirportInput({
           {suggestions.map((airport) => (
             <button
               key={airport.iata}
-              onClick={() => handleSelectAirport(airport)}
+              onMouseDown={(e) => {
+                e.preventDefault() // Prevent input blur
+                handleSelectAirport(airport)
+              }}
               className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors flex items-start space-x-3 border-b border-gray-100 last:border-0"
               type="button"
             >
