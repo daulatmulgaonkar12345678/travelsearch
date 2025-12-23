@@ -11,6 +11,7 @@ import ImprovedFilters from '@/components/results/ImprovedFilters'
 import FlexibleDateBar from '@/components/results/FlexibleDateBar'
 import MonthView from '@/components/results/MonthView'
 import FlightLoadingState from '@/components/loading/FlightLoadingState'
+import ServiceUnavailable from '@/components/common/ServiceUnavailable'
 import { FlightOffer } from '@/components/results/ResultCard'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { apiFetch, apiUrl } from '@/lib/api'
@@ -25,6 +26,7 @@ function SearchResultsContent() {
   const [filteredOffers, setFilteredOffers] = useState<FlightOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [serviceUnavailable, setServiceUnavailable] = useState(false)
   const [sortType, setSortType] = useState<'best' | 'cheapest' | 'fastest'>('best')
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [showRetry, setShowRetry] = useState(false)
@@ -303,6 +305,15 @@ function SearchResultsContent() {
       // Clear timeouts on success
       clearTimeout(timeout8s)
       clearTimeout(timeout12s)
+
+      // Check for 503 Service Unavailable
+      if (response.status === 503) {
+        const errorData = await response.json()
+        console.log('Service unavailable:', errorData)
+        setServiceUnavailable(true)
+        setLoading(false)
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
