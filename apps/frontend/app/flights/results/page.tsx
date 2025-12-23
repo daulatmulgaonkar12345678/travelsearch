@@ -19,6 +19,15 @@ import { requestCache } from '@/lib/requestCache'
 import { runFallbackSearches, type FallbackSuggestions } from '@/lib/fallbackSearch'
 import NoFlightsWithSuggestions from '@/components/results/NoFlightsWithSuggestions'
 
+interface DateOption {
+  date: string
+  dayName: string
+  dayNum: string
+  month: string
+  bestPrice: number | null
+  currency: string
+}
+
 const isValidAirportCode = (value: string) =>
   typeof value === 'string' &&
   value.length === 3 &&
