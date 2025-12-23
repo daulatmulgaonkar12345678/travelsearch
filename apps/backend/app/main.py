@@ -16,10 +16,16 @@ from app.routers import (
     internal_health,
     hybrid_health,
     health_amadeus,
+    service_status,
 )
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
+from app.exceptions.service_unavailable import (
+    ServiceUnavailableException,
+    service_unavailable_exception_handler,
+    generic_exception_handler,
+)
 
 logger = logging.getLogger(__name__)
 
