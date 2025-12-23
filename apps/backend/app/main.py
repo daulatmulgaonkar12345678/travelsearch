@@ -110,6 +110,14 @@ async def shutdown():
         pass
 
 # ============================================================
+# Exception Handlers (Production-Grade Error Handling)
+# ============================================================
+
+app.add_exception_handler(ServiceUnavailableException, service_unavailable_exception_handler)
+# Commenting out generic handler to not break existing error handling
+# app.add_exception_handler(Exception, generic_exception_handler)
+
+# ============================================================
 # Health
 # ============================================================
 
@@ -122,6 +130,7 @@ async def health():
 # ============================================================
 
 app.include_router(search.router, prefix="/api", tags=["search"])
+app.include_router(service_status.router, tags=["service-status"])
 app.include_router(providers.router, prefix="/api", tags=["providers"])
 app.include_router(redirect.router, prefix="/api", tags=["redirect"])
 app.include_router(auth.router, prefix="/api", tags=["auth"])
