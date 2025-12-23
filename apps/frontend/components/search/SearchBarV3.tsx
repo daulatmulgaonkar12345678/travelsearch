@@ -72,10 +72,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     return dayAfter.toISOString().split('T')[0]
   }
 
-  // Flights state
+  // Flights state with validated airports
   const [tripType, setTripType] = useState<TripType>('roundtrip')
-  const [origin, setOrigin] = useState('')
-  const [destination, setDestination] = useState('')
+  const [origin, setOrigin] = useState<Airport | null>(null)
+  const [destination, setDestination] = useState<Airport | null>(null)
   const [departureDate, setDepartureDate] = useState(getTodayDate())
   const [returnDate, setReturnDate] = useState(getTomorrowDate())
   const [cabinClass, setCabinClass] = useState<CabinClass>('economy')
@@ -89,6 +89,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     { id: 'seg-2', origin: '', destination: '', date: getTomorrowDate() },
   ])
   const [showPassengerModal, setShowPassengerModal] = useState(false)
+  
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [originValid, setOriginValid] = useState(false)
+  const [destinationValid, setDestinationValid] = useState(false)
   
   // Nearby airports state
   const [includeNearbyOrigin, setIncludeNearbyOrigin] = useState(false)
