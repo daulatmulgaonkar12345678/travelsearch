@@ -204,6 +204,23 @@ function HotelResultsContent() {
     router.push(`/hotels/vendors?${params.toString()}`)
   }
 
+  // Handle service unavailable
+  if (serviceUnavailable) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        <ServiceUnavailable 
+          service="Hotels"
+          onRetry={() => {
+            setServiceUnavailable(false)
+            fetchResults()
+          }}
+        />
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
