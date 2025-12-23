@@ -10,7 +10,7 @@ import DateInputs from './DateInputs'
 import AirportAutocomplete from './AirportAutocomplete'
 import ValidatedAirportInput from './ValidatedAirportInput'
 import CityAutocomplete from './CityAutocomplete'
-import { Airport, validateFlightSearch } from '@/lib/airportValidation'
+import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 
 type SearchType = 'flights' | 'hotels'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
