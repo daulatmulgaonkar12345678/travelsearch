@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import TrustStrip from '@/components/layout/TrustStrip'
 import HotelLoadingState from '@/components/loading/HotelLoadingState'
+import ServiceUnavailable from '@/components/common/ServiceUnavailable'
 import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { requestCache } from '@/lib/requestCache'
@@ -55,6 +56,7 @@ function HotelResultsContent() {
   const [offers, setOffers] = useState<HotelOffer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [serviceUnavailable, setServiceUnavailable] = useState(false)
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [showRetry, setShowRetry] = useState(false)
 
@@ -144,6 +146,15 @@ function HotelResultsContent() {
       // Clear timeouts on success
       clearTimeout(timeout8s)
       clearTimeout(timeout12s)
+
+      // Check for 503 Service Unavailable
+      if (response.status === 503) {
+        const errorData = await response.json()
+        console.log('Service unavailable:', errorData)
+        setServiceUnavailable(true)
+        setLoading(false)
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
