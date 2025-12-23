@@ -662,10 +662,34 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           </div>
         )}
 
+        {/* Validation Errors */}
+        {validationErrors.length > 0 && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <svg className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
+                <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         <button
           data-testid="search-button"
           onClick={searchType === 'flights' ? handleFlightSearch : handleHotelSearch}
-          className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg hover:shadow-xl"
+          disabled={searchType === 'flights' && (!originValid || !destinationValid)}
+          className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg ${
+            searchType === 'flights' && (!originValid || !destinationValid)
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
+          }`}
         >
           Search {searchType === 'flights' ? 'Flights' : 'Hotels'}
         </button>
