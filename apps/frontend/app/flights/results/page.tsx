@@ -38,6 +38,65 @@ function SearchResultsContent() {
   const includeNearbyOrigin = searchParams.get('include_nearby_origin') === 'true'
   const includeNearbyDestination = searchParams.get('include_nearby_destination') === 'true'
 
+  // ========================================
+  // 🔒 FINAL SAFETY CHECK - BLOCK INVALID AIRPORTS
+  // ========================================
+  const [validationError, setValidationError] = useState<string | null>(null)
+  
+  useEffect(() => {
+    // Validate airports before any API calls
+    if (!origin || !destination) {
+      setValidationError('Missing airport information. Please select airports from the search page.')
+      setTimeout(() => router.push('/'), 3000)
+      return
+    }
+
+    // Validate IATA format (must be exactly 3 uppercase letters)
+    const iataRegex = /^[A-Z]{3}$/
+    if (!iataRegex.test(origin) || !iataRegex.test(destination)) {
+      setValidationError('Invalid airport codes detected. Redirecting to search page...')
+      setTimeout(() => router.push('/'), 3000)
+      return
+    }
+
+    // Validate airports are different
+    if (origin === destination) {
+      setValidationError('Departure and arrival airports must be different. Redirecting to search page...')
+      setTimeout(() => router.push('/'), 3000)
+      return
+    }
+
+    // Validation passed - proceed with search
+    setValidationError(null)
+  }, [origin, destination, router])
+
+  // Show validation error screen if invalid
+  if (validationError) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <TrustStrip />
+        <div className="max-w-2xl mx-auto px-4 py-16">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <svg className="h-16 w-16 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Invalid Search</h2>
+            <p className="text-gray-700 mb-6">{validationError}</p>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Search Page
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // 🔹 State that depends on search params
   const [selectedDate, setSelectedDate] = useState(
     searchParams.get('departure_date') || ''
