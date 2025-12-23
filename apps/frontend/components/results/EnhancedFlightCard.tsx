@@ -23,15 +23,15 @@ interface EnhancedFlightCardProps {
 const BADGE_CONFIG = {
   cheapest: {
     label: 'Cheapest',
-    className: 'bg-green-100 text-green-700 border-green-300',
+    className: 'bg-green-50 text-green-700 border-green-200',
   },
   fastest: {
     label: 'Fastest',
-    className: 'bg-purple-100 text-purple-700 border-purple-300',
+    className: 'bg-purple-50 text-purple-700 border-purple-200',
   },
   best: {
     label: 'Best',
-    className: 'bg-blue-100 text-blue-700 border-blue-300',
+    className: 'bg-blue-50 text-blue-700 border-blue-200',
   },
 } as const
 
@@ -112,21 +112,21 @@ export default function EnhancedFlightCard({
   }
 
   return (
-    <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition">
+    <div className="relative bg-white border rounded-lg shadow-sm hover:shadow-md transition">
+
+      {/* BADGE – TOP LEFT */}
+      {badge && (
+        <span
+          className={`absolute top-3 left-3 px-2 py-0.5 text-[11px] font-semibold rounded-md border ${
+            BADGE_CONFIG[badge].className
+          }`}
+        >
+          {BADGE_CONFIG[badge].label}
+        </span>
+      )}
 
       {/* MAIN ROW */}
-      <div className="relative p-4 flex flex-col sm:flex-row gap-4">
-
-        {/* BADGE */}
-        {badge && (
-          <span
-            className={`absolute top-3 right-3 px-2 py-0.5 text-xs font-semibold rounded border ${
-              BADGE_CONFIG[badge].className
-            }`}
-          >
-            {BADGE_CONFIG[badge].label}
-          </span>
-        )}
+      <div className="p-4 flex flex-col sm:flex-row gap-4">
 
         {/* Airline */}
         <div className="flex items-center gap-3 min-w-[140px]">
@@ -177,11 +177,7 @@ export default function EnhancedFlightCard({
             className="mt-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center justify-center gap-1"
           >
             Select
-            {showVendors ? (
-              <ChevronUp size={16} />
-            ) : (
-              <ChevronDown size={16} />
-            )}
+            {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
         </div>
       </div>
