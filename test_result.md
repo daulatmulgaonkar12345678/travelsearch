@@ -4,122 +4,77 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 4
+test_sequence: 5
 run_ui: true
 ```
 
 ## Test Tasks
 
-- task: "SEO Flight Route Pages (20 India routes)"
+- task: "Aviasales as PRIMARY flight search provider"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/app/flights/*/page.tsx"
+  working: "pending"
+  file: "/app/apps/backend/app/services/adapters/aviasales_adapter.py, /app/apps/backend/app/services/aviasales_orchestrator.py"
   stuck_count: 0
-  priority: "high"
-  needs_retesting: false
+  priority: "critical"
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created 20 SEO flight route pages using RoutePageTemplate. Each has SEO-friendly H1, 150-300 words content, related routes, CTA button to live results. Routes include Delhi-Mumbai, Delhi-Goa, Mumbai-Bangalore, etc."
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: All flight route pages working correctly. Fixed H1 issue (removed duplicate H1 from navigation). Each page has: single H1 with route info, 3+ content sections, CTA buttons to results, related route links, affiliate disclosure in footer. Fixed prohibited pricing claims ('best deal' text removed). Tested /flights/delhi-to-mumbai, /flights/mumbai-to-goa, /flights/bangalore-to-delhi - all working perfectly."
+      comment: "Created AviasalesAdapter using Travelpayouts Data API (/aviasales/v3/prices_for_dates). Created AviasalesFirstOrchestrator with priority: 1) Aviasales PRIMARY, 2) Amadeus FALLBACK, 3) FlightAPI FINAL. API token read from environment (TRAVELPAYOUTS_API_TOKEN). NOTE: Token not yet configured, so Amadeus is currently primary."
 
-- task: "SEO Hotel City Pages (10 India cities)"
+- task: "Deeplink-based redirection"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/app/hotels/*/page.tsx"
+  working: "pending"
+  file: "/app/apps/frontend/components/results/EnhancedFlightCard.tsx"
   stuck_count: 0
-  priority: "high"
-  needs_retesting: false
+  priority: "critical"
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created 10 SEO hotel city pages using HotelCityPageTemplate. Cities: Mumbai, Delhi, Bangalore, Goa, Pune, Hyderabad, Chennai, Kolkata, Jaipur, Kochi. Each has H1, city info, accommodation types, CTA, cross-links to flights."
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: All hotel city pages working correctly. Each page has: correct H1 with city name, 'Why Visit' section, 'Accommodation Options' section, CTA buttons to hotel results, cross-links to flight routes, affiliate disclosure. Tested /hotels/mumbai, /hotels/goa, /hotels/jaipur - all working perfectly."
+      comment: "Updated handleVendorClick to prioritize deeplink from API response (offer.deeplink || offer.booking_url). Falls back to manual URL building only if API doesn't provide deeplink. Deeplinks from Aviasales API already contain affiliate marker."
 
-- task: "sitemap.ts"
+- task: "Airport validator service"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/app/sitemap.ts"
+  working: "pending"
+  file: "/app/apps/backend/app/services/airport_validator.py"
   stuck_count: 0
   priority: "high"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created production-ready sitemap.ts with MetadataRoute.Sitemap. Includes all static pages, 20+ flight routes, 10 hotel cities. Dynamic results pages excluded. Verified accessible at /sitemap.xml"
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: Sitemap working correctly. Valid XML format with proper namespace, contains homepage, all flight routes, all hotel pages. Correctly excludes results pages. Accessible at /sitemap.xml with proper content-type header (application/xml)."
+      comment: "Created airport_validator.py as single source of truth. Validates against canonical airport database (9015 airports, 166 Indian airports). Functions: is_valid_airport(), get_airport(), validate_route(), is_indian_airport(), is_apac_airport()."
 
-- task: "robots.txt"
+- task: "Health check endpoints"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/public/robots.txt"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: "pending"
-      agent: "main"
-      comment: "Created robots.txt allowing flight/hotel SEO pages, disallowing /flights/results, /hotels/results, /admin, /api, /_next. Includes sitemap location."
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: robots.txt working correctly. Contains all required directives: Allow /flights/*-to-*, Allow /hotels/*, Disallow /flights/results, Disallow /hotels/results, Sitemap directive. Accessible at /robots.txt."
-
-- task: "Internal Linking for SEO"
-  implemented: true
-  working: true
-  file: "/app/apps/frontend/components/seo/InternalLinks.tsx"
+  working: "pending"
+  file: "/app/apps/backend/app/routers/health_aviasales.py"
   stuck_count: 0
   priority: "medium"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created PopularFlightRoutes, PopularHotelDestinations, RelatedRoutesGrid, HotelCTAForDestination components. Integrated on homepage. Hotel pages cross-link to related flights."
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: Internal linking working correctly. Homepage has 'Popular Flight Routes' and 'Popular Hotel Destinations' sections with 6 flight route links and 5 hotel city links. Links are properly styled as buttons/components, not footer spam. Cross-linking between flight and hotel pages working."
-
-- task: "noindex on dynamic results pages"
-  implemented: true
-  working: true
-  file: "/app/apps/frontend/app/flights/results/layout.tsx, /app/apps/frontend/app/hotels/results/layout.tsx"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: "pending"
-      agent: "main"
-      comment: "Added layout.tsx with robots: { index: false, follow: false } for both /flights/results and /hotels/results."
-    - working: true
-      agent: "testing"
-      comment: "✅ PASSED: noindex implementation working correctly. Results pages have proper meta robots tag with 'noindex, nofollow' directive. Tested /flights/results page - noindex directive found in meta tags."
+      comment: "Created /api/health/aviasales, /api/health/providers, /api/health/airports endpoints. Shows provider status, configuration, and airport database stats."
 
 ## Test Plan
 ```yaml
 current_focus:
-  - "Verify SEO pages render correctly"
-  - "Verify sitemap.xml accessible"
-  - "Verify robots.txt correct"
-  - "Verify internal links work"
+  - "Verify Aviasales adapter code structure"
+  - "Verify orchestrator priority logic"
+  - "Verify deeplink usage in frontend"
+  - "Verify airport validation"
 stuck_tasks: []
 test_all: false
-test_priority: "high_first"
+test_priority: "critical_first"
 ```
 
 ## Agent Communication
 - agent: "main"
-  message: "Implemented comprehensive SEO infrastructure: 20 flight route pages, 10 hotel city pages, sitemap.ts, robots.txt, internal linking components, noindex on results pages. All pages built successfully. Ready for testing."
-- agent: "testing"
-  message: "✅ COMPREHENSIVE SEO TESTING COMPLETE - ALL TESTS PASSED! Fixed critical H1 issue (removed duplicate H1 from navigation) and affiliate compliance issues (removed 'best deal' text). All 6 SEO infrastructure components working perfectly: Flight route pages (20), Hotel city pages (10), Sitemap.xml, Robots.txt, Internal linking, noindex on results pages. SEO infrastructure is production-ready."
+  message: "Implemented Aviasales-first architecture. Currently TRAVELPAYOUTS_API_TOKEN is not set, so system falls back to Amadeus as primary. Once token is configured, Aviasales will become primary. All code structure is ready."
 
-## Incorporate User Feedback
-- SEO pages must be affiliate-safe: no pricing guarantees, no 'cheapest' claims
-- robots.txt must allow /flights/*-to-* and /hotels/*, disallow /flights/results and /hotels/results
-- Internal links should be natural, not footer spam
-- All pages need clear affiliate disclosure
+## IMPORTANT: User needs to provide TRAVELPAYOUTS_API_TOKEN
+- The Aviasales integration is complete but requires API token from Travelpayouts
+- Get token from: https://www.travelpayouts.com/developers/api
+- Set in /app/apps/backend/.env as TRAVELPAYOUTS_API_TOKEN=your_token_here
