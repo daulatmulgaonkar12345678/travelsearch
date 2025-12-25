@@ -348,6 +348,171 @@ class AviasalesAdapter:
         
         return offers
     
+    def _normalize_flights_v2(
+        self,
+        flights: List[Dict],
+        request: FlightSearchRequest
+    ) -> List[FlightOffer]:
+        """
+        Normalize /v2/prices/month-matrix response to FlightOffer format.
+        
+        Month-matrix response format:
+        {
+            "depart_date": "2026-01-19",
+            "origin": "DEL",
+            "destination": "BOM",
+            "gate": "Flightnetwork",
+            "return_date": "",
+            "found_at": "2025-12-23T17:49:27Z",
+            "trip_class": 0,
+            "value": 5421,
+            "number_of_changes": 0,
+            "duration": 125,
+            "distance": 1139,
+            "show_to_affiliates": true,
+            "actual": true
+        }
+        """
+        offers = []
+        
+        for idx, flight in enumerate(flights):
+            try:
+                origin = flight.get("origin", request.origin)
+                destination = flight.get("destination", request.destination)
+                price = flight.get("value", 0)
+                depart_date = flight.get("depart_date", "")
+                return_date = flight.get("return_date", "")
+                transfers = flight.get("number_of_changes", 0)
+                duration = flight.get("duration", 0)
+                gate = flight.get("gate", "Aviasales")
+                
+                # Build deeplink using path-based format
+                deeplink = self._build_deeplink_from_date(
+                    origin, destination, depart_date, return_date
+                )
+                
+                # Parse departure date
+                try:
+                    dep_time = datetime.strptime(depart_date, "%Y-%m-%d")
+                except ValueError:
+                    dep_time = datetime.now()
+                
+                # Create segment
+                segment = FlightSegment(
+                    departure_airport=origin,
+                    arrival_airport=destination,
+                    departure_time=dep_time,
+                    arrival_time=dep_time,
+                    duration_minutes=duration,
+                    carrier_code=gate[:2] if gate else "XX",
+                    flight_number=f"{gate[:2]}000" if gate else "XX000",
+                    stops=transfers,
+                    operating_carrier=gate,
+                    cabin_class=request.cabin_class or "economy"
+                )
+                
+                segments = [segment]
+                
+                # Add return segment if round trip
+                if return_date and request.trip_type == "roundtrip":
+                    try:
+                        ret_time = datetime.strptime(return_date, "%Y-%m-%d")
+                    except ValueError:
+                        ret_time = dep_time
+                    
+                    return_segment = FlightSegment(
+                        departure_airport=destination,
+                        arrival_airport=origin,
+                        departure_time=ret_time,
+                        arrival_time=ret_time,
+                        duration_minutes=duration,
+                        carrier_code=gate[:2] if gate else "XX",
+                        flight_number=f"{gate[:2]}001" if gate else "XX001",
+                        stops=transfers,
+                        operating_carrier=gate,
+                        cabin_class=request.cabin_class or "economy"
+                    )
+                    segments.append(return_segment)
+                
+                offer = FlightOffer(
+                    offer_id=f"aviasales_v2_{origin}_{destination}_{idx}_{int(price)}",
+                    source="aviasales",
+                    segments=segments,
+                    price=float(price),
+                    currency="INR",
+                    deeplink=deeplink,
+                    booking_url=deeplink,
+                    validating_carrier=gate,
+                    fare_type="published",
+                    refundable=False,
+                    baggage_included=False,
+                    price_breakdown={
+                        "base_fare": price,
+                        "taxes": 0,
+                        "fees": 0
+                    },
+                    score=self._calculate_score_v2(flight)
+                )
+                
+                offers.append(offer)
+            
+            except Exception as e:
+                logger.error(f"Error normalizing v2 flight {idx}: {e}")
+                continue
+        
+        # Sort by price
+        offers.sort(key=lambda x: x.price)
+        
+        return offers
+    
+    def _build_deeplink_from_date(
+        self,
+        origin: str,
+        destination: str,
+        depart_date: str,
+        return_date: Optional[str] = None
+    ) -> str:
+        """
+        Build deeplink from date string (YYYY-MM-DD format).
+        Uses path-based format: /search/ORIGIN{DDMM}DEST{passengers}
+        """
+        try:
+            # Parse date
+            dep = datetime.strptime(depart_date, "%Y-%m-%d")
+            ddmm = dep.strftime("%d%m")
+            
+            # Build path
+            path = f"{origin}{ddmm}{destination}"
+            
+            if return_date:
+                ret = datetime.strptime(return_date, "%Y-%m-%d")
+                ret_ddmm = ret.strftime("%d%m")
+                path += ret_ddmm
+            
+            path += "1"  # 1 adult
+            
+            return f"https://www.aviasales.com/search/{path}?marker={self.marker}"
+        
+        except Exception as e:
+            logger.error(f"Error building deeplink from date: {e}")
+            return f"https://www.aviasales.com?marker={self.marker}"
+    
+    def _calculate_score_v2(self, flight: Dict) -> float:
+        """Calculate score for v2 API response."""
+        score = 0.0
+        
+        price = flight.get("value", 10000)
+        score += min(price / 100, 100)
+        
+        transfers = flight.get("number_of_changes", 0)
+        score += transfers * 20
+        
+        duration = flight.get("duration", 0)
+        if duration > 0:
+            score += duration / 10
+        
+        return score
+    
     def _build_fallback_deeplink(
         self,
         origin: str,
