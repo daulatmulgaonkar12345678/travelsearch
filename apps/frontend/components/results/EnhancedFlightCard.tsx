@@ -180,6 +180,8 @@ export default function EnhancedFlightCard({
             Select
             {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
+          {/* Phase 2: Booking redirect microcopy */}
+          <BookingRedirectMicrocopy />
         </div>
       </div>
 
