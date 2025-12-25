@@ -47,7 +47,7 @@ export function generateRouteMetadata(props: RoutePageProps): Metadata {
     },
     openGraph: {
       title: `${originCity} to ${destinationCity} Flights`,
-      description: `Compare flight prices from ${originCity} to ${destinationCity}. Find the best deals instantly.`,
+      description: `Compare flight prices from ${originCity} to ${destinationCity}. Search multiple providers instantly.`,
       type: 'website',
     },
   }
