@@ -24,10 +24,13 @@ from app.db.mongodb import connect_db, close_db
 from app.exceptions.service_unavailable import (
     ServiceUnavailableException,
     service_unavailable_exception_handler,
-    generic_exception_handler,
 )
 
 logger = logging.getLogger(__name__)
+
+# ============================================================
+# FastAPI App
+# ============================================================
 
 app = FastAPI(
     title="Metasearch API",
@@ -39,16 +42,22 @@ app = FastAPI(
 )
 
 # ============================================================
-# ✅ CORS — THIS FIXES FRONTEND ↔ BACKEND CONNECTION
+# ✅ CORS — REQUIRED FOR CUSTOM DOMAIN (FIXED)
 # ============================================================
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:3000",
         "http://localhost:8001",
+
+        # Vercel
         "https://travelsearch.vercel.app",
-        "https://travelsearch-backend.onrender.com",
+
+        # Custom domains (IMPORTANT)
+        "https://travelsearch.in",
+        "https://www.travelsearch.in",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -56,14 +65,14 @@ app.add_middleware(
 )
 
 # ============================================================
-# Security + Rate limit middleware
+# Security & Rate Limiting
 # ============================================================
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # ============================================================
-# Application lifecycle
+# Startup / Shutdown
 # ============================================================
 
 @app.on_event("startup")
@@ -85,7 +94,7 @@ async def startup():
     except Exception as e:
         logger.warning(f"⚠️ Hybrid protection init failed: {e}")
 
-    # Redis protected orchestrator (optional / deprecated)
+    # Redis protected orchestrator (optional)
     if getattr(settings, "supplier_protection", False) and getattr(settings, "redis_url", None):
         try:
             from app.services.protected_orchestrator import protected_orchestrator
@@ -110,12 +119,13 @@ async def shutdown():
         pass
 
 # ============================================================
-# Exception Handlers (Production-Grade Error Handling)
+# Exception Handlers
 # ============================================================
 
-app.add_exception_handler(ServiceUnavailableException, service_unavailable_exception_handler)
-# Commenting out generic handler to not break existing error handling
-# app.add_exception_handler(Exception, generic_exception_handler)
+app.add_exception_handler(
+    ServiceUnavailableException,
+    service_unavailable_exception_handler
+)
 
 # ============================================================
 # Health
@@ -150,7 +160,7 @@ app.include_router(hybrid_health.router, tags=["hybrid-protection"])
 app.include_router(health_amadeus.router, prefix="/api", tags=["health"])
 
 # ============================================================
-# Local run
+# Local Run
 # ============================================================
 
 if __name__ == "__main__":
