@@ -290,14 +290,11 @@ class AviasalesAdapter:
                     departure_airport=origin,
                     arrival_airport=destination,
                     departure_time=dep_time,
-                    arrival_time=dep_time,  # Will be calculated if duration available
+                    arrival_time=dep_time,
                     duration_minutes=duration_to,
-                    carrier_code=airline,
-                    carrier_name=airline or "Unknown Carrier",
-                    flight_number=f"{airline}{flight_number}" if flight_number else airline,
-                    stops=transfers,
-                    operating_carrier=airline,
-                    cabin_class=request.cabin_class or "economy"
+                    carrier_code=airline or "XX",
+                    carrier_name=airline or "Multiple Airlines",
+                    flight_number=f"{airline}{flight_number}" if flight_number else (airline or "XX"),
                 )
                 
                 segments = [outbound_segment]
