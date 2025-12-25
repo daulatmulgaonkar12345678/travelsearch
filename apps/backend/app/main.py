@@ -18,6 +18,7 @@ from app.routers import (
     health_amadeus,
     service_status,
 )
+from app.routers import health_aviasales
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
