@@ -6,7 +6,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, X, Check } from 'lucide-react'
 
 interface TrackPriceProps {
   origin: string
@@ -57,9 +56,8 @@ export default function TrackPrice({ origin, destination, departureDate, returnD
       {/* Trigger Button */}
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 active:scale-98"
+        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 active:scale-[0.98]"
       >
-        <Bell className="h-4 w-4" />
         <span>Track price</span>
       </button>
 
@@ -67,7 +65,7 @@ export default function TrackPrice({ origin, destination, departureDate, returnD
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-[fadeIn_0.2s_ease-out]">
           <div
-            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-[scaleIn_0.2s_ease-out]"
+            className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-[scaleIn_0.2s_ease-out]"
             style={{
               animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
@@ -75,9 +73,10 @@ export default function TrackPrice({ origin, destination, departureDate, returnD
             {/* Close button */}
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500 text-lg leading-none"
+              aria-label="Close"
             >
-              <X className="h-5 w-5 text-gray-500" />
+              ×
             </button>
 
             {/* Content */}
@@ -136,7 +135,7 @@ export default function TrackPrice({ origin, destination, departureDate, returnD
                   </button>
                   <button
                     onClick={handleSave}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:scale-98"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors active:scale-[0.98]"
                   >
                     Save
                   </button>
@@ -144,8 +143,8 @@ export default function TrackPrice({ origin, destination, departureDate, returnD
               </>
             ) : (
               <div className="text-center py-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                  <Check className="h-6 w-6 text-green-600" />
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-50 rounded-full mb-4">
+                  <span className="text-green-600 text-2xl">✓</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Tracking saved
