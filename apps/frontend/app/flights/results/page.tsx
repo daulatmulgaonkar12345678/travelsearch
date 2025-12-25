@@ -789,7 +789,6 @@ useEffect(() => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
-        <TrustStrip />
         <ServiceUnavailable 
           service="Flights"
           onRetry={() => {
@@ -822,7 +821,6 @@ useEffect(() => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
-        <TrustStrip />
         
         <NoFlightsWithSuggestions
           origin={origin}
