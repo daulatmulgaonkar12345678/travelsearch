@@ -18,7 +18,7 @@ export default function Home() {
             Find Your Perfect Journey
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Compare flights and hotels from multiple providers. Get the best deals, instantly.
+            Compare flights and hotels from multiple providers. Search options instantly.
           </p>
         </div>
 
