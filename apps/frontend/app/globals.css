@@ -35,3 +35,52 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Phase 2 Motion System - Accessible Animations */
+@layer utilities {
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Fade In */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Fade In with Slide Up */
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Scale In (for modals) */
+  @keyframes scaleIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Micro-press animation utility */
+  .active\:scale-98:active {
+    transform: scale(0.98);
+  }
+}
