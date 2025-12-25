@@ -576,7 +576,10 @@ class AviasalesAdapter:
     @staticmethod
     def is_available() -> bool:
         """Check if Aviasales adapter is properly configured."""
-        token = os.environ.get("TRAVELPAYOUTS_API_TOKEN")
+        token = (
+            getattr(settings, "travelpayouts_api_token", None) or 
+            os.environ.get("TRAVELPAYOUTS_API_TOKEN")
+        )
         if not token:
             logger.warning("TRAVELPAYOUTS_API_TOKEN not set")
             return False
