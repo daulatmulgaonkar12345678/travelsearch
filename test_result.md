@@ -12,15 +12,18 @@ run_ui: true
 
 - task: "SEO Flight Route Pages (20 India routes)"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/app/flights/*/page.tsx"
   stuck_count: 0
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Created 20 SEO flight route pages using RoutePageTemplate. Each has SEO-friendly H1, 150-300 words content, related routes, CTA button to live results. Routes include Delhi-Mumbai, Delhi-Goa, Mumbai-Bangalore, etc."
+    - working: true
+      agent: "testing"
+      comment: "✅ PASSED: All flight route pages working correctly. Fixed H1 issue (removed duplicate H1 from navigation). Each page has: single H1 with route info, 3+ content sections, CTA buttons to results, related route links, affiliate disclosure in footer. Fixed prohibited pricing claims ('best deal' text removed). Tested /flights/delhi-to-mumbai, /flights/mumbai-to-goa, /flights/bangalore-to-delhi - all working perfectly."
 
 - task: "SEO Hotel City Pages (10 India cities)"
   implemented: true
