@@ -18,6 +18,11 @@ import { apiFetch } from '@/lib/api'
 import { requestCache } from '@/lib/requestCache'
 import { runFallbackSearches, type FallbackSuggestions } from '@/lib/fallbackSearch'
 import NoFlightsWithSuggestions from '@/components/results/NoFlightsWithSuggestions'
+// Phase 2 Trust & Feature Components
+import TrustIndicators from '@/components/trust/TrustIndicators'
+import { PriceComparisonNotice, PlatformExplanation } from '@/components/trust/Microcopy'
+import SaveSearch from '@/components/features/SaveSearch'
+import TrackPrice from '@/components/features/TrackPrice'
 
 interface DateOption {
   date: string
