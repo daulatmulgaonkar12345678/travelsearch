@@ -13,6 +13,7 @@ import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
 import { formatDuration } from '@/lib/formatters'
 import PriceDisplay from '@/components/ui/PriceDisplay'
 import RedirectScreen from '@/components/common/RedirectScreen'
+import { BookingRedirectMicrocopy } from '@/components/trust/Microcopy'
 
 interface EnhancedFlightCardProps {
   offer: FlightOffer
