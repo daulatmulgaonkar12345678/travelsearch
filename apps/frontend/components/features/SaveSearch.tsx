@@ -6,7 +6,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bookmark, BookmarkCheck } from 'lucide-react'
 
 interface SaveSearchProps {
   searchParams: {
@@ -71,27 +70,22 @@ export default function SaveSearch({ searchParams }: SaveSearchProps) {
           active:scale-[0.98]
           ${isSaved 
             ? 'text-blue-700 bg-blue-50 hover:bg-blue-100' 
-            : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
           }
         `}
         style={{
           transitionProperty: 'background-color, color, transform',
         }}
       >
-        {isSaved ? (
-          <BookmarkCheck className="h-4 w-4" />
-        ) : (
-          <Bookmark className="h-4 w-4" />
-        )}
-        <span>{isSaved ? 'Saved ✓' : 'Save this search'}</span>
+        <span>{isSaved ? '✓ Saved' : 'Save search'}</span>
       </button>
 
       {/* Success feedback */}
       {showFeedback && (
         <div
-          className="absolute top-full left-0 mt-2 px-3 py-1.5 bg-green-50 text-green-700 text-xs rounded-lg shadow-sm border border-green-200 whitespace-nowrap animate-[fadeInUp_0.2s_ease-out]"
+          className="absolute top-full left-0 mt-2 px-3 py-1.5 bg-gray-50 text-gray-700 text-xs rounded-lg shadow-sm border border-gray-200 whitespace-nowrap animate-[fadeInUp_0.2s_ease-out]"
         >
-          Search saved successfully
+          Search saved
         </div>
       )}
 
