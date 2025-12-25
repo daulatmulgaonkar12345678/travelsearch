@@ -9,11 +9,12 @@ export default function Footer() {
   const legalLinks = [
     { href: '/privacy-policy', label: 'Privacy Policy' },
     { href: '/terms-and-conditions', label: 'Terms & Conditions' },
-    { href: '/disclaimer', label: 'Disclaimer' },
+    { href: '/service-disclaimer', label: 'Disclaimer' },
+    { href: '/affiliate-disclosure', label: 'Affiliate Disclosure' },
   ]
   
   const companyLinks = [
-    { href: '/about', label: 'About Us' },
+    { href: '/about-us', label: 'About Us' },
     { href: '/contact', label: 'Contact' },
   ]
   
