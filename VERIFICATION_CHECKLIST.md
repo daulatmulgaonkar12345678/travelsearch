@@ -2,7 +2,7 @@
 
 ## ✅ Pre-Testing Verification (Completed)
 
-- [x] `.env.local` updated with remote URL: `https://skyhunter-2.preview.emergentagent.com`
+- [x] `.env.local` updated with remote URL: `https://flight-retention-ui.preview.emergentagent.com`
 - [x] New `lib/api.ts` created with retry logic and timeout
 - [x] All source files refactored to use `apiFetch()`
 - [x] No `localhost:8001` references in source code (except fallback default)
@@ -52,7 +52,7 @@
 
 ### ✅ Success Indicators
 - All API calls in Network tab show: `metasearch-app.preview.emergentagent.com`
-- Console logs show: `[API] GET https://skyhunter-2.preview.emergentagent.com/api/...`
+- Console logs show: `[API] GET https://flight-retention-ui.preview.emergentagent.com/api/...`
 - Fallback searches work without connection errors
 - Autocomplete suggestions load correctly
 
@@ -68,7 +68,7 @@
 2. **Network Tab:** 
    - Filter by "Fetch/XHR"
    - Look at Request URL column
-   - All should start with `https://skyhunter-2.preview.emergentagent.com`
+   - All should start with `https://flight-retention-ui.preview.emergentagent.com`
 3. **Console Tab:**
    - Look for `[API]` log messages
    - Check for any red error messages
@@ -84,7 +84,7 @@
 
 ### If seeing connection refused errors:
 1. Check backend is running: `sudo supervisorctl status backend`
-2. Test backend directly: `curl https://skyhunter-2.preview.emergentagent.com/api/health`
+2. Test backend directly: `curl https://flight-retention-ui.preview.emergentagent.com/api/health`
 3. Check backend logs: `tail -50 /var/log/supervisor/backend.*.log`
 
 ### If retry logic not working:
@@ -106,7 +106,7 @@ When searching ISK → RTC (should return 0 results):
 ... (up to 4 total fallback attempts)
 ```
 
-**ALL of these should use:** `https://skyhunter-2.preview.emergentagent.com`
+**ALL of these should use:** `https://flight-retention-ui.preview.emergentagent.com`
 
 ## ✅ Sign-Off
 
