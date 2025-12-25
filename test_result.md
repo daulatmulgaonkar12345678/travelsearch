@@ -42,15 +42,18 @@ run_ui: true
 
 - task: "UX Polish - Remove Duplicate Trust Sections"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/app/flights/results/page.tsx, /app/apps/frontend/components/trust/TrustStrip.tsx"
   stuck_count: 0
   priority: "medium"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Removed TrustStrip from results page (kept TrustIndicators in results section). Updated TrustStrip to use check icon instead of Lock icon per design rules. prefers-reduced-motion already supported in globals.css."
+    - working: true
+      agent: "testing"
+      comment: "UX polish successfully implemented. TrustStrip correctly removed from results page (0 instances found). TrustStrip appears only on homepage as intended. Trust indicators properly positioned in results section. No duplicate trust messaging found across pages."
 
 - task: "SEO Route Pages Template"
   implemented: true
