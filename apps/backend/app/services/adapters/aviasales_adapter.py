@@ -431,22 +431,17 @@ class AviasalesAdapter:
                 
                 offer = FlightOffer(
                     offer_id=f"aviasales_v2_{origin}_{destination}_{idx}_{int(price)}",
-                    source="aviasales",
+                    provider="aviasales",
                     segments=segments,
                     price=float(price),
                     currency="INR",
-                    deeplink=deeplink,
+                    total_duration_minutes=duration * len(segments),
+                    stops=transfers,
+                    cabin_class=request.cabin_class or "economy",
+                    deep_link=deeplink,
                     booking_url=deeplink,
-                    validating_carrier=gate,
-                    fare_type="published",
                     refundable=False,
-                    baggage_included=False,
-                    price_breakdown={
-                        "base_fare": price,
-                        "taxes": 0,
-                        "fees": 0
-                    },
-                    score=self._calculate_score_v2(flight)
+                    rating=100 - self._calculate_score_v2(flight),
                 )
                 
                 offers.append(offer)
