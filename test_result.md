@@ -4,91 +4,102 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 3
+test_sequence: 4
 run_ui: true
 ```
 
 ## Test Tasks
 
-- task: "Aviasales Deep-Link Fix - Path-based URLs"
+- task: "SEO Flight Route Pages (20 India routes)"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/lib/affiliate.ts"
-  stuck_count: 0
-  priority: "critical"
-  needs_retesting: false
-  status_history:
-    - working: "pending"
-      agent: "main"
-      comment: "Implemented path-based deep links for Aviasales. Format: /search/{ORIGIN}{DDMM}{DEST}{passengers}. Example: BOM1501DEL1 for one-way Mumbai to Delhi on Jan 15. Includes formatDateForAviasales() helper function and fallback URL builder."
-    - working: true
-      agent: "testing"
-      comment: "CRITICAL FIX VERIFIED: Aviasales URL generation function works perfectly. Tested both one-way (/search/BOM1501DEL1) and round-trip (/search/BOM1501DEL20011) formats. Function correctly converts YYYY-MM-DD to DDMM format and builds proper path-based URLs. Implementation in /app/apps/frontend/lib/affiliate.ts is correct and functional."
-
-- task: "Recent Searches Component on Homepage"
-  implemented: true
-  working: true
-  file: "/app/apps/frontend/components/features/RecentSearches.tsx, /app/apps/frontend/app/page.tsx"
+  working: "pending"
+  file: "/app/apps/frontend/app/flights/*/page.tsx"
   stuck_count: 0
   priority: "high"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created RecentSearches component that displays last 3 saved searches from localStorage. Each item shows origin→destination + date and is clickable to re-run search. Integrated on homepage below TrustStrip."
-    - working: true
-      agent: "testing"
-      comment: "Recent Searches functionality working correctly. Component properly hidden when localStorage is empty. After adding search data to localStorage, component appears with clickable search items. Clicking recent search correctly redirects to results page with proper URL parameters. Maximum 3 searches limitation working as designed."
+      comment: "Created 20 SEO flight route pages using RoutePageTemplate. Each has SEO-friendly H1, 150-300 words content, related routes, CTA button to live results. Routes include Delhi-Mumbai, Delhi-Goa, Mumbai-Bangalore, etc."
 
-- task: "UX Polish - Remove Duplicate Trust Sections"
+- task: "SEO Hotel City Pages (10 India cities)"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/app/flights/results/page.tsx, /app/apps/frontend/components/trust/TrustStrip.tsx"
+  working: "pending"
+  file: "/app/apps/frontend/app/hotels/*/page.tsx"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Created 10 SEO hotel city pages using HotelCityPageTemplate. Cities: Mumbai, Delhi, Bangalore, Goa, Pune, Hyderabad, Chennai, Kolkata, Jaipur, Kochi. Each has H1, city info, accommodation types, CTA, cross-links to flights."
+
+- task: "sitemap.ts"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/app/sitemap.ts"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Created production-ready sitemap.ts with MetadataRoute.Sitemap. Includes all static pages, 20+ flight routes, 10 hotel cities. Dynamic results pages excluded. Verified accessible at /sitemap.xml"
+
+- task: "robots.txt"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/public/robots.txt"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Created robots.txt allowing flight/hotel SEO pages, disallowing /flights/results, /hotels/results, /admin, /api, /_next. Includes sitemap location."
+
+- task: "Internal Linking for SEO"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/components/seo/InternalLinks.tsx"
   stuck_count: 0
   priority: "medium"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Removed TrustStrip from results page (kept TrustIndicators in results section). Updated TrustStrip to use check icon instead of Lock icon per design rules. prefers-reduced-motion already supported in globals.css."
-    - working: true
-      agent: "testing"
-      comment: "UX polish successfully implemented. TrustStrip correctly removed from results page (0 instances found). TrustStrip appears only on homepage as intended. Trust indicators properly positioned in results section. No duplicate trust messaging found across pages."
+      comment: "Created PopularFlightRoutes, PopularHotelDestinations, RelatedRoutesGrid, HotelCTAForDestination components. Integrated on homepage. Hotel pages cross-link to related flights."
 
-- task: "SEO Route Pages Template"
+- task: "noindex on dynamic results pages"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/components/seo/RoutePageTemplate.tsx, /app/apps/frontend/app/flights/pune-to-mumbai/page.tsx, /app/apps/frontend/app/flights/mumbai-to-delhi/page.tsx"
+  working: "pending"
+  file: "/app/apps/frontend/app/flights/results/layout.tsx, /app/apps/frontend/app/hotels/results/layout.tsx"
   stuck_count: 0
-  priority: "medium"
-  needs_retesting: false
+  priority: "high"
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created reusable RoutePageTemplate component with SEO-friendly H1, 150-300 words of content, internal links to related routes, and CTA button. Created two example pages: /flights/pune-to-mumbai and /flights/mumbai-to-delhi."
-    - working: true
-      agent: "testing"
-      comment: "SEO route pages fully functional. Both /flights/mumbai-to-delhi and /flights/pune-to-mumbai pages working correctly with proper H1 titles, Flight Information sections, Travel Tips sections, and CTA buttons. Related route links present. Affiliate disclosure found at bottom. CTA buttons link correctly to search results with proper parameters."
+      comment: "Added layout.tsx with robots: { index: false, follow: false } for both /flights/results and /hotels/results."
 
 ## Test Plan
 ```yaml
 current_focus:
-  - "All testing completed successfully"
+  - "Verify SEO pages render correctly"
+  - "Verify sitemap.xml accessible"
+  - "Verify robots.txt correct"
+  - "Verify internal links work"
 stuck_tasks: []
 test_all: false
-test_priority: "critical_first"
+test_priority: "high_first"
 ```
 
 ## Agent Communication
 - agent: "main"
-  message: "Implemented all 5 requested improvements: 1) Aviasales path-based deep links (critical fix), 2) Recent Searches on homepage with localStorage persistence, 3) UX polish removing duplicate trust sections, 4) SEO route page template with 2 example pages, 5) Affiliate compliance messaging (already in place from Phase 2). Testing needed for deep-link URL format and Recent Searches functionality."
-
-- agent: "testing"
-  message: "Comprehensive testing completed for all 5 improvements. CRITICAL: Aviasales deep-link URL generation function works perfectly (/search/BOM1501DEL1 format). Recent Searches functionality working correctly with localStorage persistence. SEO route pages fully functional with proper H1, content sections, and CTA buttons. UX polish successfully removes duplicate trust sections. Affiliate compliance messaging present. All implementations working as expected. No flight results due to known Amadeus API issues, but all UI components and functionality tested successfully."
+  message: "Implemented comprehensive SEO infrastructure: 20 flight route pages, 10 hotel city pages, sitemap.ts, robots.txt, internal linking components, noindex on results pages. All pages built successfully. Ready for testing."
 
 ## Incorporate User Feedback
-- Aviasales deep links must use path format: /search/ORIGIN{DDMM}DEST{passengers}
-- Recent searches limited to 3 items, clickable to re-run
-- No duplicate trust sections on any page
-- Animation limits: translateY ≤ 8px, scale ≤ 0.05, duration 200-300ms
-- prefers-reduced-motion must be respected
+- SEO pages must be affiliate-safe: no pricing guarantees, no 'cheapest' claims
+- robots.txt must allow /flights/*-to-* and /hotels/*, disallow /flights/results and /hotels/results
+- Internal links should be natural, not footer spam
+- All pages need clear affiliate disclosure
