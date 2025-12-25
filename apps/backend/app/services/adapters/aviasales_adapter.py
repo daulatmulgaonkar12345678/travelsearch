@@ -316,6 +316,7 @@ class AviasalesAdapter:
                         arrival_time=ret_time,
                         duration_minutes=duration_back,
                         carrier_code=airline,
+                        carrier_name=airline or "Unknown Carrier",
                         flight_number=f"{airline}R{flight_number}" if flight_number else airline,
                         stops=transfers,
                         operating_carrier=airline,
