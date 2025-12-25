@@ -843,7 +843,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <TrustStrip />
+      {/* TrustStrip removed - TrustIndicators in results section provides trust signals */}
 
       {/* Flexible Date Bar */}
       {dateOptions.length > 0 && (
