@@ -4,6 +4,7 @@ from app.models.flight import FlightSearchRequest, FlightSearchResponse, FlightO
 from app.models.hotel import HotelSearchRequest, HotelSearchResponse, HotelOffer
 from app.services.aggregator import SearchAggregator
 from app.services.flight_orchestrator import orchestrator as legacy_orchestrator
+from app.services.airport_validator import validate_route, is_valid_airport
 from app.config import settings
 import uuid
 from datetime import datetime
@@ -15,13 +16,33 @@ aggregator = SearchAggregator()
 
 # Select orchestrator based on feature flag
 def get_orchestrator():
+    """
+    Get the appropriate flight search orchestrator.
+    
+    Priority:
+    1. AviasalesFirstOrchestrator (Aviasales as PRIMARY)
+    2. ProtectedOrchestrator (Amadeus with protections)
+    3. Legacy orchestrator (fallback)
+    """
+    # Try Aviasales-first orchestrator
+    try:
+        from app.services.aviasales_orchestrator import aviasales_first_orchestrator
+        logger.info("Using AviasalesFirstOrchestrator (Aviasales PRIMARY)")
+        return aviasales_first_orchestrator
+    except Exception as e:
+        logger.warning(f"AviasalesFirstOrchestrator not available: {e}")
+    
+    # Fallback to protected orchestrator
     if settings.supplier_protection:
         try:
             from app.services.protected_orchestrator import protected_orchestrator
+            logger.info("Using ProtectedOrchestrator (Amadeus PRIMARY)")
             return protected_orchestrator
         except Exception as e:
-            logger.warning(f"Failed to load protected orchestrator: {e}. Using legacy.")
-            return legacy_orchestrator
+            logger.warning(f"Failed to load protected orchestrator: {e}")
+    
+    # Final fallback
+    logger.warning("Using legacy orchestrator")
     return legacy_orchestrator
 
 @router.get("/search/flights")
