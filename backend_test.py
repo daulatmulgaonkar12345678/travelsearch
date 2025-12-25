@@ -268,7 +268,7 @@ class AviasalesInfrastructureTester:
                 params = {
                     "origin": airport,
                     "destination": "DEL" if airport != "DEL" else "BOM",
-                    "departure_date": "2025-02-15",
+                    "departure_date": "2025-12-30",  # Future date
                     "trip_type": "oneway",
                     "adults": 1
                 }
@@ -278,10 +278,10 @@ class AviasalesInfrastructureTester:
                     params=params
                 )
                 
-                # Should not return validation error
-                if response.status_code == 400:
+                # Should not return validation error (200 OK with error message or results)
+                if response.status_code == 200:
                     data = response.json()
-                    if "Invalid airport" in data.get("detail", ""):
+                    if data.get("outcome") == "error" and "Invalid airport" in data.get("message", ""):
                         self.log_result(
                             "Airport Validation",
                             False,
@@ -294,7 +294,7 @@ class AviasalesInfrastructureTester:
             params = {
                 "origin": "XXX",  # Invalid airport
                 "destination": "DEL",
-                "departure_date": "2025-02-15",
+                "departure_date": "2025-12-30",  # Future date
                 "trip_type": "oneway",
                 "adults": 1
             }
@@ -304,12 +304,22 @@ class AviasalesInfrastructureTester:
                 params=params
             )
             
-            # Should return validation error for invalid airport
-            if response.status_code != 400:
+            # Should return validation error for invalid airport (200 OK with error outcome)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("outcome") != "error" or "Invalid airport" not in data.get("message", ""):
+                    self.log_result(
+                        "Airport Validation",
+                        False,
+                        f"Invalid airport XXX was not rejected properly",
+                        data
+                    )
+                    return False
+            else:
                 self.log_result(
                     "Airport Validation",
                     False,
-                    f"Invalid airport XXX was not rejected (got {response.status_code})",
+                    f"Unexpected status code {response.status_code} for invalid airport",
                     response.text
                 )
                 return False
