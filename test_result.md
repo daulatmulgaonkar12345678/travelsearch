@@ -42,15 +42,18 @@ run_ui: true
 
 - task: "sitemap.ts"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/app/sitemap.ts"
   stuck_count: 0
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Created production-ready sitemap.ts with MetadataRoute.Sitemap. Includes all static pages, 20+ flight routes, 10 hotel cities. Dynamic results pages excluded. Verified accessible at /sitemap.xml"
+    - working: true
+      agent: "testing"
+      comment: "✅ PASSED: Sitemap working correctly. Valid XML format with proper namespace, contains homepage, all flight routes, all hotel pages. Correctly excludes results pages. Accessible at /sitemap.xml with proper content-type header (application/xml)."
 
 - task: "robots.txt"
   implemented: true
