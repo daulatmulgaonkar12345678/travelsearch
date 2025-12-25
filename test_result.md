@@ -73,9 +73,7 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Aviasales deep-link URL format verification"
-  - "Recent searches persistence and click functionality"
-  - "SEO route pages render correctly"
+  - "All testing completed successfully"
 stuck_tasks: []
 test_all: false
 test_priority: "critical_first"
