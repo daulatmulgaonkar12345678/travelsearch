@@ -19,7 +19,7 @@ const routeData: RoutePageProps = {
   content: {
     title: 'Cheap Flights from Pune to Mumbai',
     description:
-      'Compare prices on Pune to Mumbai flights from multiple airlines. Find the best deals on this popular domestic route.',
+      'Compare Pune to Mumbai flights from multiple airlines. Search flight options on this popular domestic route.',
     flightInfo:
       'Flights from Pune (PNQ) to Mumbai (BOM) cover approximately 120 kilometers and typically take around 45 minutes by air. This is one of the busiest domestic routes in India, with multiple daily departures from major carriers including IndiGo, Air India, and SpiceJet. While the distance is short, flying can save significant time compared to road travel, especially during peak traffic hours on the Mumbai-Pune Expressway.',
     travelTips:
