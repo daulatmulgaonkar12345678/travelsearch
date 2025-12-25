@@ -27,15 +27,18 @@ run_ui: true
 
 - task: "SEO Hotel City Pages (10 India cities)"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/app/hotels/*/page.tsx"
   stuck_count: 0
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Created 10 SEO hotel city pages using HotelCityPageTemplate. Cities: Mumbai, Delhi, Bangalore, Goa, Pune, Hyderabad, Chennai, Kolkata, Jaipur, Kochi. Each has H1, city info, accommodation types, CTA, cross-links to flights."
+    - working: true
+      agent: "testing"
+      comment: "✅ PASSED: All hotel city pages working correctly. Each page has: correct H1 with city name, 'Why Visit' section, 'Accommodation Options' section, CTA buttons to hotel results, cross-links to flight routes, affiliate disclosure. Tested /hotels/mumbai, /hotels/goa, /hotels/jaipur - all working perfectly."
 
 - task: "sitemap.ts"
   implemented: true
