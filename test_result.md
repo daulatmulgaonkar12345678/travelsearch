@@ -27,15 +27,18 @@ run_ui: true
 
 - task: "Recent Searches Component on Homepage"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/components/features/RecentSearches.tsx, /app/apps/frontend/app/page.tsx"
   stuck_count: 0
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Created RecentSearches component that displays last 3 saved searches from localStorage. Each item shows origin→destination + date and is clickable to re-run search. Integrated on homepage below TrustStrip."
+    - working: true
+      agent: "testing"
+      comment: "Recent Searches functionality working correctly. Component properly hidden when localStorage is empty. After adding search data to localStorage, component appears with clickable search items. Clicking recent search correctly redirects to results page with proper URL parameters. Maximum 3 searches limitation working as designed."
 
 - task: "UX Polish - Remove Duplicate Trust Sections"
   implemented: true
