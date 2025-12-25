@@ -436,6 +436,7 @@ class AviasalesAdapter:
                         arrival_time=ret_time,
                         duration_minutes=duration,
                         carrier_code=gate[:2] if gate else "XX",
+                        carrier_name=gate or "Multiple Airlines",
                         flight_number=f"{gate[:2]}001" if gate else "XX001",
                         stops=transfers,
                         operating_carrier=gate,
