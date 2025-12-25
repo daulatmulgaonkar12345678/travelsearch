@@ -57,7 +57,8 @@ class AviasalesAdapter:
         """
         Search flights using Travelpayouts Data API.
         
-        Uses /aviasales/v3/prices_for_dates endpoint for specific date searches.
+        Uses /v2/prices/month-matrix endpoint for specific date searches.
+        Falls back to /aviasales/v3/prices_for_dates if needed.
         Returns normalized FlightOffer objects with real deeplinks.
         """
         try:
@@ -66,59 +67,121 @@ class AviasalesAdapter:
                 f"on {request.departure_date}"
             )
             
-            # Build API URL
-            endpoint = f"{self.base_url}/aviasales/v3/prices_for_dates"
-            
-            # Build query parameters
-            params = {
-                "origin": request.origin,
-                "destination": request.destination,
-                "departure_at": request.departure_date,
-                "currency": "INR",  # Indian Rupees
-                "sorting": "price",
-                "direct": "true" if request.direct_only else "false",
-                "limit": 30,
-                "token": self.api_token,
-            }
-            
-            # Add return date for round trips
-            if request.trip_type == "roundtrip" and request.return_date:
-                params["return_at"] = request.return_date
-            
-            # Make API request
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(endpoint, params=params)
-                
-                # Log response status
-                logger.info(f"Aviasales API response: {response.status_code}")
-                
-                if response.status_code != 200:
-                    logger.error(f"Aviasales API error: {response.status_code} - {response.text[:500]}")
-                    return []
-                
-                data = response.json()
-            
-            # Check if we got data
-            if data.get("success", True) is not False:
-                flights = data.get("data", [])
-                logger.info(f"✅ Aviasales returned {len(flights)} flights")
-                
-                if not flights:
-                    logger.warning("Aviasales returned empty data array")
-                    return []
-                
-                # Normalize to FlightOffer format
-                offers = self._normalize_flights(flights, request)
+            # Try month-matrix endpoint first (more reliable for Indian routes)
+            offers = await self._search_month_matrix(request)
+            if offers:
                 return offers
-            else:
-                logger.warning(f"Aviasales API returned success=false: {data}")
-                return []
+            
+            # Fallback to prices_for_dates
+            offers = await self._search_prices_for_dates(request)
+            return offers
         
         except httpx.TimeoutException:
             logger.error("❌ Aviasales API timeout")
             return []
         except Exception as e:
             logger.error(f"❌ Aviasales search error: {e}", exc_info=True)
+            return []
+    
+    async def _search_month_matrix(
+        self,
+        request: FlightSearchRequest
+    ) -> List[FlightOffer]:
+        """Search using /v2/prices/month-matrix endpoint."""
+        try:
+            # Extract month from date
+            date_parts = request.departure_date.split('-')
+            month = f"{date_parts[0]}-{date_parts[1]}"
+            
+            endpoint = f"{self.base_url}/v2/prices/month-matrix"
+            
+            params = {
+                "origin": request.origin,
+                "destination": request.destination,
+                "month": month,
+                "currency": "INR",
+                "token": self.api_token,
+            }
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(endpoint, params=params)
+                
+                logger.info(f"Month-matrix API response: {response.status_code}")
+                
+                if response.status_code != 200:
+                    logger.warning(f"Month-matrix error: {response.status_code}")
+                    return []
+                
+                data = response.json()
+            
+            flights = data.get("data", [])
+            logger.info(f"✅ Month-matrix returned {len(flights)} prices")
+            
+            if not flights:
+                return []
+            
+            # Filter for requested date (or closest)
+            target_date = request.departure_date
+            
+            # Try exact date match first
+            exact_match = [f for f in flights if f.get("depart_date") == target_date]
+            if exact_match:
+                return self._normalize_flights_v2(exact_match, request)
+            
+            # Return closest dates
+            sorted_flights = sorted(flights, key=lambda x: abs(
+                (datetime.strptime(x.get("depart_date", "2099-01-01"), "%Y-%m-%d") - 
+                 datetime.strptime(target_date, "%Y-%m-%d")).days
+            ))
+            
+            return self._normalize_flights_v2(sorted_flights[:10], request)
+        
+        except Exception as e:
+            logger.error(f"Month-matrix search error: {e}")
+            return []
+    
+    async def _search_prices_for_dates(
+        self,
+        request: FlightSearchRequest
+    ) -> List[FlightOffer]:
+        """Search using /aviasales/v3/prices_for_dates endpoint."""
+        try:
+            endpoint = f"{self.base_url}/aviasales/v3/prices_for_dates"
+            
+            params = {
+                "origin": request.origin,
+                "destination": request.destination,
+                "departure_at": request.departure_date,
+                "currency": "INR",
+                "sorting": "price",
+                "direct": "true" if request.direct_only else "false",
+                "limit": 30,
+                "token": self.api_token,
+            }
+            
+            if request.trip_type == "roundtrip" and request.return_date:
+                params["return_at"] = request.return_date
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(endpoint, params=params)
+                
+                if response.status_code != 200:
+                    logger.error(f"Aviasales API error: {response.status_code}")
+                    return []
+                
+                data = response.json()
+            
+            if data.get("success", True) is not False:
+                flights = data.get("data", [])
+                logger.info(f"✅ prices_for_dates returned {len(flights)} flights")
+                
+                if flights:
+                    return self._normalize_flights(flights, request)
+            
+            return []
+        
+        except Exception as e:
+            logger.error(f"prices_for_dates error: {e}")
             return []
     
     async def search_prices_latest(
