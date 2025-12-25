@@ -736,7 +736,6 @@ useEffect(() => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
-        <TrustStrip />
         <FlightLoadingState origin={origin} destination={destination} />
         
         {/* Loading timeout message */}
