@@ -18,7 +18,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <Plane className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-display font-bold text-gray-900">TravelSearch</h1>
+            <span className="text-2xl font-display font-bold text-gray-900">TravelSearch</span>
           </Link>
           
           <nav className="flex items-center space-x-1 md:space-x-2">
