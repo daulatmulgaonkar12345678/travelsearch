@@ -99,7 +99,7 @@ class AviasalesAdapter:
                 data = response.json()
             
             # Check if we got data
-            if not data.get("success", True) == False:
+            if data.get("success", True) is not False:
                 flights = data.get("data", [])
                 logger.info(f"✅ Aviasales returned {len(flights)} flights")
                 
