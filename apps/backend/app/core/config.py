@@ -115,10 +115,18 @@ def log_config_status():
     logger.info("CONFIGURATION STATUS")
     logger.info("="*50)
     
-    # Amadeus
+    # Aviasales/Travelpayouts (PRIMARY)
+    if settings.travelpayouts_api_token:
+        masked_token = f"{settings.travelpayouts_api_token[:6]}...{settings.travelpayouts_api_token[-4:]}"
+        logger.info(f"✅ Travelpayouts API Token: {masked_token} (PRIMARY)")
+        logger.info(f"✅ Travelpayouts Marker: {settings.travelpayouts_marker}")
+    else:
+        logger.warning("⚠️  Travelpayouts API Token: NOT SET (PRIMARY PROVIDER DISABLED)")
+    
+    # Amadeus (FALLBACK)
     if settings.amadeus_api_key:
         masked_key = f"{settings.amadeus_api_key[:6]}...{settings.amadeus_api_key[-4:]}"
-        logger.info(f"✅ Amadeus API Key: {masked_key}")
+        logger.info(f"✅ Amadeus API Key: {masked_key} (FALLBACK)")
         logger.info(f"✅ Amadeus Base URL: {settings.amadeus_base_url}")
         logger.info(f"✅ Amadeus Environment: {settings.amadeus_environment}")
     else:
