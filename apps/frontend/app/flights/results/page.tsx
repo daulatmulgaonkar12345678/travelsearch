@@ -919,6 +919,35 @@ useEffect(() => {
 
           {/* Results */}
           <div className="lg:col-span-3">
+            {/* Phase 2: Results Header - Decision Confidence Zone */}
+            <div className="mb-6">
+              {/* Row 1: SaveSearch (left) + TrackPrice (right) */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <SaveSearch
+                  searchParams={{
+                    origin,
+                    destination,
+                    departureDate: selectedDate,
+                    returnDate: returnDate || undefined,
+                    tripType,
+                  }}
+                />
+                <TrackPrice
+                  origin={origin}
+                  destination={destination}
+                  departureDate={selectedDate}
+                  returnDate={returnDate || undefined}
+                />
+              </div>
+              
+              {/* Row 2: TrustIndicators */}
+              <TrustIndicators />
+              
+              {/* Row 3: PriceComparisonNotice */}
+              <PriceComparisonNotice />
+            </div>
+
+            {/* Results count */}
             <div className="mb-4">
               <p className="text-gray-600 text-sm">
                 {filteredOffers.length === offers.length
@@ -927,6 +956,7 @@ useEffect(() => {
               </p>
             </div>
 
+            {/* Flight Cards */}
             <div className="space-y-4">
               {filteredOffers.map((offer, index) => (
                 <EnhancedFlightCard
@@ -937,6 +967,9 @@ useEffect(() => {
                 />
               ))}
             </div>
+
+            {/* Phase 2: Below Results - Platform Explanation */}
+            <PlatformExplanation />
           </div>
         </div>
       </div>
