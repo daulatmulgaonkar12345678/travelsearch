@@ -2,23 +2,26 @@
  * Affiliate Link Builder
  * 
  * Builds affiliate URLs directly on the frontend for immediate redirects.
+ * Uses Aviasales path-based deep links for direct search results.
  * No backend dependency - ensures fast, reliable redirects to partner sites.
  */
 
 /**
  * Aviasales/Travelpayouts Configuration
- * Hardcoded for reliability - no env vars needed on frontend
  */
 const AVIASALES_CONFIG = {
-  baseUrl: 'https://aviasales.tpx.lt/eqOxwsZu',
+  // Direct domain for path-based deep links (more reliable)
+  directUrl: 'https://www.aviasales.com',
+  // Affiliate tracking URL
+  trackingUrl: 'https://aviasales.tpx.lt/eqOxwsZu',
   marker: '689331',
 }
 
 export interface FlightSearchParams {
   origin: string
   destination: string
-  departDate: string
-  returnDate?: string
+  departDate: string  // YYYY-MM-DD format
+  returnDate?: string // YYYY-MM-DD format
   adults?: number
   children?: number
   infants?: number
@@ -32,10 +35,28 @@ export interface HotelSearchParams {
 }
 
 /**
- * Build Aviasales flight affiliate URL
- * Returns a direct link to Aviasales with our affiliate marker
+ * Format date from YYYY-MM-DD to DDMM for Aviasales path
+ * Example: "2025-01-15" → "1501"
  */
-export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
+function formatDateForAviasales(dateStr: string): string {
+  if (!dateStr) return ''
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return ''
+  const day = parts[2]
+  const month = parts[1]
+  return `${day}${month}`
+}
+
+/**
+ * Build Aviasales path-based deep link
+ * 
+ * Format: /search/{ORIGIN}{DDMM}{DEST}{passengers}
+ * - One-way:    /search/BOM1501DEL1     (BOM → DEL, 15 Jan, 1 adult)
+ * - Round-trip: /search/BOM1501DEL20011 (BOM → DEL, 15 Jan, return 20 Jan, 1 adult)
+ * 
+ * Passengers format: {adults}{children}{infants} (only if non-default)
+ */
+function buildAviasalesSearchPath(params: FlightSearchParams): string {
   const {
     origin,
     destination,
@@ -46,8 +67,68 @@ export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
     infants = 0,
   } = params
 
-  // Travelpayouts URL structure
-  let url = `${AVIASALES_CONFIG.baseUrl}?`
+  const departDDMM = formatDateForAviasales(departDate)
+  if (!departDDMM) {
+    console.warn('Invalid depart date for Aviasales URL:', departDate)
+    return ''
+  }
+
+  // Build path: ORIGIN + DDMM + DEST + (return DDMM if round-trip) + passengers
+  let path = `${origin}${departDDMM}${destination}`
+  
+  if (returnDate) {
+    const returnDDMM = formatDateForAviasales(returnDate)
+    if (returnDDMM) {
+      path += returnDDMM
+    }
+  }
+  
+  // Add passenger count (simplified: just total adults for now)
+  // Full format would be: adults + children ages + infants
+  path += adults.toString()
+  
+  return `/search/${path}`
+}
+
+/**
+ * Build Aviasales flight affiliate URL
+ * Returns a direct deep link to Aviasales SEARCH RESULTS (not homepage)
+ * 
+ * Uses path-based deep links for reliable direct-to-results navigation:
+ * - One-way:    aviasales.com/search/BOM1501DEL1
+ * - Round-trip: aviasales.com/search/BOM1501DEL20011
+ */
+export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
+  const searchPath = buildAviasalesSearchPath(params)
+  
+  if (!searchPath) {
+    // Fallback to query-param based URL if path building fails
+    return buildAviasalesFlightUrlFallback(params)
+  }
+  
+  // Build final URL with affiliate marker
+  const url = new URL(searchPath, AVIASALES_CONFIG.directUrl)
+  url.searchParams.set('marker', AVIASALES_CONFIG.marker)
+  
+  return url.toString()
+}
+
+/**
+ * Fallback URL builder using query parameters
+ * Used if path-based URL building fails
+ */
+function buildAviasalesFlightUrlFallback(params: FlightSearchParams): string {
+  const {
+    origin,
+    destination,
+    departDate,
+    returnDate,
+    adults = 1,
+    children = 0,
+    infants = 0,
+  } = params
+
+  let url = `${AVIASALES_CONFIG.trackingUrl}?`
   url += `origin_iata=${encodeURIComponent(origin)}`
   url += `&destination_iata=${encodeURIComponent(destination)}`
   url += `&depart_date=${encodeURIComponent(departDate)}`
@@ -68,7 +149,6 @@ export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
     url += `&infants=${infants}`
   }
 
-  // Add affiliate marker for commission tracking
   url += `&marker=${AVIASALES_CONFIG.marker}`
 
   return url
