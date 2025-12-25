@@ -236,7 +236,7 @@ class AviasalesAdapter:
                 if request.trip_type == "roundtrip" and return_at:
                     try:
                         ret_time = datetime.fromisoformat(return_at.replace("Z", "+00:00"))
-                    except:
+                    except ValueError:
                         ret_time = dep_time
                     
                     return_segment = FlightSegment(
