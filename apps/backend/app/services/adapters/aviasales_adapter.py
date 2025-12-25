@@ -319,24 +319,21 @@ class AviasalesAdapter:
                     segments.append(return_segment)
                 
                 # Create offer
+                total_duration = duration_to + (duration_back if duration_back else 0)
+                
                 offer = FlightOffer(
                     offer_id=f"aviasales_{origin}_{destination}_{idx}_{int(price)}",
-                    source="aviasales",
+                    provider="aviasales",
                     segments=segments,
                     price=float(price),
                     currency="INR",
-                    deeplink=deeplink,  # Real deeplink from API
+                    total_duration_minutes=total_duration,
+                    stops=transfers,
+                    cabin_class=request.cabin_class or "economy",
+                    deep_link=deeplink,
                     booking_url=deeplink,
-                    validating_carrier=airline,
-                    fare_type="published",
-                    refundable=False,  # Aviasales doesn't provide this
-                    baggage_included=False,
-                    price_breakdown={
-                        "base_fare": price,
-                        "taxes": 0,
-                        "fees": 0
-                    },
-                    score=self._calculate_score(flight)
+                    refundable=False,
+                    rating=100 - self._calculate_score(flight),
                 )
                 
                 offers.append(offer)
