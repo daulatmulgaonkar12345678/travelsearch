@@ -293,6 +293,7 @@ class AviasalesAdapter:
                     arrival_time=dep_time,  # Will be calculated if duration available
                     duration_minutes=duration_to,
                     carrier_code=airline,
+                    carrier_name=airline or "Unknown Carrier",
                     flight_number=f"{airline}{flight_number}" if flight_number else airline,
                     stops=transfers,
                     operating_carrier=airline,
