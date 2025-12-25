@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     """Single source of truth for all configuration"""
     
-    # ===== AMADEUS API (Primary Flight Provider) =====
+    # ===== AMADEUS API (Fallback Flight Provider) =====
     amadeus_api_key: str
     amadeus_api_secret: str
     amadeus_base_url: str = "https://test.api.amadeus.com"
@@ -36,24 +36,15 @@ class Settings(BaseSettings):
     amadeus_rate_limit_rps: int = 3
     amadeus_rate_limit_rpm: int = 100
     
-    # ===== FLIGHTAPI.IO (Backup Flight Provider) =====
-    flightapi_enabled: bool = True
-    flightapi_key: Optional[str] = None
-    flightapi_base: str = "https://api.flightapi.io"
-    flightapi_timeout_ms: int = 3000
+    # ===== AVIASALES / TRAVELPAYOUTS (PRIMARY Flight Provider) =====
+    travelpayouts_api_token: Optional[str] = None
+    travelpayouts_marker: str = "689331"
+    travelpayouts_base_url: str = "https://api.travelpayouts.com"
+    travelpayouts_timeout_ms: int = 10000
+    aviasales_enabled: bool = True
     
-    # ===== DUFFEL (Secondary Flight Provider) =====
-    duffel_test_token: Optional[str] = None
-    duffel_environment: str = "test"
-    duffel_enabled: bool = False
-    
-    # ===== OTHER PROVIDERS =====
-    kiwi_enabled: bool = False
-    kiwi_api_key: Optional[str] = None
-    
-    # Travelpayouts / Aviasales
+    # Legacy Travelpayouts redirect URL (for backward compatibility)
     travelpayouts_aviasales_base_url: Optional[str] = None
-    travelpayouts_marker: Optional[str] = None
     
     # Legacy providers
     lcc_api_key: Optional[str] = None
