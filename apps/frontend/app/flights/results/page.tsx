@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense, useRef, useMemo } from 'react'
 						 
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import TrustStrip from '@/components/layout/TrustStrip'
 import EnhancedFlightCard from '@/components/results/EnhancedFlightCard'
 import SortTabs from '@/components/results/SortTabs'
 import ImprovedFilters from '@/components/results/ImprovedFilters'
