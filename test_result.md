@@ -12,15 +12,18 @@ run_ui: true
 
 - task: "Aviasales Deep-Link Fix - Path-based URLs"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/lib/affiliate.ts"
   stuck_count: 0
   priority: "critical"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented path-based deep links for Aviasales. Format: /search/{ORIGIN}{DDMM}{DEST}{passengers}. Example: BOM1501DEL1 for one-way Mumbai to Delhi on Jan 15. Includes formatDateForAviasales() helper function and fallback URL builder."
+    - working: true
+      agent: "testing"
+      comment: "CRITICAL FIX VERIFIED: Aviasales URL generation function works perfectly. Tested both one-way (/search/BOM1501DEL1) and round-trip (/search/BOM1501DEL20011) formats. Function correctly converts YYYY-MM-DD to DDMM format and builds proper path-based URLs. Implementation in /app/apps/frontend/lib/affiliate.ts is correct and functional."
 
 - task: "Recent Searches Component on Homepage"
   implemented: true
