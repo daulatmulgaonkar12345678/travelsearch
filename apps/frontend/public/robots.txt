@@ -1,0 +1,30 @@
+# robots.txt for TravelSearch
+# Meta-search travel platform
+
+User-agent: *
+
+# Allow indexing of static SEO pages
+Allow: /
+Allow: /flights/*-to-*
+Allow: /hotels/*
+Allow: /about-us
+Allow: /affiliate-disclosure
+Allow: /service-disclaimer
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Allow: /contact
+
+# Disallow dynamic results pages (contain query parameters, user-specific)
+Disallow: /flights/results
+Disallow: /hotels/results
+Disallow: /flights/results?*
+Disallow: /hotels/results?*
+
+# Disallow admin and internal pages
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap location
+Sitemap: https://travelsearch.com/sitemap.xml
