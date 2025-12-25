@@ -37,18 +37,24 @@ class AviasalesAdapter:
     """
     
     def __init__(self):
-        # Get API token from environment - NEVER hardcode
-        self.api_token = os.environ.get("TRAVELPAYOUTS_API_TOKEN")
-        self.marker = getattr(settings, "travelpayouts_marker", None) or os.environ.get("TRAVELPAYOUTS_MARKER", "689331")
+        # Get API token from settings (loaded from .env) or environment
+        self.api_token = (
+            getattr(settings, "travelpayouts_api_token", None) or 
+            os.environ.get("TRAVELPAYOUTS_API_TOKEN")
+        )
+        self.marker = (
+            getattr(settings, "travelpayouts_marker", None) or 
+            os.environ.get("TRAVELPAYOUTS_MARKER", "689331")
+        )
         
         if not self.api_token:
-            logger.error("❌ TRAVELPAYOUTS_API_TOKEN not set in environment!")
-            raise ValueError("TRAVELPAYOUTS_API_TOKEN environment variable is required")
+            logger.error("❌ TRAVELPAYOUTS_API_TOKEN not set!")
+            raise ValueError("TRAVELPAYOUTS_API_TOKEN is required")
         
         self.base_url = TRAVELPAYOUTS_BASE_URL
         self.timeout = 10.0  # 10 second timeout
         
-        logger.info(f"✅ AviasalesAdapter initialized with marker: {self.marker}")
+        logger.info(f"✅ AviasalesAdapter initialized with token starting: {self.api_token[:6]}... marker: {self.marker}")
     
     async def search_flights(
         self, 
