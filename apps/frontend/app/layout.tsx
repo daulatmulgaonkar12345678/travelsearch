@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' })
 
 export const metadata: Metadata = {
-  title: 'Flight & Hotel Metasearch | Find the Best Deals',
-  description: 'Compare flights and hotels from multiple providers. Find the best travel deals with our metasearch engine.',
+  title: 'Flight & Hotel Metasearch | Compare Travel Options',
+  description: 'Compare flights and hotels from multiple providers. Search travel options with our metasearch engine.',
   icons: {
     icon: '/favicon.svg',
   },
