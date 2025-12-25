@@ -11,6 +11,7 @@ import AirportAutocomplete from './AirportAutocomplete'
 import ValidatedAirportInput from './ValidatedAirportInput'
 import CityAutocomplete from './CityAutocomplete'
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
+import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
 
 type SearchType = 'flights' | 'hotels'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
@@ -693,6 +694,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         >
           Search {searchType === 'flights' ? 'Flights' : 'Hotels'}
         </button>
+        
+        {/* Search Button Microcopy */}
+        <SearchButtonMicrocopy />
       </div>
 
       {showPassengerModal && (
