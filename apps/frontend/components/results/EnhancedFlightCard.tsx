@@ -65,15 +65,22 @@ export default function EnhancedFlightCard({
     try {
       setRedirecting(vendorId)
 
-      const finalUrl = buildAviasalesFlightUrl({
-        origin: firstSegment.departure_airport,
-        destination: lastSegment.arrival_airport,
-        departDate: firstSegment.departure_time.split('T')[0],
-        returnDate: searchParams?.get('return_date') || undefined,
-        adults: parseInt(searchParams?.get('adults') || '1'),
-        children: parseInt(searchParams?.get('children') || '0'),
-        infants: parseInt(searchParams?.get('infants') || '0'),
-      })
+      // PRIORITY: Use deeplink from API response if available (contains affiliate marker)
+      // This is the correct approach for real-time pricing data
+      let finalUrl = offer.deeplink || offer.booking_url
+      
+      // Fallback: Build URL manually only if API didn't provide deeplink
+      if (!finalUrl) {
+        finalUrl = buildAviasalesFlightUrl({
+          origin: firstSegment.departure_airport,
+          destination: lastSegment.arrival_airport,
+          departDate: firstSegment.departure_time.split('T')[0],
+          returnDate: searchParams?.get('return_date') || undefined,
+          adults: parseInt(searchParams?.get('adults') || '1'),
+          children: parseInt(searchParams?.get('children') || '0'),
+          infants: parseInt(searchParams?.get('infants') || '0'),
+        })
+      }
 
       logAffiliateClick(
         'aviasales',
