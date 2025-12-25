@@ -159,6 +159,7 @@ app.include_router(webhooks_reconcile.router, prefix="/api", tags=["webhooks", "
 app.include_router(internal_health.router, tags=["internal-health"])
 app.include_router(hybrid_health.router, tags=["hybrid-protection"])
 app.include_router(health_amadeus.router, prefix="/api", tags=["health"])
+app.include_router(health_aviasales.router, prefix="/api", tags=["health", "aviasales"])
 
 # ============================================================
 # Local Run
