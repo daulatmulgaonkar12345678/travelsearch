@@ -3,6 +3,7 @@ import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
 import TrustStrip from '@/components/trust/TrustStrip'
 import RecentSearches from '@/components/features/RecentSearches'
+import { PopularFlightRoutes, PopularHotelDestinations } from '@/components/seo/InternalLinks'
 import { Hotel, Shield, TrendingDown } from 'lucide-react'
 
 export default function Home() {
@@ -13,9 +14,9 @@ export default function Home() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h2 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6">
             Find Your Perfect Journey
-          </h2>
+          </h1>
           <p className="text-xl text-gray-600 mb-8">
             Compare flights and hotels from multiple providers. Get the best deals, instantly.
           </p>
@@ -42,16 +43,16 @@ export default function Home() {
             <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
               <TrendingDown className="h-6 w-6 text-blue-600" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-            <p className="text-gray-600">Compare prices from multiple providers to find the lowest fares</p>
+            <h3 className="text-xl font-semibold mb-2">Compare Prices</h3>
+            <p className="text-gray-600">Search across multiple providers to compare fares and options</p>
           </div>
           
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
               <Shield className="h-6 w-6 text-green-600" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">100% Transparent</h3>
-            <p className="text-gray-600">No hidden fees. What you see is what you pay.</p>
+            <h3 className="text-xl font-semibold mb-2">Transparent Pricing</h3>
+            <p className="text-gray-600">Prices shown are from our travel partners. No hidden fees.</p>
           </div>
           
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -59,8 +60,16 @@ export default function Home() {
               <Hotel className="h-6 w-6 text-purple-600" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Flights + Hotels</h3>
-            <p className="text-gray-600">Book your entire trip in one place with confidence</p>
+            <p className="text-gray-600">Compare options for your entire trip in one place</p>
           </div>
+        </div>
+      </section>
+
+      {/* Internal Links for SEO */}
+      <section className="container mx-auto px-4 pb-16">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+          <PopularFlightRoutes />
+          <PopularHotelDestinations />
         </div>
       </section>
 
