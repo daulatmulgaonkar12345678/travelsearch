@@ -161,20 +161,15 @@ function buildAviasalesFlightUrlFallback(params: FlightSearchParams): string {
 export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
   const { city, checkIn, checkOut, adults = 2 } = params
 
-  // Aviasales hotel URL structure (adjust based on actual Travelpayouts docs)
-  let url = `${AVIASALES_CONFIG.baseUrl}?`
-  url += `city=${encodeURIComponent(city)}`
-  url += `&checkIn=${encodeURIComponent(checkIn)}`
-  url += `&checkOut=${encodeURIComponent(checkOut)}`
+  // Aviasales hotel URL structure
+  const url = new URL('/hotels', AVIASALES_CONFIG.directUrl)
+  url.searchParams.set('destination', city)
+  url.searchParams.set('checkIn', checkIn)
+  url.searchParams.set('checkOut', checkOut)
+  url.searchParams.set('adults', adults.toString())
+  url.searchParams.set('marker', AVIASALES_CONFIG.marker)
 
-  if (adults > 2) {
-    url += `&adults=${adults}`
-  }
-
-  // Add affiliate marker
-  url += `&marker=${AVIASALES_CONFIG.marker}`
-
-  return url
+  return url.toString()
 }
 
 /**
