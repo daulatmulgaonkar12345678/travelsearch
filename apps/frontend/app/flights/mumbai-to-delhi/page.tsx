@@ -19,7 +19,7 @@ const routeData: RoutePageProps = {
   content: {
     title: 'Cheap Flights from Mumbai to Delhi',
     description:
-      'Find the best deals on Mumbai to Delhi flights. Compare prices across major airlines on India\'s busiest air route.',
+      'Compare Mumbai to Delhi flights across major airlines on India\'s busiest air route. Search multiple providers for flight options.',
     flightInfo:
       'Flights from Mumbai (BOM) to Delhi (DEL) cover approximately 1,150 kilometers and typically take around 2 hours. This is India\'s busiest domestic air route, with over 100 daily flights operated by airlines including IndiGo, Air India, Vistara, SpiceJet, and GoFirst. Both airports are major hubs offering excellent connectivity to international and domestic destinations.',
     travelTips:
