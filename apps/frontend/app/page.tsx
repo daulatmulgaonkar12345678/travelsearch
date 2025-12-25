@@ -1,6 +1,7 @@
 import SearchBarV3 from '@/components/search/SearchBarV3'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
+import TrustStrip from '@/components/trust/TrustStrip'
 import { Hotel, Shield, TrendingDown } from 'lucide-react'
 
 export default function Home() {
@@ -20,8 +21,10 @@ export default function Home() {
         </div>
 
         {/* Search Component */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto space-y-4">
           <SearchBarV3 />
+          {/* Trust Strip - appears below search */}
+          <TrustStrip />
         </div>
       </section>
 
