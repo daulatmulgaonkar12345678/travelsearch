@@ -213,7 +213,7 @@ class AviasalesAdapter:
                 # Parse departure time
                 try:
                     dep_time = datetime.fromisoformat(departure_at.replace("Z", "+00:00"))
-                except:
+                except ValueError:
                     dep_time = datetime.now()
                 
                 # Create outbound segment
