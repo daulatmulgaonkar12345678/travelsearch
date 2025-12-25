@@ -46,10 +46,20 @@ class Settings(BaseSettings):
     # Legacy Travelpayouts redirect URL (for backward compatibility)
     travelpayouts_aviasales_base_url: Optional[str] = None
     
-    # Legacy providers
-    lcc_api_key: Optional[str] = None
-    trip_api_key: Optional[str] = None
-    agoda_api_key: Optional[str] = None
+    # ===== FLIGHTAPI.IO (Backup Flight Provider) =====
+    flightapi_enabled: bool = True
+    flightapi_key: Optional[str] = None
+    flightapi_base: str = "https://api.flightapi.io"
+    flightapi_timeout_ms: int = 3000
+    
+    # ===== DUFFEL (Secondary Flight Provider) =====
+    duffel_test_token: Optional[str] = None
+    duffel_environment: str = "test"
+    duffel_enabled: bool = False
+    
+    # ===== OTHER PROVIDERS =====
+    kiwi_enabled: bool = False
+    kiwi_api_key: Optional[str] = None
     
     # ===== PROVIDER SELECTION =====
     flight_provider: str = "amadeus+duffel"
