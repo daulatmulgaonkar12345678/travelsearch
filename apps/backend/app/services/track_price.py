@@ -44,14 +44,9 @@ class TrackPriceService:
     Service for tracking prices and sending alerts.
     """
     
-    def __init__(self):
-        self.db = None
-    
-    async def _get_db(self):
-        """Get database connection."""
-        if self.db is None:
-            self.db = get_db()
-        return self.db
+    def _get_db(self):
+        """Get database connection (sync)."""
+        return get_db()
     
     async def get_active_saved_searches(self) -> List[Dict]:
         """
