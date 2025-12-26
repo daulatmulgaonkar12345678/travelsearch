@@ -199,7 +199,7 @@ export default function RefreshLivePrice({
             </span>
           )}
           <span className="text-xs text-gray-500">
-            {formatTimestamp(lastUpdatedAt)}
+            Last updated {formatTimestamp(lastUpdatedAt)}
           </span>
         </div>
 
