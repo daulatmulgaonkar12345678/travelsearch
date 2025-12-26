@@ -966,16 +966,20 @@ useEffect(() => {
           <div className="lg:col-span-3">
             {/* Phase 2: Results Header - Decision Confidence Zone */}
             <div className="mb-6">
-              {/* Row 1: SaveSearch (left) + TrackPrice (right) */}
+              {/* Row 1: SaveSearchButton (left) + TrackPrice (right) */}
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <SaveSearch
+                <SaveSearchButton
                   searchParams={{
                     origin,
                     destination,
                     departureDate: selectedDate,
                     returnDate: returnDate || undefined,
-                    tripType,
+                    adults: parseInt(adults || '1'),
+                    cabinClass: cabinClass || 'economy',
+                    tripType: tripType || 'oneway',
                   }}
+                  lastKnownPrice={offers.length > 0 ? Math.min(...offers.map(o => o.price || Infinity)) : undefined}
+                  lastKnownCurrency={offers[0]?.currency || 'INR'}
                 />
                 <TrackPrice
                   origin={origin}
@@ -1007,7 +1011,7 @@ useEffect(() => {
                   timestampDisplay={lastUpdatedAt}
                   helperText={cacheMessage ? "Prices may change on the booking site" : undefined}
                 />
-              )}
+              )}}
             </div>
 
             {/* Flight Cards */}
