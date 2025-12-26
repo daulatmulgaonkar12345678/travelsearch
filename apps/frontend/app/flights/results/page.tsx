@@ -532,6 +532,34 @@ useEffect(() => {
       setOffers(fetchedOffers)
       processFlightData(fetchedOffers)
       
+      // ===============================================================
+      // AUTOMATIC RECENT SEARCH STORAGE
+      // Store this search in localStorage after successful API response
+      // This happens automatically - no user action required
+      // ===============================================================
+      try {
+        const minPrice = fetchedOffers.length > 0 
+          ? Math.min(...fetchedOffers.map(o => o.price || Infinity))
+          : undefined
+        const currency = fetchedOffers[0]?.currency || 'INR'
+        
+        addRecentSearch({
+          origin: searchParamsObj.origin,
+          destination: searchParamsObj.destination,
+          departureDate: searchParamsObj.departure_date,
+          returnDate: searchParamsObj.return_date,
+          adults: parseInt(searchParamsObj.adults || '1'),
+          cabinClass: searchParamsObj.cabin_class || 'economy',
+          tripType: searchParamsObj.trip_type || 'oneway',
+          lastKnownPrice: minPrice,
+          lastKnownCurrency: currency,
+        })
+        console.log('[RecentSearch] Automatically saved search to localStorage')
+      } catch (recentSearchErr) {
+        // Non-critical - don't fail the search if this fails
+        console.warn('[RecentSearch] Failed to save recent search:', recentSearchErr)
+      }
+      
       // IMPORTANT: Do NOT trigger client-side fallback if orchestrator already ran all fallbacks
       // The orchestrator response includes status="completed" and outcome="no_results" when all fallbacks are exhausted
       if (fetchedOffers.length === 0 && data.outcome !== 'no_results') {
