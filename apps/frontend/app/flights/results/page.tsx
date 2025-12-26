@@ -137,6 +137,12 @@ function SearchResultsContent() {
   const [loadingFallback, setLoadingFallback] = useState(false)
   const [showingFallbackResults, setShowingFallbackResults] = useState(false)
   
+  // Cost-controlled search state - tracks if results are from live API or cache
+  const [searchSource, setSearchSource] = useState<'AMADEUS' | 'CACHE' | null>(null)
+  const [isLiveResults, setIsLiveResults] = useState<boolean>(true)
+  const [cacheMessage, setCacheMessage] = useState<string | null>(null)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
+  
   // Abort controller ref for cancelling requests
   const abortControllerRef = useRef<AbortController | null>(null)
 
