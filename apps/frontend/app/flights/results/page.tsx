@@ -24,6 +24,8 @@ import SaveSearchButton from '@/components/features/SaveSearchButton'
 import TrackPrice from '@/components/features/TrackPrice'
 // Cost-controlled search source indicator
 import PriceSourceBadge from '@/components/results/PriceSourceBadge'
+// Recent search store - automatic localStorage persistence
+import { addRecentSearch, updateRecentSearchPrice } from '@/lib/recentSearchStore'
 
 interface DateOption {
   date: string
