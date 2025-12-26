@@ -165,6 +165,10 @@ app.include_router(health_aviasales.router, prefix="/api", tags=["health", "avia
 app.include_router(internal_stats.router, prefix="/api", tags=["internal", "monitoring"])
 app.include_router(saved_searches.router, prefix="/api", tags=["saved-searches"])
 
+# Track Price - Price drop alerts
+from app.routers import track_price
+app.include_router(track_price.router, prefix="/api", tags=["track-price"])
+
 # ============================================================
 # Local Run
 # ============================================================
