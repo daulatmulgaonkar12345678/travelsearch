@@ -1,11 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request, Header
 from typing import List, Optional, Dict, Any
 from app.models.flight import FlightSearchRequest, FlightSearchResponse, FlightOffer
 from app.models.hotel import HotelSearchRequest, HotelSearchResponse, HotelOffer
 from app.services.aggregator import SearchAggregator
-from app.services.flight_orchestrator import orchestrator as legacy_orchestrator
 from app.services.airport_validator import validate_route, is_valid_airport
-from app.config import settings
+from app.core.config import settings
 import uuid
 from datetime import datetime
 import logging
@@ -14,39 +13,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 aggregator = SearchAggregator()
 
-# Select orchestrator based on feature flag
-def get_orchestrator():
-    """
-    Get the appropriate flight search orchestrator.
-    
-    Priority:
-    1. AviasalesFirstOrchestrator (Aviasales as PRIMARY)
-    2. ProtectedOrchestrator (Amadeus with protections)
-    3. Legacy orchestrator (fallback)
-    """
-    # Try Aviasales-first orchestrator
-    try:
-        from app.services.aviasales_orchestrator import aviasales_first_orchestrator
-        logger.info("Using AviasalesFirstOrchestrator (Aviasales PRIMARY)")
-        return aviasales_first_orchestrator
-    except Exception as e:
-        logger.warning(f"AviasalesFirstOrchestrator not available: {e}")
-    
-    # Fallback to protected orchestrator
-    if settings.supplier_protection:
-        try:
-            from app.services.protected_orchestrator import protected_orchestrator
-            logger.info("Using ProtectedOrchestrator (Amadeus PRIMARY)")
-            return protected_orchestrator
-        except Exception as e:
-            logger.warning(f"Failed to load protected orchestrator: {e}")
-    
-    # Final fallback
-    logger.warning("Using legacy orchestrator")
-    return legacy_orchestrator
 
 @router.get("/search/flights")
 async def search_flights(
+    request: Request,
+    # Search intent header - REQUIRED for real searches
+    x_search_intent: Optional[str] = Header(None, alias="x-search-intent"),
+    
     # Trip type
     trip_type: str = Query("roundtrip", description="Trip type: oneway, roundtrip, multicity"),
     
@@ -63,7 +36,8 @@ async def search_flights(
     # Cabin class
     cabin_class: str = Query("economy"),
     
-    # Filters
+    # Filters (CLIENT-SIDE ONLY - these NEVER trigger API calls)
+    # ⚠️ WARNING: Filters are intentionally client-side to prevent API cost leakage
     direct_only: bool = Query(False),
     max_price: Optional[float] = Query(None),
     max_duration_minutes: Optional[int] = Query(None),
@@ -77,12 +51,22 @@ async def search_flights(
     nearby_radius_km: float = Query(250.0),
 ) -> Dict[str, Any]:
     """
-    Search flights with comprehensive fallback strategy.
+    Search flights with cost-controlled Amadeus integration.
     
-    Returns orchestrated response with status, outcome, flights, and suggestions.
+    COST CONTROL RULES:
+    1. Only explicit "Search Flights" clicks trigger real API calls
+    2. Must include header: x-search-intent = "real" for real searches
+    3. Daily cap: 70 searches (configurable)
+    4. Results cached for 10-15 minutes
+    5. Per-IP rate limit: 5/minute
+    
+    ⚠️ FILTERS ARE CLIENT-SIDE ONLY:
+    Filters and sorting operate on already-fetched results.
+    They NEVER trigger additional API calls.
     """
     try:
-        request = FlightSearchRequest(
+        # Build request object
+        search_request = FlightSearchRequest(
             trip_type=trip_type,
             origin=origin.upper() if origin else None,
             destination=destination.upper() if destination else None,
@@ -103,17 +87,45 @@ async def search_flights(
             nearby_radius_km=nearby_radius_km,
         )
         
-        logger.info(f"🔍 Flight search: {request.origin} → {request.destination} on {request.departure_date}")
+        # Validate route
+        if not search_request.origin or not search_request.destination:
+            return {
+                "status": "completed",
+                "outcome": "error",
+                "message": "Origin and destination are required",
+                "offers": [],
+                "flights": []
+            }
         
-        # Use orchestrator for comprehensive search
-        orchestrator = get_orchestrator()
-        result = await orchestrator.search(request)
+        # Get client IP for rate limiting
+        client_ip = request.client.host if request.client else "unknown"
         
-        # For backward compatibility, also provide old format fields
-        result["offers"] = result.get("flights", [])
+        # Build headers dict for search control
+        headers = {
+            "x-search-intent": x_search_intent or ""
+        }
+        
+        logger.info(
+            f"🔍 Flight search: {search_request.origin} → {search_request.destination} "
+            f"on {search_request.departure_date} | Intent: {x_search_intent}"
+        )
+        
+        # Use protected Amadeus search with all cost controls
+        from app.services.amadeus_protected import search_flights_protected
+        
+        result = await search_flights_protected(
+            request=search_request,
+            headers=headers,
+            client_ip=client_ip
+        )
+        
+        # Add standard fields for compatibility
+        result["request_id"] = str(uuid.uuid4())
         result["search_id"] = result["request_id"]
-        result["cached"] = False
         result["timestamp"] = datetime.utcnow().isoformat()
+        
+        # Note: Filters should be applied CLIENT-SIDE on these results
+        # This prevents additional API calls when user changes filters
         
         return result
         
@@ -126,8 +138,7 @@ async def search_flights(
             "message": "Something went wrong. Please try again.",
             "flights": [],
             "offers": [],
-            "suggestions": [],
-            "logs": []
+            "source": "error"
         }
 
 @router.post("/search/flights", response_model=FlightSearchResponse)
