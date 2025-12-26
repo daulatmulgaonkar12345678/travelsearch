@@ -180,11 +180,11 @@ export default function RecentSearches() {
                 )}
               </span>
               
-              {/* Price (if available) */}
-              {search.lastKnownPrice && (
+              {/* Price (display only - for reference) */}
+              {search.displayPrice && (
                 <span className="text-xs font-medium text-green-600 border-l border-gray-200 pl-2">
-                  {search.lastKnownCurrency === 'INR' ? '₹' : '$'}
-                  {search.lastKnownPrice.toLocaleString()}
+                  {search.displayCurrency === 'INR' ? '₹' : '$'}
+                  {search.displayPrice.toLocaleString()}
                 </span>
               )}
               
