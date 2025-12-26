@@ -227,41 +227,45 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
 
 /**
  * Hotel Destination Card with Image
+ * 
+ * Image path: /images/hotels/{city}.webp
+ * Alt text: "Hotels in {City}"
  */
 function HotelDestinationCard({ destination }: { destination: HotelDestinationData }) {
-  // For now, we use gradient fallback since images aren't uploaded yet
-  // Once WebP images are added to /public/images/destinations/, set hasImage to true
-  const hasImage = false // Set to true when images are available
-  const imageSrc = destination.image 
-    ? `/images/destinations/${destination.image}`
-    : null
+  // Image path: /images/hotels/{city}.webp
+  // Set hasImage to true when WebP images are added to public/images/hotels/
+  const hasImage = false
+  const imageSrc = `/images/hotels/${destination.slug}.webp`
   
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      {/* Image with lazy loading */}
-      <div className="relative h-36 bg-gradient-to-br from-indigo-100 to-indigo-200 overflow-hidden">
-        {hasImage && imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt={`Hotels in ${destination.city}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 300px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
+      {/* Image container with dark gradient overlay for text readability */}
+      <div className="relative h-36 overflow-hidden">
+        {hasImage ? (
+          <>
+            <Image
+              src={imageSrc}
+              alt={`Hotels in ${destination.city}`}
+              fill
+              sizes="(max-width: 768px) 50vw, 300px"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+            {/* Dark gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </>
         ) : (
-          /* Fallback with city name */
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-600">
-            <span className="text-3xl font-bold text-white/30">
+          /* Gradient fallback when images not available */
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-600">
+            <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white/30">
               {destination.city}
             </span>
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         )}
         
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        
-        {/* City name badge */}
+        {/* City label - always visible */}
         <div className="absolute bottom-3 left-3 right-3">
           <span className="text-white font-semibold text-lg drop-shadow-md">
             {destination.city}
@@ -269,7 +273,7 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
         </div>
       </div>
       
-      {/* CTA */}
+      {/* CTA - unchanged */}
       <Link 
         href={`/hotels/${destination.slug}`}
         className="block p-3 text-center text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors"
