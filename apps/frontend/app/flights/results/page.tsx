@@ -22,6 +22,8 @@ import TrustIndicators from '@/components/trust/TrustIndicators'
 import { PriceComparisonNotice, PlatformExplanation } from '@/components/trust/Microcopy'
 import SaveSearch from '@/components/features/SaveSearch'
 import TrackPrice from '@/components/features/TrackPrice'
+// Cost-controlled search source indicator
+import PriceSourceBadge from '@/components/results/PriceSourceBadge'
 
 interface DateOption {
   date: string
