@@ -592,6 +592,35 @@ useEffect(() => {
     }
   }
   
+  /**
+   * Handle price refresh from RefreshLivePrice component
+   * Updates offers and metadata with fresh data
+   */
+  const handlePriceRefresh = (data: RefreshResult) => {
+    console.log('[PriceRefresh] Received fresh data:', {
+      source: data.source,
+      isLive: data.isLive,
+      offerCount: data.offers.length
+    })
+    
+    // Update offers with fresh data
+    if (data.offers.length > 0) {
+      setOffers(data.offers)
+      processFlightData(data.offers)
+    }
+    
+    // Update source metadata
+    setSearchSource(data.source === 'aviasales' ? null : data.source as 'AMADEUS' | 'CACHE')
+    setIsLiveResults(data.isLive)
+    setLastUpdatedAt(data.timestampDisplay || data.lastUpdatedAt)
+    
+    if (!data.isLive) {
+      setCacheMessage('Showing recent results. Live prices may update shortly.')
+    } else {
+      setCacheMessage(null)
+    }
+  }
+  
   // Trigger fallback search when primary returns 0 results
   const triggerFallbackSearch = async (abortSignal: AbortSignal) => {
     try {
