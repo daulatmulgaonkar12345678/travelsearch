@@ -65,9 +65,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Internal Links for SEO */}
+      {/* Popular Routes & Destinations - SEO Internal Links */}
       <section className="container mx-auto px-4 pb-16">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
+        <div className="max-w-5xl mx-auto space-y-12">
           <PopularFlightRoutes />
           <PopularHotelDestinations />
         </div>
