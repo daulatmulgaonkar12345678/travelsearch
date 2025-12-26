@@ -20,7 +20,7 @@ import NoFlightsWithSuggestions from '@/components/results/NoFlightsWithSuggesti
 // Phase 2 Trust & Feature Components
 import TrustIndicators from '@/components/trust/TrustIndicators'
 import { PriceComparisonNotice, PlatformExplanation } from '@/components/trust/Microcopy'
-import SaveSearch from '@/components/features/SaveSearch'
+import SaveSearchButton from '@/components/features/SaveSearchButton'
 import TrackPrice from '@/components/features/TrackPrice'
 // Cost-controlled search source indicator
 import PriceSourceBadge from '@/components/results/PriceSourceBadge'
