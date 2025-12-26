@@ -512,6 +512,13 @@ useEffect(() => {
       // Cache the response
       requestCache.set('flights', searchParamsObj, data)
       
+      // Track source metadata for cost-controlled search display
+      // source: "AMADEUS" (live) or "CACHE" (cached)
+      setSearchSource(data.source || null)
+      setIsLiveResults(data.is_live ?? true)
+      setCacheMessage(data.cache_message || null)
+      setLastUpdatedAt(data.timestamp_display || data.last_live_updated_at || null)
+      
       // Check if results are from fallback (backend nearby airport expansion or hub composition)
       const hasFallbackResults = fetchedOffers.some((offer: FlightOffer) => 
         offer.nearby_origin || offer.nearby_destination || offer.composed_via_hub
