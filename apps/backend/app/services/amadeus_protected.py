@@ -197,12 +197,12 @@ def _normalize_amadeus_offers(
                     # Parse times
                     try:
                         dep_time = datetime.fromisoformat(departure.get("at", "").replace("Z", "+00:00"))
-                    except:
+                    except (ValueError, TypeError):
                         dep_time = datetime.now(timezone.utc)
                     
                     try:
                         arr_time = datetime.fromisoformat(arrival.get("at", "").replace("Z", "+00:00"))
-                    except:
+                    except (ValueError, TypeError):
                         arr_time = dep_time
                     
                     # Parse duration (e.g., "PT2H30M")
