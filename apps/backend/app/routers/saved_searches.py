@@ -163,7 +163,7 @@ async def delete_saved_search(search_id: str, email: str):
     Deactivate a saved search (soft delete).
     """
     try:
-        db = await get_db()
+        db = get_db()
         
         result = await db.saved_searches.update_one(
             {"id": search_id, "email": email.lower()},
