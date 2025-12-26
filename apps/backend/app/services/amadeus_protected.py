@@ -297,7 +297,7 @@ def _build_booking_deeplink(origin: str, destination: str, departure_date: str) 
         marker = settings.travelpayouts_marker
         
         return f"https://www.aviasales.com/search/{origin}{ddmm}{destination}1?marker={marker}"
-    except:
+    except (ValueError, IndexError, TypeError):
         return f"https://www.aviasales.com?marker={settings.travelpayouts_marker}"
 
 
@@ -310,7 +310,7 @@ def _format_timestamp_for_display(iso_timestamp: str) -> str:
     try:
         dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
         return dt.strftime("Last updated at %I:%M %p")
-    except:
+    except (ValueError, TypeError):
         return "Last updated recently"
 
 
