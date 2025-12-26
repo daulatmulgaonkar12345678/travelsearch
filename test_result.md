@@ -4,71 +4,35 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 7
+test_sequence: 8
 run_ui: true
 ```
 
 ## Test Tasks
 
-- task: "Cost-controlled Amadeus system with daily caps"
+- task: "Recent Searches (automatic localStorage)"
   implemented: true
-  working: true
-  file: "/app/apps/backend/app/services/search_control.py, /app/apps/backend/app/services/amadeus_protected.py"
-  stuck_count: 0
-  priority: "critical"
-  needs_retesting: false
-  status_history:
-    - working: "pending"
-      agent: "main"
-      comment: "Implemented complete cost-control system: 1) Daily search cap (70/day) with UTC midnight reset, 2) Cache TTL (15 min), 3) Per-IP rate limiting (5/min), 4) Intent-based gating (x-search-intent header), 5) Last Known Live Price tracking with timestamps, 6) Source badges (AMADEUS/CACHE). Frontend updated with PriceSourceBadge component showing 'Live price' or 'Showing recent prices'."
-    - working: true
-      agent: "testing"
-      comment: "✅ TESTED: Cost-controlled Amadeus system working correctly. Daily quota tracking (0/70 used), intent-based gating blocks requests without x-search-intent header, quota increments properly for Amadeus calls. All cost control measures functioning as designed."
-
-- task: "Internal monitoring endpoint"
-  implemented: true
-  working: true
-  file: "/app/apps/backend/app/routers/internal_stats.py"
+  working: "pending"
+  file: "/app/apps/frontend/lib/recentSearchStore.ts, /app/apps/frontend/components/features/RecentSearches.tsx"
   stuck_count: 0
   priority: "high"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Created /api/internal/search-stats, /api/internal/quota-status, /api/internal/cost-estimate endpoints for tracking search usage, cache hits, and quota status."
-    - working: true
-      agent: "testing"
-      comment: "✅ TESTED: All internal monitoring endpoints working correctly. /api/internal/search-stats returns proper statistics, /api/internal/quota-status shows quota info (0/70 used, 70 remaining), /api/internal/cost-estimate provides cost metrics with 0% cap utilization."
+      comment: "Implemented automatic recent search storage in localStorage. Features: 1) Auto-saves after successful search, 2) FIFO - keeps last 8 searches, 3) Deduplicates identical searches, 4) 7-day expiry, 5) Shows last known price. Homepage component displays recent searches with Framer Motion animations."
 
-- task: "Frontend x-search-intent header"
+- task: "Saved Searches (explicit backend)"
   implemented: true
-  working: true
-  file: "/app/apps/frontend/app/flights/results/page.tsx"
+  working: "pending"
+  file: "/app/apps/backend/app/routers/saved_searches.py, /app/apps/frontend/components/features/SaveSearchButton.tsx"
   stuck_count: 0
-  priority: "critical"
-  needs_retesting: false
+  priority: "high"
+  needs_retesting: true
   status_history:
     - working: "pending"
       agent: "main"
-      comment: "Added x-search-intent: 'real' header to flight search requests. Added PriceSourceBadge component to display Live price / Showing recent prices badges. Updated button text to 'Continue to booking' with helper text 'Final price confirmed on partner site'."
-    - working: true
-      agent: "testing"
-      comment: "✅ TESTED: Frontend UI fully functional. Price source badge correctly shows 'Live price' (green) with timestamp. Flight cards display proper elements: INR prices, 'Continue to booking' button, helper text 'Final price confirmed on partner site'. Trust indicators present. Button click flow works - vendor dropdown appears with Aviasales option. All UI requirements verified."
-
-- task: "Aviasales PRIMARY with Amadeus FALLBACK"
-  implemented: true
-  working: true
-  file: "/app/apps/backend/app/routers/search.py"
-  stuck_count: 0
-  priority: "critical"
-  needs_retesting: false
-  status_history:
-    - working: "pending"
-      agent: "main"
-      comment: "Updated search router to try Aviasales first (PRIMARY), then fall back to cost-controlled Amadeus if Aviasales returns empty results."
-    - working: true
-      agent: "testing"
-      comment: "✅ TESTED: Provider priority working correctly. Aviasales PRIMARY provider successfully returns results for domestic and international routes. Amadeus FALLBACK system ready and quota tracking confirmed working when Amadeus is used."
+      comment: "Implemented explicit save search with email modal. Features: 1) POST /api/saved-searches stores in MongoDB, 2) Email modal asks for notification consent, 3) Stores last known price for future alerts, 4) Prevents duplicates - updates existing. UI shows 'Saved' state with success message."
 
 - task: "Aviasales as PRIMARY flight search provider"
   implemented: true
