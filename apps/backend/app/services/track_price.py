@@ -249,7 +249,7 @@ class TrackPriceService:
         """
         Update saved search with latest price check info.
         """
-        db = await self._get_db()
+        db = self._get_db()
         
         update_data = {
             "last_checked_price": current_price,
