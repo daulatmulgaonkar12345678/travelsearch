@@ -7,13 +7,18 @@ COST CONTROL RULES:
 1. All searches MUST go through should_make_real_search() first
 2. Cache results immediately after successful API calls
 3. Increment daily counter after each real API call
-4. Log every search event
+4. Log every search event with source metadata
 5. Never expose API errors to users - use graceful fallbacks
+
+RESPONSE METADATA:
+- source: "AMADEUS" (live) or "CACHE" (cached)
+- last_live_updated_at: UTC timestamp of last live fetch
+- is_live: boolean indicating if data is fresh
 
 This service implements:
 - Amadeus OAuth2 authentication
 - Flight Offers Search API
-- Result normalization
+- Result normalization with Last Known Live Price
 - Error handling with graceful degradation
 """
 
@@ -21,7 +26,7 @@ import httpx
 import logging
 import time
 from typing import List, Dict, Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.config import settings
 from app.models.flight import FlightOffer, FlightSegment, FlightSearchRequest
@@ -31,8 +36,10 @@ from app.services.search_control import (
     increment_search_counter,
     record_ip_search,
     log_search_event,
-    get_fallback_message,
-    get_cached_results,
+    get_cache_display_message,
+    get_cache_helper_text,
+    get_last_known_live_results,
+    get_quota_status,
 )
 
 logger = logging.getLogger(__name__)
@@ -163,15 +170,6 @@ def _normalize_amadeus_offers(
 ) -> List[FlightOffer]:
     """
     Normalize Amadeus API response to FlightOffer format.
-    
-    Amadeus response structure:
-    {
-        "id": "1",
-        "source": "GDS",
-        "price": {"currency": "INR", "total": "5421.00", ...},
-        "itineraries": [...],
-        ...
-    }
     """
     offers = []
     
@@ -200,7 +198,7 @@ def _normalize_amadeus_offers(
                     try:
                         dep_time = datetime.fromisoformat(departure.get("at", "").replace("Z", "+00:00"))
                     except:
-                        dep_time = datetime.now()
+                        dep_time = datetime.now(timezone.utc)
                     
                     try:
                         arr_time = datetime.fromisoformat(arrival.get("at", "").replace("Z", "+00:00"))
@@ -241,7 +239,6 @@ def _normalize_amadeus_offers(
                 if fare_details:
                     cabin = fare_details[0].get("cabin", "ECONOMY")
                     fare_basis = fare_details[0].get("fareBasis", "")
-                    # Simple heuristic: flexible fares often contain "Y" or "F"
                     refundable = cabin in ["BUSINESS", "FIRST"] or "FLEX" in fare_basis.upper()
             
             offer = FlightOffer(
@@ -304,6 +301,19 @@ def _build_booking_deeplink(origin: str, destination: str, departure_date: str) 
         return f"https://www.aviasales.com?marker={settings.travelpayouts_marker}"
 
 
+def _format_timestamp_for_display(iso_timestamp: str) -> str:
+    """
+    Format ISO timestamp to user-friendly display format.
+    
+    Example: "Last updated at 08:02 AM"
+    """
+    try:
+        dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
+        return dt.strftime("Last updated at %I:%M %p")
+    except:
+        return "Last updated recently"
+
+
 # ============================================================================
 # MAIN PROTECTED SEARCH FUNCTION
 # ============================================================================
@@ -318,13 +328,20 @@ async def search_flights_protected(
     
     This function implements all cost control measures:
     1. Checks cache first
-    2. Validates search intent header
+    2. Validates search intent header (x-search-intent = "real")
     3. Checks IP rate limit
     4. Checks daily cap
     5. Makes Amadeus API call only if all checks pass
-    6. Caches results
-    7. Logs search event
+    6. Caches results with Last Known Live Price metadata
+    7. Logs search event for trust auditing
     8. Returns graceful fallback if any check fails
+    
+    RESPONSE METADATA:
+    - source: "AMADEUS" (live) or "CACHE" (cached)
+    - is_live: boolean
+    - last_live_updated_at: UTC timestamp
+    - cache_message: User-friendly message for cached results
+    - quota_status: Current quota info
     
     Args:
         request: Flight search parameters
@@ -332,10 +349,11 @@ async def search_flights_protected(
         client_ip: Client IP address for rate limiting
     
     Returns:
-        Search result dict with offers or fallback message
+        Search result dict with offers and metadata
     """
     start_time = time.time()
-    route = f"{request.origin}-{request.destination}-{request.departure_date}"
+    search_key = f"{request.origin}-{request.destination}-{request.departure_date}"
+    now_utc = datetime.now(timezone.utc).isoformat()
     
     # Decision: Should we make a real API call?
     should_call, reason, cached_data = should_make_real_search(
@@ -348,25 +366,38 @@ async def search_flights_protected(
         cabin_class=request.cabin_class
     )
     
-    # Case 1: Cache hit
+    # Case 1: Cache hit - return cached with honest metadata
     if reason == "cache_hit" and cached_data:
+        latency_ms = (time.time() - start_time) * 1000
+        
         log_search_event(
-            route=route,
-            source="cache",
+            search_key=search_key,
+            served_source="CACHE",
             ip=client_ip,
             is_real=False,
             result_count=len(cached_data.get("offers", [])),
-            latency_ms=(time.time() - start_time) * 1000
+            last_live_updated_at=cached_data.get("last_live_updated_at"),
+            latency_ms=latency_ms
         )
         
-        return cached_data
+        return {
+            **cached_data,
+            "status": "completed",
+            "outcome": "results" if cached_data.get("offers") else "no_results",
+            "source": "CACHE",
+            "is_live": False,
+            "cache_message": get_cache_display_message(),
+            "cache_helper_text": get_cache_helper_text(),
+            "timestamp_display": _format_timestamp_for_display(cached_data.get("last_live_updated_at", now_utc)),
+            "quota_status": get_quota_status(),
+            "latency_ms": latency_ms
+        }
     
-    # Case 2: Not a real search request (prefetch, filter, etc.)
+    # Case 2: Not a real search request (prefetch, filter, no intent)
     if not should_call and "no_real_intent" in reason:
-        # Return empty or cached for non-real requests
         log_search_event(
-            route=route,
-            source="blocked_no_intent",
+            search_key=search_key,
+            served_source="BLOCKED_NO_INTENT",
             ip=client_ip,
             is_real=False,
             result_count=0
@@ -378,34 +409,57 @@ async def search_flights_protected(
             "message": "Search requires explicit user action.",
             "offers": [],
             "flights": [],
-            "source": "intent_blocked"
+            "source": "BLOCKED",
+            "is_live": False,
+            "reason": "missing_search_intent"
         }
     
-    # Case 3: Rate limited or cap reached - return graceful fallback
+    # Case 3: Rate limited or cap reached - return last known live results
     if not should_call:
-        log_search_event(
-            route=route,
-            source=f"blocked_{reason}",
-            ip=client_ip,
-            is_real=False,
-            result_count=0
-        )
+        latency_ms = (time.time() - start_time) * 1000
         
-        # Check if we have any cached data for this route (even if expired)
-        old_cached = get_cached_results(
+        # Try to get last known live results (ignores TTL)
+        fallback_data = get_last_known_live_results(
             request.origin, request.destination, request.departure_date,
             request.adults, request.cabin_class
         )
         
-        return {
-            "status": "completed",
-            "outcome": "fallback",
-            "message": get_fallback_message(),
-            "offers": old_cached.get("offers", []) if old_cached else [],
-            "flights": old_cached.get("flights", []) if old_cached else [],
-            "source": "fallback",
-            "reason": reason  # For debugging, not shown to users
-        }
+        log_search_event(
+            search_key=search_key,
+            served_source="CACHE",
+            ip=client_ip,
+            is_real=False,
+            result_count=len(fallback_data.get("offers", [])) if fallback_data else 0,
+            last_live_updated_at=fallback_data.get("last_live_updated_at") if fallback_data else None,
+            latency_ms=latency_ms
+        )
+        
+        if fallback_data:
+            return {
+                **fallback_data,
+                "status": "completed",
+                "outcome": "results" if fallback_data.get("offers") else "no_results",
+                "source": "CACHE",
+                "is_live": False,
+                "cache_message": get_cache_display_message(),
+                "cache_helper_text": get_cache_helper_text(),
+                "timestamp_display": _format_timestamp_for_display(fallback_data.get("last_live_updated_at", now_utc)),
+                "quota_status": get_quota_status(),
+                "latency_ms": latency_ms
+            }
+        else:
+            # No cached data available - return empty with friendly message
+            return {
+                "status": "completed",
+                "outcome": "no_results",
+                "message": get_cache_display_message(),
+                "offers": [],
+                "flights": [],
+                "source": "CACHE",
+                "is_live": False,
+                "quota_status": get_quota_status(),
+                "latency_ms": latency_ms
+            }
     
     # Case 4: Make real Amadeus API call
     try:
@@ -431,35 +485,41 @@ async def search_flights_protected(
         
         latency_ms = (time.time() - start_time) * 1000
         
-        # Prepare result
+        # Prepare result with LIVE metadata
         result = {
             "status": "completed",
             "outcome": "results" if offers else "no_results",
             "offers": [o.dict() for o in offers],
             "flights": [o.dict() for o in offers],
-            "source": "amadeus",
+            "source": "AMADEUS",
+            "is_live": True,
             "supplier": "amadeus",
             "count": len(offers),
-            "latency_ms": latency_ms
+            "latency_ms": latency_ms,
+            "last_live_updated_at": now_utc,
+            "timestamp_display": "Updated just now",
+            "quota_status": get_quota_status()
         }
         
-        # Cache results (even if empty, to prevent repeated calls)
+        # Cache results with live metadata
         cache_results(
             origin=request.origin,
             destination=request.destination,
             departure_date=request.departure_date,
             adults=request.adults,
             cabin_class=request.cabin_class,
-            results=result
+            results=result,
+            is_live=True
         )
         
         # Log the search
         log_search_event(
-            route=route,
-            source="amadeus",
+            search_key=search_key,
+            served_source="AMADEUS",
             ip=client_ip,
             is_real=True,
             result_count=len(offers),
+            last_live_updated_at=now_utc,
             latency_ms=latency_ms
         )
         
@@ -468,22 +528,43 @@ async def search_flights_protected(
     except Exception as e:
         logger.error(f"❌ Amadeus search error: {e}", exc_info=True)
         
-        # Return graceful fallback on error
+        latency_ms = (time.time() - start_time) * 1000
+        
+        # Try to return last known live results as fallback
+        fallback_data = get_last_known_live_results(
+            request.origin, request.destination, request.departure_date,
+            request.adults, request.cabin_class
+        )
+        
         log_search_event(
-            route=route,
-            source="error",
+            search_key=search_key,
+            served_source="ERROR_FALLBACK",
             ip=client_ip,
             is_real=True,
-            result_count=0
+            result_count=len(fallback_data.get("offers", [])) if fallback_data else 0,
+            latency_ms=latency_ms
         )
+        
+        if fallback_data:
+            return {
+                **fallback_data,
+                "status": "completed",
+                "outcome": "results" if fallback_data.get("offers") else "no_results",
+                "source": "CACHE",
+                "is_live": False,
+                "cache_message": get_cache_display_message(),
+                "quota_status": get_quota_status()
+            }
         
         return {
             "status": "completed",
             "outcome": "fallback",
-            "message": get_fallback_message(),
+            "message": get_cache_display_message(),
             "offers": [],
             "flights": [],
-            "source": "error_fallback"
+            "source": "ERROR_FALLBACK",
+            "is_live": False,
+            "quota_status": get_quota_status()
         }
 
 

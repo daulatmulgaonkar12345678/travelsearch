@@ -12,8 +12,8 @@ CRITICAL RULES:
 - Filters and sorting are CLIENT-SIDE ONLY - NEVER trigger API calls
 
 This module provides:
-1. Daily search counter with midnight reset
-2. Flight search result caching
+1. Daily search counter with midnight UTC reset
+2. Flight search result caching with "Last Known Live Price"
 3. Per-IP rate limiting
 4. Search intent validation
 5. Graceful fallbacks (never show technical errors)
@@ -26,7 +26,7 @@ This module provides:
 import hashlib
 import logging
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Dict, List, Optional, Any, Tuple
 from collections import defaultdict
 import json
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # GLOBAL STATE (In-memory - use Redis in production for multi-instance)
 # ============================================================================
 
-# Daily search counter
+# Daily search counter - resets at UTC midnight
 _daily_counter = {
     "date": None,
     "count": 0,
@@ -47,7 +47,17 @@ _daily_counter = {
     "month": None
 }
 
-# Flight search cache: {cache_key: {"data": results, "timestamp": unix_time}}
+# Flight search cache with "Last Known Live Price" metadata
+# Format: {
+#   cache_key: {
+#     "data": results,
+#     "timestamp": unix_time,
+#     "last_live_price": float,
+#     "last_live_currency": str,
+#     "last_live_updated_at": ISO timestamp,
+#     "source": "AMADEUS" | "CACHE"
+#   }
+# }
 _flight_cache: Dict[str, Dict] = {}
 
 # Per-IP rate limiter: {ip_hash: [timestamp1, timestamp2, ...]}
@@ -83,26 +93,42 @@ def get_rate_limit_per_ip() -> int:
 
 
 def is_real_search_enabled() -> bool:
-    """Check if real Amadeus searches are enabled."""
+    """Check if real Amadeus searches are enabled (feature flag)."""
     return settings.amadeus_real_search_enabled
 
 
 # ============================================================================
-# DAILY COUNTER MANAGEMENT
+# DAILY COUNTER MANAGEMENT (UTC Midnight Reset)
 # ============================================================================
 
+def _get_utc_date() -> date:
+    """Get current date in UTC timezone."""
+    return datetime.now(timezone.utc).date()
+
+
+def _get_utc_month() -> str:
+    """Get current month in UTC timezone as YYYY-MM."""
+    return datetime.now(timezone.utc).strftime("%Y-%m")
+
+
 def _reset_daily_counter_if_needed():
-    """Reset daily counter at midnight."""
-    today = date.today()
-    current_month = today.strftime("%Y-%m")
+    """Reset daily counter at UTC midnight (00:00 UTC)."""
+    today = _get_utc_date()
+    current_month = _get_utc_month()
     
     if _daily_counter["date"] != today:
-        logger.info(f"📅 Daily counter reset. Previous: {_daily_counter['count']} searches on {_daily_counter['date']}")
+        logger.info(
+            f"📅 Daily counter reset at UTC midnight. "
+            f"Previous: {_daily_counter['count']} searches on {_daily_counter['date']}"
+        )
         _daily_counter["date"] = today
         _daily_counter["count"] = 0
     
     if _daily_counter["month"] != current_month:
-        logger.info(f"📅 Monthly counter reset. Previous: {_daily_counter['monthly_count']} in {_daily_counter['month']}")
+        logger.info(
+            f"📅 Monthly counter reset. "
+            f"Previous: {_daily_counter['monthly_count']} in {_daily_counter['month']}"
+        )
         _daily_counter["month"] = current_month
         _daily_counter["monthly_count"] = 0
 
@@ -124,7 +150,10 @@ def increment_search_counter():
     _reset_daily_counter_if_needed()
     _daily_counter["count"] += 1
     _daily_counter["monthly_count"] += 1
-    logger.info(f"📊 Search count: {_daily_counter['count']}/{get_daily_cap()} today, {_daily_counter['monthly_count']} this month")
+    logger.info(
+        f"📊 Search count: {_daily_counter['count']}/{get_daily_cap()} today, "
+        f"{_daily_counter['monthly_count']} this month"
+    )
 
 
 def can_make_real_search() -> Tuple[bool, str]:
@@ -147,8 +176,20 @@ def can_make_real_search() -> Tuple[bool, str]:
     return True, "allowed"
 
 
+def get_quota_status() -> Dict[str, Any]:
+    """Get current quota status for monitoring."""
+    _reset_daily_counter_if_needed()
+    return {
+        "daily_used": _daily_counter["count"],
+        "daily_cap": get_daily_cap(),
+        "daily_remaining": max(0, get_daily_cap() - _daily_counter["count"]),
+        "cap_reached": _daily_counter["count"] >= get_daily_cap(),
+        "real_search_enabled": is_real_search_enabled()
+    }
+
+
 # ============================================================================
-# CACHING
+# CACHING WITH "LAST KNOWN LIVE PRICE"
 # ============================================================================
 
 def _build_cache_key(
@@ -172,13 +213,17 @@ def get_cached_results(
     destination: str,
     departure_date: str,
     adults: int = 1,
-    cabin_class: str = "economy"
+    cabin_class: str = "economy",
+    ignore_ttl: bool = False
 ) -> Optional[Dict]:
     """
-    Get cached flight search results if available and not expired.
+    Get cached flight search results.
+    
+    Args:
+        ignore_ttl: If True, returns cached data even if expired (for fallback)
     
     Returns:
-        Cached results dict or None if not found/expired
+        Cached results dict with metadata or None if not found
     """
     cache_key = _build_cache_key(origin, destination, departure_date, adults, cabin_class)
     
@@ -189,16 +234,57 @@ def get_cached_results(
     cached = _flight_cache[cache_key]
     age = time.time() - cached["timestamp"]
     
-    if age > get_cache_ttl():
-        # Expired
-        del _flight_cache[cache_key]
+    if not ignore_ttl and age > get_cache_ttl():
+        # Expired - but don't delete, keep for fallback
         _cache_stats["misses"] += 1
         logger.debug(f"Cache expired for {cache_key} (age: {age:.0f}s)")
         return None
     
     _cache_stats["hits"] += 1
     logger.info(f"✅ Cache HIT for {cache_key} (age: {age:.0f}s)")
-    return cached["data"]
+    
+    # Return with source indicator
+    return {
+        **cached["data"],
+        "source": "CACHE",
+        "last_live_updated_at": cached.get("last_live_updated_at"),
+        "last_live_price": cached.get("last_live_price"),
+        "last_live_currency": cached.get("last_live_currency"),
+        "cache_age_seconds": int(age)
+    }
+
+
+def get_last_known_live_results(
+    origin: str,
+    destination: str,
+    departure_date: str,
+    adults: int = 1,
+    cabin_class: str = "economy"
+) -> Optional[Dict]:
+    """
+    Get last known live results for fallback (ignores TTL).
+    
+    This is used when quota is exceeded to show cached data with honest timestamps.
+    """
+    cache_key = _build_cache_key(origin, destination, departure_date, adults, cabin_class)
+    
+    if cache_key not in _flight_cache:
+        return None
+    
+    cached = _flight_cache[cache_key]
+    age = time.time() - cached["timestamp"]
+    
+    logger.info(f"📦 Using last known live results for {cache_key} (age: {age:.0f}s)")
+    
+    return {
+        **cached["data"],
+        "source": "CACHE",
+        "last_live_updated_at": cached.get("last_live_updated_at"),
+        "last_live_price": cached.get("last_live_price"),
+        "last_live_currency": cached.get("last_live_currency"),
+        "cache_age_seconds": int(age),
+        "is_stale": True
+    }
 
 
 def cache_results(
@@ -207,17 +293,47 @@ def cache_results(
     departure_date: str,
     adults: int,
     cabin_class: str,
-    results: Dict
+    results: Dict,
+    is_live: bool = True
 ):
-    """Cache flight search results."""
+    """
+    Cache flight search results with "Last Known Live Price" metadata.
+    
+    Args:
+        results: Flight search results
+        is_live: True if this is from a real Amadeus API call
+    """
     cache_key = _build_cache_key(origin, destination, departure_date, adults, cabin_class)
+    
+    # Extract minimum price from offers
+    offers = results.get("offers", []) or results.get("flights", [])
+    min_price = None
+    currency = "INR"
+    
+    if offers:
+        prices = [o.get("price", 0) for o in offers if o.get("price")]
+        if prices:
+            min_price = min(prices)
+        currencies = [o.get("currency", "INR") for o in offers if o.get("currency")]
+        if currencies:
+            currency = currencies[0]
+    
+    now_utc = datetime.now(timezone.utc).isoformat()
     
     _flight_cache[cache_key] = {
         "data": results,
-        "timestamp": time.time()
+        "timestamp": time.time(),
+        "last_live_price": min_price,
+        "last_live_currency": currency,
+        "last_live_updated_at": now_utc if is_live else _flight_cache.get(cache_key, {}).get("last_live_updated_at"),
+        "source": "AMADEUS" if is_live else "CACHE"
     }
     
-    logger.info(f"💾 Cached results for {cache_key} ({len(results.get('offers', []))} offers)")
+    offer_count = len(offers)
+    logger.info(
+        f"💾 Cached {'live' if is_live else 'fallback'} results for {cache_key} "
+        f"({offer_count} offers, min price: {min_price} {currency})"
+    )
 
 
 def get_cache_hit_ratio() -> float:
@@ -299,28 +415,40 @@ def validate_search_intent(headers: Dict) -> Tuple[bool, str]:
 # ============================================================================
 
 def log_search_event(
-    route: str,
-    source: str,
+    search_key: str,
+    served_source: str,
     ip: str,
     is_real: bool,
     result_count: int,
+    last_live_updated_at: Optional[str] = None,
+    quota_status: Optional[Dict] = None,
     latency_ms: float = 0
 ):
     """
-    Log a search event for monitoring.
+    Log a search event for monitoring and trust auditing.
+    
+    Logs:
+    - search_key
+    - served_source (AMADEUS | CACHE)
+    - last_live_updated_at
+    - quota_status
     
     Never logs raw IP - only hashed version.
     """
     ip_hash = _hash_ip(ip)
     
+    if quota_status is None:
+        quota_status = get_quota_status()
+    
     event = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "route": route,
-        "source": source,  # "amadeus", "cache", "fallback", "demo"
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "search_key": search_key,
+        "served_source": served_source,
+        "last_live_updated_at": last_live_updated_at,
+        "quota_status": quota_status,
         "ip_hash": ip_hash,
         "is_real": is_real,
         "result_count": result_count,
-        "daily_counter": get_daily_search_count(),
         "latency_ms": latency_ms
     }
     
@@ -331,9 +459,9 @@ def log_search_event(
         _search_logs.pop(0)
     
     logger.info(
-        f"🔍 Search: {route} | Source: {source} | "
+        f"🔍 Search: {search_key} | Source: {served_source} | "
         f"Real: {is_real} | Results: {result_count} | "
-        f"Daily: {event['daily_counter']}/{get_daily_cap()}"
+        f"Quota: {quota_status['daily_used']}/{quota_status['daily_cap']}"
     )
 
 
@@ -361,21 +489,31 @@ def get_search_stats() -> Dict[str, Any]:
         "real_search_enabled": is_real_search_enabled(),
         "rate_limit_per_ip": get_rate_limit_per_ip(),
         "cache_ttl_seconds": get_cache_ttl(),
-        "recent_searches": _search_logs[-10:]
+        "recent_searches": _search_logs[-10:],
+        "quota_status": get_quota_status()
     }
 
 
 # ============================================================================
-# FALLBACK DATA
+# FALLBACK MESSAGES (USER-FRIENDLY)
 # ============================================================================
 
-def get_fallback_message() -> str:
+def get_cache_display_message() -> str:
     """
-    Get user-friendly fallback message.
+    Get user-friendly message for cached results.
     
-    NEVER expose technical details or billing info.
+    Approved UX copy: "Showing recent results. Live prices may update shortly."
     """
-    return "High demand right now. Showing best available results."
+    return "Showing recent results. Live prices may update shortly."
+
+
+def get_cache_helper_text() -> str:
+    """
+    Get helper text for cached results.
+    
+    Approved copy: "Prices may change on the booking site"
+    """
+    return "Prices may change on the booking site"
 
 
 def get_demo_flights(origin: str, destination: str, departure_date: str) -> List[Dict]:
