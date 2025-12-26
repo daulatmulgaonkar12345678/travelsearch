@@ -184,11 +184,13 @@ export default function EnhancedFlightCard({
             onClick={() => setShowVendors(v => !v)}
             className="mt-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center justify-center gap-1"
           >
-            Select
+            Continue to booking
             {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
-          {/* Phase 2: Booking redirect microcopy */}
-          <BookingRedirectMicrocopy />
+          {/* Phase 2: Booking redirect microcopy - "Final price confirmed on partner site" */}
+          <p className="text-xs text-gray-500 mt-1.5">
+            Final price confirmed on partner site
+          </p>
         </div>
       </div>
 
