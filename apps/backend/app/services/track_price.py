@@ -52,7 +52,7 @@ class TrackPriceService:
         """
         Get all active saved searches that need price checking.
         """
-        db = await self._get_db()
+        db = self._get_db()
         
         # Get searches where:
         # - is_active = True
