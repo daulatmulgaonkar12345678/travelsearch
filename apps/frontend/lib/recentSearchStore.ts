@@ -2,6 +2,12 @@
  * Recent Search Store
  * 
  * Manages automatic storage of recent flight searches in localStorage.
+ * 
+ * IMPORTANT: This store saves SEARCH PARAMETERS only.
+ * Prices shown are for reference/display only - NOT final prices.
+ * When user re-runs a search, the system ALWAYS fetches live prices.
+ * 
+ * Features:
  * - Automatically stores every successful flight search
  * - No login required, no explicit save action needed
  * - Keeps last 8 searches (FIFO)
@@ -12,6 +18,7 @@
  */
 
 export interface RecentSearch {
+  // Search parameters (ALWAYS used for re-search)
   origin: string
   destination: string
   departureDate: string
@@ -19,9 +26,13 @@ export interface RecentSearch {
   adults: number
   cabinClass: string
   tripType: string
-  timestamp: string // ISO string
-  lastKnownPrice?: number
-  lastKnownCurrency?: string
+  timestamp: string // ISO string - when search was performed
+  
+  // Display-only fields (NOT used as final prices)
+  // These are just for showing approximate prices in the UI
+  // Real prices are ALWAYS fetched fresh when user clicks
+  displayPrice?: number      // Renamed from lastKnownPrice for clarity
+  displayCurrency?: string   // Renamed from lastKnownCurrency for clarity
 }
 
 const STORAGE_KEY = 'travelsearch_recent_flights'
@@ -40,6 +51,7 @@ function isExpired(search: RecentSearch): boolean {
 
 /**
  * Check if two searches are identical (for deduplication)
+ * Only compares search PARAMETERS, not prices
  */
 function areSearchesEqual(a: RecentSearch, b: RecentSearch): boolean {
   return (
@@ -84,6 +96,9 @@ export function getRecentSearches(): RecentSearch[] {
  * Add a new search to recent searches
  * Called automatically after a successful flight search
  * 
+ * NOTE: displayPrice is for UI reference only.
+ * When user re-runs this search, prices are ALWAYS fetched fresh.
+ * 
  * @param search - The search parameters to save
  * @returns The updated list of recent searches
  */
@@ -127,7 +142,8 @@ export function addRecentSearch(search: Omit<RecentSearch, 'timestamp'>): Recent
 }
 
 /**
- * Update the price for a recent search (after results load)
+ * Update the display price for a recent search
+ * This is for UI display only - NOT the final price
  */
 export function updateRecentSearchPrice(
   origin: string,
@@ -147,8 +163,8 @@ export function updateRecentSearchPrice(
     )
     
     if (index !== -1) {
-      searches[index].lastKnownPrice = price
-      searches[index].lastKnownCurrency = currency
+      searches[index].displayPrice = price
+      searches[index].displayCurrency = currency
       localStorage.setItem(STORAGE_KEY, JSON.stringify(searches))
     }
   } catch (e) {
@@ -217,4 +233,25 @@ export function formatRelativeTime(timestamp: string): string {
   if (days === 1) return 'Yesterday'
   if (days < 7) return `${days}d ago`
   return formatSearchDate(timestamp.split('T')[0])
+}
+
+/**
+ * Build search URL from recent search params
+ * Used when user clicks to re-run a search
+ */
+export function buildSearchUrl(search: RecentSearch): string {
+  const params = new URLSearchParams({
+    origin: search.origin,
+    destination: search.destination,
+    departure_date: search.departureDate,
+    trip_type: search.tripType || 'oneway',
+    adults: String(search.adults || 1),
+    cabin_class: search.cabinClass || 'economy',
+  })
+  
+  if (search.returnDate && search.tripType === 'roundtrip') {
+    params.set('return_date', search.returnDate)
+  }
+  
+  return `/flights/results?${params.toString()}`
 }
