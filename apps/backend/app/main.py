@@ -163,6 +163,7 @@ app.include_router(hybrid_health.router, tags=["hybrid-protection"])
 app.include_router(health_amadeus.router, prefix="/api", tags=["health"])
 app.include_router(health_aviasales.router, prefix="/api", tags=["health", "aviasales"])
 app.include_router(internal_stats.router, prefix="/api", tags=["internal", "monitoring"])
+app.include_router(saved_searches.router, prefix="/api", tags=["saved-searches"])
 
 # ============================================================
 # Local Run
