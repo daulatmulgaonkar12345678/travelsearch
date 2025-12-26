@@ -169,6 +169,9 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
  * Uses Next.js Image for lazy loading and optimization
  */
 function FlightRouteCard({ route }: { route: FlightRouteData }) {
+  // For now, we use gradient fallback since images aren't uploaded yet
+  // Once WebP images are added to /public/images/routes/, set hasImage to true
+  const hasImage = false // Set to true when images are available
   const imageSrc = route.image 
     ? `/images/routes/${route.image}`
     : null
@@ -176,8 +179,8 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       {/* Image with lazy loading */}
-      <div className="relative h-36 bg-gradient-to-br from-blue-100 to-blue-50 overflow-hidden">
-        {imageSrc ? (
+      <div className="relative h-36 bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
+        {hasImage && imageSrc ? (
           <Image
             src={imageSrc}
             alt={`Flights from ${route.origin} to ${route.destination}`}
@@ -187,20 +190,20 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
             loading="lazy"
           />
         ) : (
-          /* Fallback gradient with route text */
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl font-bold text-blue-200">
+          /* Fallback gradient with route codes */
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
+            <span className="text-3xl font-bold text-white/30">
               {route.originCode} → {route.destinationCode}
             </span>
           </div>
         )}
         
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         
         {/* Route badge */}
         <div className="absolute bottom-3 left-3 right-3">
-          <span className="text-white font-semibold text-lg drop-shadow-sm">
+          <span className="text-white font-semibold text-lg drop-shadow-md">
             {route.origin} → {route.destination}
           </span>
         </div>
