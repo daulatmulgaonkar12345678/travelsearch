@@ -409,9 +409,14 @@ useEffect(() => {
       const apiPath = `/api/search/flights?${params}`
 
       // Fetch with abort signal using robust apiFetch and cache: 'no-store'
+      // CRITICAL: Add x-search-intent: "real" header to trigger actual API call
+      // This is required for cost-controlled Amadeus integration
       const response = await apiFetch(apiPath, {
         signal: controller.signal,
-        cache: 'no-store'
+        cache: 'no-store',
+        headers: {
+          'x-search-intent': 'real'  // Signals explicit user search action
+        }
       })
 
       // Clear timeouts on success
