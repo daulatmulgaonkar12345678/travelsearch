@@ -1,182 +1,156 @@
 <analysis>**original_problem_statement:**
-The user's latest request is to perform a Phase 2 frontend integration. A suite of UI components focused on trust, user confidence, and retention (e.g., trust indicators, price tracking, saved search) has already been created. The current task is to fully integrate these components into the correct locations on the homepage and search results page to make them visible and functional for the end-user.
-
-This follows a series of significant updates, including:
-1.  Fixing a critical backend bug where Amadeus credentials were not being loaded correctly by implementing a centralized configuration system.
-2.  Implementing a secure admin section, removing it from public view, and adding a suite of legal/compliance pages.
-3.  Hardening the frontend airport search inputs to require selection from an autocomplete list, mimicking Google Flights' behavior and preventing invalid API calls.
-4.  Adding a graceful Service Unavailable handling mechanism for the frontend and backend.
+The user's initial high-level goal was to make the flight meta-search application production-ready, focusing on affiliate compliance, SEO, and integrating a reliable data source. This evolved through several specific requests:
+1.  **Phase 2 UI Integration:** Integrate pre-built trust and feature components (, , ) into the frontend.
+2.  **SEO & Content Infrastructure:** Generate a large number of static SEO-friendly pages for popular flight routes and hotel cities, create a sitemap, and configure  for proper indexing.
+3.  **Aviasales Integration:** Replace Amadeus as the primary flight search provider with Aviasales to get real, live flight data and fix the no results issue. This included expanding the airport database for comprehensive India/APAC coverage and using API-provided deeplinks for affiliate tracking.
+4.  **Amadeus Cost Control:** The latest and current task is to re-architect the Amadeus integration, making it a fallback provider wrapped in a strict, cost-controlled system featuring daily search caps, caching, IP-based rate limiting, and an internal monitoring endpoint.
 
 **PRODUCT REQUIREMENTS:**
-- **Phase 2 Integration:** Fully integrate all pre-built Phase 2 components (, , , etc.) into the flight results page header, below the results list, and on individual flight cards.
-- **Animation Consistency:** Ensure all new elements use the defined motion system for subtle, modern animations (, , ).
-- **Trust & Compliance:** The application must present itself as a legitimate, trustworthy metasearch platform, suitable for partner review. This includes visible disclaimers about third-party bookings and transparent affiliate disclosures.
-- **No Regressions:** All existing functionality, especially the new airport input validation and backend configuration, must remain intact.
+- **Cost-Efficiency:** The Amadeus API (as a fallback) must have a configurable daily search cap (starting at 70), aggressive caching (10-15 min TTL), and IP-based rate limiting (5 searches/min/IP) to prevent cost overruns.
+- **Intent-Based Gating:** A real Amadeus API call should only be triggered by an explicit Search Flights button click, identified by an  header. All other UI interactions (filters, sorting, date changes) must be client-side only.
+- **Graceful Fallbacks:** When the Amadeus API is unavailable (cap reached, rate-limited), the user must see cached/demo data with a user-friendly message, not a technical error.
+- **Data & Compliance:** The application must use Aviasales as its primary source for live flight data. All affiliate compliance measures (disclosures, no misleading claims) and SEO best practices (static pages indexed, dynamic results ) must be maintained.
+- **Monitoring:** An internal endpoint () must be created to track search usage, cache hits, and quota status.
 
 **User's preferred language**: English
 
 **what currently exists?**
-- A full-stack application with a Next.js 14 frontend and FastAPI backend.
-- A centralized backend configuration system in  which has resolved previous credential caching issues.
-- A secure admin section at , protected by a login page and accessible only via direct URL. The Admin link has been removed from public navigation.
-- A new site-wide footer containing links to newly created legal and compliance pages (, , , etc.).
-- A robust, Google Flights-style airport input validation system on the frontend that requires users to select an airport from an autocomplete list, preventing invalid data from being sent to the backend.
-- A global backend exception handler for  errors and a corresponding frontend component to display a user-friendly message.
-- A suite of **un-integrated** Phase 2 React components located in  and .
+- A full-stack Next.js/FastAPI application.
+- Aviasales is successfully integrated as the **primary flight search provider**, delivering live, real-time flight data and fixing the previous no results bug.
+- A comprehensive SEO infrastructure is in place, with dozens of static, indexable pages for flight routes and hotel cities, a , and a .
+- An internal linking strategy has been implemented on the homepage to boost SEO.
+- All Phase 2 UI components (Trust Indicators, Save/Track features) are integrated and visible on the flight results page.
+- The backend contains a significantly expanded airport dataset in a JSON file for broad India & APAC coverage.
+- The foundation for the Amadeus cost-control system has been laid out with new (but incomplete) service files.
 
 **Last working item**:
-- **Last item agent was working on:** The agent was tasked with the full integration of the already-created Phase 2 UX components into the live application, primarily on the flight results page, to make them visible and interactive.
-- **Status:** NOT STARTED
+- **Last item agent was working:** Implementing the comprehensive cost-controlled system for the Amadeus API, which will serve as a production-ready, cost-safe fallback provider.
+- **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** frontend testing agent. This task involves significant UI changes across multiple components on the search results page. A testing agent can verify the layout, animations, and functionality of the integrated components (, , etc.) more effectively than screenshots alone.
+- **Which testing method agent to use?** backend testing agent. This is a complex, backend-heavy architecture change involving caching, rate limiting, and custom headers. The testing agent can create targeted tests to validate each piece of the logic (daily caps, cache hits/misses, rate limit blocks, header checks) more effectively than manual  commands.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1:** Flight searches return no results (P1)
-
-**Issues Detail:**
-- **Issue 1:**
-    - **Description:** After successfully fixing the Amadeus authentication, flight searches now complete with a  status but consistently return an empty list of flights. The agent noted this might be a limitation of the Amadeus test API but did not investigate further.
-    - **Attempted fixes:** None. The issue was identified, but the agent moved on to other user requests.
-    - **Next debug checklist:**
-        1.  Examine the backend logs () for the exact request payload sent to Amadeus during a flight search from .
-        2.  Use  to send the identical request payload directly to the Amadeus API () to isolate whether the issue is with the API's test data or the backend's request formation.
-        3.  Test with different routes and dates to see if the issue is specific to the  route.
-        4.  Review the  adapter to ensure all parameters required by the Amadeus Flight Offers Search API are correctly formatted and included.
-    - **Why fix this issue and what will be achieved with the fix?** This is a critical issue as the application's core functionality—displaying flight results—is not working. Fixing it will make the application usable.
-    - **Status:** NOT STARTED
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** backend
-    - **Blocked on other issue:** None.
+- There are no pending issues. The critical no results bug was resolved by the successful integration of Aviasales.
 
 **In progress Task List**:
-- **Task 1:** Complete Phase 2 UX/UI Integration (P0)
+- **Task 1:** Complete and Test the Cost-Controlled Amadeus System (P0)
 
 **Task Detail:**
 - **Task 1:**
-    - **Where to resume:** Begin by editing . Integrate the , ,  components into the header area above the results. Integrate the platform explanation box below the results. Finally, modify the flight result card component to add the booking on partner site microcopy.
-    - **What will be achieved with this?** This will make the trust-building and user-retention features visible and functional, aligning the application with the user's latest request and making it feel like a more mature, production-ready platform.
-    - **Status:** NOT STARTED
-    - **Should Test frontend/backend/both after fix?** frontend
+    - **Where to resume:** The agent has created the initial files: , , and . The next steps are to fully implement the logic within these files, integrate them into the main application flow, and update the frontend.
+    - **What will be achieved with this?** A production-grade, cost-safe flight search system that prevents accidental API cost overruns from the fallback provider (Amadeus), fulfilling a critical user requirement for safe scaling.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** both
     - **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 **Upcoming Tasks:**
-- **(P2) Implement Backend for Track Price:** Develop the backend service to handle email submissions from the Track Price feature, store them, and set up a mechanism for future price alert notifications.
-- **(P2) Implement Saved Searches Display:** Create a UI element (e.g., on the homepage) to display the last 3 searches saved in , allowing users to re-run them with one click.
-- **(P3) Implement SEO Guide Recommendations:** Apply the metadata structure, OpenGraph tags, and JSON-LD schema outlined in .
+- **(P1) Implement Backend for Track Price:** Develop the backend service to handle email submissions from the Track Price feature, store them, and set up a mechanism for future price alert notifications.
 
 **Future Tasks:**
 - Polish the Admin Page with real data and more functionality.
-- Expand the admin dashboard with analytics.
-- Implement a more advanced deep-linking strategy for shared searches.
+- Expand the admin dashboard with analytics (leveraging the new  endpoint).
+- Implement a more advanced deep-linking strategy for sharing searches.
 
 **Completed work in this session**
-- **Centralized Backend Configuration (DONE):** Fixed the persistent Amadeus credential-loading bug by creating a single-source-of-truth configuration system in .
-- **Admin Section & Legal Pages (DONE):** Implemented a secure admin area with a login page and route guards. Created and integrated a full suite of legal/compliance pages (, , etc.) with a new site-wide footer.
-- **Google Flights-Style Airport Validation (DONE):** Replaced free-text airport inputs with a strictly validated autocomplete component (), preventing invalid API calls. Fixed a critical bug where dropdown items were un-clickable due to an / race condition.
-- **Service Unavailability Handling (DONE):** Created a backend exception handler and frontend component to gracefully manage  errors.
-- **Content and Component Generation (DONE):** Authored a large volume of professional content (SEO guides, compliance text, platform descriptions) and created all the necessary (but un-integrated) React components for the Phase 2 UX improvements.
-- **Date Picker Fix (DONE):** Corrected a UI bug that prevented users from selecting the current day.
+- **Aviasales Primary Provider Integration (DONE):** Successfully replaced Amadeus as the primary provider, fixing the no results bug. The app now shows real, live flight data. A new adapter, orchestrator, and health check endpoint were created.
+- **Massive SEO Infrastructure Build (DONE):**
+    - Generated 20 static SEO flight route pages and 10 static hotel city pages with reusable templates.
+    - Created  and  for optimal search engine indexing.
+    - Implemented an internal linking component on the homepage to improve site structure.
+    - Ensured dynamic results pages are marked with  to prevent duplicate content issues.
+- **Phase 2 UI Integration (DONE):** All trust and feature components (, , etc.) are now correctly integrated and visible on the flight results page.
+- **Homepage Features (DONE):** A Recent Searches section was added to the homepage, which uses  to persist data.
+- **Affiliate Compliance & UX Polish (DONE):** Removed duplicate trust signals from the results page and updated components to comply with the user's strict design rules (e.g., removing extra icons).
 
 **Earlier issues found/mentioned but not fixed**
-- See All Pending/In progress Issue list. The no results issue is the primary one.
+- None.
 
 **Known issue recurrence from previous fork**
 - **Issue recurrence in previous fork:** Amadeus Authentication Failure
 - **Recurrence count:** 2+
-- **Status:** RESOLVED
-- Note: This issue was definitively resolved by implementing the centralized backend configuration system, which prevents stale credentials from being cached. The current issue is related to getting no data, not authentication.
+- **Status:** RESOLVED (This was fixed in a previous session by centralizing configuration and has not recurred. The subsequent no results issue was also resolved by switching to Aviasales).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Centralized Backend Configuration:** Using  to create a single  object, loaded from , which is imported throughout the backend. This prevents Python module caching issues with environment variables.
-- **Frontend Input Validation:** Managing complex input state with  for the user's query (), the validated selection (), and error messages to create a controlled, validated autocomplete component.
-- **Event Handler Race Condition:** The classic issue of an  event firing before an  event on a dropdown was resolved by using  for the selection, as it fires before .
-- **Component-Driven Development:** New features (admin auth, service unavailability, trust signals) are encapsulated in dedicated, reusable React components.
-- **Client-Side State:** Using  as a lightweight, no-auth solution for features like Save Search.
-- **CSS Animations:** Defining  in  and applying them with Tailwind CSS for a consistent, lightweight animation system.
+- **Provider Orchestration:** Switched to a primary/fallback model, with Aviasales as the primary provider and Amadeus being architected as a cost-controlled fallback.
+- **Static Site Generation (SSG) for SEO:** Leveraged Next.js App Router to create a large number of static, content-rich pages for organic traffic acquisition.
+- **Client-Side State for UX:** Used  for Recent Searches and for filtering/sorting results on the client-side to provide a fast UX and avoid unnecessary API calls.
+- **API Cost Control Architecture (In Progress):** Designing a multi-layered defense system (daily caps, caching, rate-limiting, intent-gating) to manage paid API usage effectively.
+- **Intent-Based API Gateway:** Using a custom header () to differentiate user-initiated real searches from other UI interactions, preventing unintended and costly API calls.
 
 **key DB schema**
-- No changes were made to the database schema in this session. The existing schemas remain relevant for supplier protection.
-  - : 
-  - : 
+- No database is used. The application relies on a JSON file () for airport data and browser  for user-specific features.
 
 **changes in tech stack**
 - None.
 
 **All files of reference**
-- **Files to be modified:**
-  - : The primary target for integrating most of the Phase 2 components.
-  - The flight result card component (file path needs to be identified) to add the booking microcopy.
-- **Key new files/components to use:**
-  - 
-  - 
-  - 
-  - 
-- **Key reference files:**
-  - : The definitive source for all backend configuration.
-  - : The working, validated airport input component.
-  - : The current Amadeus adapter with improved logging.
+- **In-progress implementation files:**
+    - 
+    - 
+    - 
+    - 
+    - 
+- **Key completed files:**
+    - 
+    - All new SEO pages under  and 
+    - 
+    - 
 
 **Areas that need refactoring**:
-- The legacy Amadeus adapter () and orchestrator () should be fully deprecated and removed to avoid confusion, ensuring only the new V2 adapter and protected orchestrator are used.
+- The legacy Amadeus adapter and orchestrator (, ) should be reviewed and deprecated/removed to avoid confusion with the new  service, ensuring a single source of truth for Amadeus calls.
 
 **key api endpoints**
-- : **[NEW]**  - Checks Amadeus authentication status and returns the result. Crucial for debugging credential issues.
-- : **[NEW]**  - Returns the operational status of a service (, , ).
-- :  - Searches for airports based on a query string. Used by the validated airport input.
-- :  - The primary endpoint for flight searches.
+- : Now successfully serves live data from Aviasales. This endpoint is the target for the ongoing work to add the cost-controlled Amadeus fallback logic.
+- : **[NEW]** Checks the status of the Aviasales integration.
+- : **[NEW & IN-PROGRESS]** Will expose search statistics for internal monitoring once implemented.
 
 **Critical Info for New Agent**
-- **Your immediate task is to integrate the existing Phase 2 components.** The components are already created in  and . You do not need to build them, only import and place them correctly in  and the flight card component as per the last user request.
-- Once Phase 2 is integrated, the next most critical task is to **investigate the no results issue on flight searches.** The Amadeus authentication is confirmed to be working, but the API is returning empty data. This is a blocker for the core application functionality.
-- The backend has a new, centralized configuration (). Do not attempt to load environment variables from anywhere else. This has solved the previous recurring authentication bugs.
-- The frontend airport inputs are now strictly validated. This is a key UX improvement and should not be broken.
+- **You are in the middle of a major backend refactoring.** The goal is to implement a robust, cost-controlled system for the Amadeus API, which will now act as a fallback. The user has provided very strict and detailed requirements.
+- **Your immediate task is to complete the implementation and testing of the , , and  services.** This involves coding the logic for daily caps, rate-limiting, and caching, and then updating the frontend to send the required  header.
+- **Aviasales is the working PRIMARY provider.** The critical no results bug has been fixed, and the app is functional with live flight data. Do not break this existing functionality.
+- The new cost-control logic is for the **Amadeus API only**. Aviasales, as the primary provider, does not fall under these new restrictions.
 
-**documents and test_reports created in this job**
-- 
-- 
-- 
-- 
+**documents and test reports created in this job**
+-  was updated multiple times to reflect testing of new features.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1. User asks for Phase 2 UI improvements: trust strip, microcopy, info sections, trust indicators, track price, save search, and consistent animations.
-2. Agent confirms it will implement the Phase 2 improvements.
-3. Agent creates .
-4. Agent creates .
-5. Agent creates .
-6. Agent creates .
-7. Agent creates .
-8. Agent creates .
-9. Agent adds animations to  and integrates the trust strip and microcopy.
-10. **(PENDING)** User provides a detailed prompt to **COMPLETE** the Phase 2 integration by placing all the newly created components into the visible UI on the results page, as they were created but not fully integrated.
+1.  **User:** Provided a detailed prompt to implement Aviasales as the primary provider, expand the airport database for India/APAC, and use real API data with deeplinks.
+2.  **Agent:** Began implementing the Aviasales integration.
+3.  **User:** Provided the .
+4.  **Agent:** Configured the token and confirmed Aviasales was set as the primary provider.
+5.  **Agent:** Discovered the initial API endpoint returned no results and started debugging.
+6.  **Agent:** Found a working endpoint () and updated the adapter.
+7.  **Agent:** Fixed data normalization issues between the API response and the application's data models.
+8.  **Agent:** Confirmed successful retrieval of real flight data from Aviasales.
+9.  **Agent:** Verified the frontend correctly displayed the live data with a screenshot and marked the task as complete.
+10. **User (Pending):** Provided the final, detailed prompt to implement the cost-controlled Amadeus production system with daily caps, caching, rate limiting, and intent-based gating.
 
 **Project Health Check:**
-- **Broken:** The core flight search feature is broken. While authentication works, it returns no results, making the application non-functional for its primary purpose.
-- **Mocked:**
-    - The Track Price and Save Search features are UI-only and rely on . The backend logic is not implemented.
-    - The Admin page is functional for login but contains mostly mock data and placeholder content.
+- **Broken:** No core features are broken. The primary flight search is functional with live data.
+- **Mocked:** The Track Price feature remains UI-only. The Admin page still contains mock data.
 
 **3rd Party Integrations**
-- **Amadeus (Production Test):** The integration is **partially working**. Authentication is successful, but flight search queries are returning no data. This is a critical issue to investigate.
-- **FlightAPI:** Configured as a fallback provider but is not actively used or tested due to the issues with the primary provider.
+- **Aviasales (Travelpayouts Data API):** **WORKING & PRIMARY**. Uses the  environment variable.
+- **Amadeus (Production):** **BEING RE-ARCHITECTED**. This integration is the subject of the current in-progress task. It will use the  and  environment variables.
 
 **Testing status**
-- Testing agent used after significant changes: NO (Agent primarily used screenshots and )
-- Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: None in this session.
-- Known regressions: None. The no results issue is a new problem discovered after fixing the authentication, not a regression of a previously working feature.
+- **Testing agent used after significant changes:** YES
+- **Troubleshoot agent used after agent stuck in loop:** NO
+- **Test files created:** None
+- **Known regressions:** None
 
 **Credentials to test flow:**
 - **Admin Login:**
-    - **URL:** 
-    - **Username:** 
-    - **Password:** 
-- **Amadeus API:** Credentials are correctly configured in . The health check endpoint  can be used to verify authentication.
+    - URL: 
+    - Username: 
+    - Password: 
+- **Amadeus API (Production):** Credentials configured in the environment.
+- **Aviasales API (Travelpayouts):** Token  configured in the environment.
 
 **What agent forgot to execute**
-- The agent did not fully investigate the no results error from the Amadeus API after fixing the authentication. It was noted but then deprioritized in favor of new user feature requests.
-- The final user request—to fully integrate the Phase 2 components into the UI—was received but not started.</analysis>
+- The agent was in the middle of a large task when the session ended. It did not forget anything, but the task is incomplete. The next step is to continue the implementation of the Amadeus cost-control system as per the user's latest request.</analysis>

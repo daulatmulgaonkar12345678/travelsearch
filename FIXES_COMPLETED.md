@@ -227,7 +227,7 @@ curl http://localhost:3000/hotels/results?city=Mumbai&check_in=2025-01-15&check_
 ```
 
 ### On Preview URL (After Infrastructure Wakes Up)
-1. Go to https://flight-retention-ui.preview.emergentagent.com/
+1. Go to https://travel-api-shield.preview.emergentagent.com/
 2. Click "Wake up servers" if shown
 3. Navigate to Hotels tab
 4. Search: Mumbai, Jan 15-17, 1 room, 2 adults, Deluxe
