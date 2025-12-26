@@ -63,16 +63,24 @@ export default function RefreshLivePrice({
   const [message, setMessage] = useState<string | null>(null)
 
   const formatTimestamp = (isoString?: string): string => {
-    if (!isoString) return 'Unknown'
+    if (!isoString) return 'just now'
     try {
+      // Handle "Updated just now" string
+      if (isoString.toLowerCase().includes('just now')) {
+        return 'just now'
+      }
       const date = new Date(isoString)
-      return `Last updated at ${date.toLocaleTimeString('en-US', {
+      // Check if valid date
+      if (isNaN(date.getTime())) {
+        return 'recently'
+      }
+      return date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
-      })}`
+      })
     } catch {
-      return 'Last updated recently'
+      return 'recently'
     }
   }
 
