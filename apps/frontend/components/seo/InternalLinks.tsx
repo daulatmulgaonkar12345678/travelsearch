@@ -59,7 +59,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Mumbai',
     originCode: 'DEL',
     destinationCode: 'BOM',
-    image: 'delhi-mumbai.webp',
+    image: 'delhi-to-mumbai.webp',
     description: 'One of India\'s busiest air routes connecting the capital to the financial hub'
   },
   { 
@@ -69,7 +69,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Bangalore',
     originCode: 'BOM',
     destinationCode: 'BLR',
-    image: 'mumbai-bangalore.webp',
+    image: 'mumbai-to-bangalore.webp',
     description: 'Connect the financial capital to India\'s tech hub'
   },
   { 
@@ -79,7 +79,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Goa',
     originCode: 'DEL',
     destinationCode: 'GOI',
-    image: 'delhi-goa.webp',
+    image: 'delhi-to-goa.webp',
     description: 'Popular route to India\'s favorite beach destination'
   },
   { 
@@ -89,7 +89,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Delhi',
     originCode: 'BLR',
     destinationCode: 'DEL',
-    image: 'bangalore-delhi.webp',
+    image: 'bangalore-to-delhi.webp',
     description: 'Tech hub to national capital corridor'
   },
   { 
@@ -99,7 +99,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Goa',
     originCode: 'BOM',
     destinationCode: 'GOI',
-    image: 'mumbai-goa.webp',
+    image: 'mumbai-to-goa.webp',
     description: 'Quick getaway from Mumbai to beach paradise'
   },
   { 
@@ -109,7 +109,7 @@ export const POPULAR_FLIGHT_ROUTES: FlightRouteData[] = [
     destination: 'Bangalore',
     originCode: 'HYD',
     destinationCode: 'BLR',
-    image: 'hyderabad-bangalore.webp',
+    image: 'hyderabad-to-bangalore.webp',
     description: 'Connect two of South India\'s tech hubs'
   },
 ]
