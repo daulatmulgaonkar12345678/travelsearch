@@ -42,6 +42,9 @@ run_ui: true
     - working: true
       agent: "testing"
       comment: "✅ ALL BACKEND TESTS PASSED (7/7): 1) POST /api/saved-searches successfully saves searches with proper MongoDB schema (id, email, search params, last_known_price, is_active=true, notification_count=0, last_notified_at=null), 2) GET /api/saved-searches correctly retrieves searches by email, 3) Duplicate prevention working - same search updates existing record instead of creating duplicate, 4) DELETE /api/saved-searches/{id} performs soft delete (sets is_active=false), 5) Validation working - invalid email returns 422, missing required fields return 422, 6) Non-existent search deletion returns 404. MongoDB integration fully functional."
+    - working: true
+      agent: "testing"
+      comment: "✅ UI TESTING COMPLETE: Save Search Button functionality fully working. Verified: 1) 'Save this search' button with bookmark icon appears on results page, 2) Email modal opens with proper content: 'Get price alerts' header, email input field, 'Save & notify me' button, privacy text, close button, 3) Email submission works - entering 'newuser@example.com' and clicking save successfully saves search, 4) Success state shows 'Saved' button and 'Search saved. We'll notify you if prices change.' message, 5) Backend integration working - API call to /api/saved-searches successful. Full end-to-end functionality verified."
 
 ## Test Plan
 ```yaml
