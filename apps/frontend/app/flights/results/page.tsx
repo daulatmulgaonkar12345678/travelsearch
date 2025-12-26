@@ -962,13 +962,22 @@ useEffect(() => {
               <PriceComparisonNotice />
             </div>
 
-            {/* Results count */}
-            <div className="mb-4">
+            {/* Results count with price source indicator */}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-gray-600 text-sm">
                 {filteredOffers.length === offers.length
                   ? `${offers.length} flight${offers.length !== 1 ? 's' : ''} found`
                   : `${filteredOffers.length} of ${offers.length} flights`}
               </p>
+              
+              {/* Price Source Badge - Shows "Live price" or "Showing recent prices" */}
+              {searchSource && (
+                <PriceSourceBadge
+                  isLive={isLiveResults}
+                  timestampDisplay={lastUpdatedAt}
+                  helperText={cacheMessage ? "Prices may change on the booking site" : undefined}
+                />
+              )}
             </div>
 
             {/* Flight Cards */}
