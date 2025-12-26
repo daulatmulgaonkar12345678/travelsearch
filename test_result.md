@@ -42,7 +42,7 @@ run_ui: true
 
 - task: "Frontend x-search-intent header"
   implemented: true
-  working: "NA"
+  working: true
   file: "/app/apps/frontend/app/flights/results/page.tsx"
   stuck_count: 0
   priority: "critical"
@@ -51,9 +51,9 @@ run_ui: true
     - working: "pending"
       agent: "main"
       comment: "Added x-search-intent: 'real' header to flight search requests. Added PriceSourceBadge component to display Live price / Showing recent prices badges. Updated button text to 'Continue to booking' with helper text 'Final price confirmed on partner site'."
-    - working: "NA"
+    - working: true
       agent: "testing"
-      comment: "Frontend testing skipped as per instructions. Backend correctly validates x-search-intent header - blocks requests without header, allows with 'real' value."
+      comment: "✅ TESTED: Frontend UI fully functional. Price source badge correctly shows 'Live price' (green) with timestamp. Flight cards display proper elements: INR prices, 'Continue to booking' button, helper text 'Final price confirmed on partner site'. Trust indicators present. Button click flow works - vendor dropdown appears with Aviasales option. All UI requirements verified."
 
 - task: "Aviasales PRIMARY with Amadeus FALLBACK"
   implemented: true
