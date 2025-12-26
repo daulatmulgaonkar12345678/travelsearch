@@ -225,6 +225,9 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
  * Hotel Destination Card with Image
  */
 function HotelDestinationCard({ destination }: { destination: HotelDestinationData }) {
+  // For now, we use gradient fallback since images aren't uploaded yet
+  // Once WebP images are added to /public/images/destinations/, set hasImage to true
+  const hasImage = false // Set to true when images are available
   const imageSrc = destination.image 
     ? `/images/destinations/${destination.image}`
     : null
@@ -232,8 +235,8 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
       {/* Image with lazy loading */}
-      <div className="relative h-36 bg-gradient-to-br from-indigo-100 to-indigo-50 overflow-hidden">
-        {imageSrc ? (
+      <div className="relative h-36 bg-gradient-to-br from-indigo-100 to-indigo-200 overflow-hidden">
+        {hasImage && imageSrc ? (
           <Image
             src={imageSrc}
             alt={`Hotels in ${destination.city}`}
@@ -244,19 +247,19 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
           />
         ) : (
           /* Fallback with city name */
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl font-bold text-indigo-200">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-600">
+            <span className="text-3xl font-bold text-white/30">
               {destination.city}
             </span>
           </div>
         )}
         
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         
         {/* City name badge */}
         <div className="absolute bottom-3 left-3 right-3">
-          <span className="text-white font-semibold text-lg drop-shadow-sm">
+          <span className="text-white font-semibold text-lg drop-shadow-md">
             {destination.city}
           </span>
         </div>
