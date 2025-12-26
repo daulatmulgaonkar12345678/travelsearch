@@ -56,9 +56,13 @@ async def search_flights(
     COST CONTROL RULES:
     1. Only explicit "Search Flights" clicks trigger real API calls
     2. Must include header: x-search-intent = "real" for real searches
-    3. Daily cap: 70 searches (configurable)
+    3. Daily cap: 70 searches (configurable) for Amadeus fallback
     4. Results cached for 10-15 minutes
     5. Per-IP rate limit: 5/minute
+    
+    PROVIDER PRIORITY:
+    1. Aviasales (PRIMARY) - Real-time pricing with affiliate deeplinks
+    2. Amadeus (FALLBACK) - Cost-controlled with daily caps
     
     ⚠️ FILTERS ARE CLIENT-SIDE ONLY:
     Filters and sorting operate on already-fetched results.
@@ -110,9 +114,24 @@ async def search_flights(
             f"on {search_request.departure_date} | Intent: {x_search_intent}"
         )
         
-        # Use protected Amadeus search with all cost controls
-        from app.services.amadeus_protected import search_flights_protected
+        # Step 1: Try Aviasales (PRIMARY) first
+        from app.services.aviasales_orchestrator import aviasales_first_orchestrator
+        aviasales_result = await aviasales_first_orchestrator.search(search_request)
         
+        # If Aviasales returns results, use them
+        if aviasales_result.get("outcome") == "results" and aviasales_result.get("offers"):
+            logger.info(f"✅ Aviasales returned {len(aviasales_result.get('offers', []))} offers")
+            aviasales_result["request_id"] = str(uuid.uuid4())
+            aviasales_result["search_id"] = aviasales_result["request_id"]
+            aviasales_result["timestamp"] = datetime.utcnow().isoformat()
+            aviasales_result["source"] = "aviasales"
+            aviasales_result["is_live"] = True
+            return aviasales_result
+        
+        # Step 2: If Aviasales returns empty, try cost-controlled Amadeus (FALLBACK)
+        logger.info("⚠️ Aviasales returned no results, trying Amadeus fallback")
+        
+        from app.services.amadeus_protected import search_flights_protected
         result = await search_flights_protected(
             request=search_request,
             headers=headers,
