@@ -61,7 +61,7 @@ async def save_search(request: Request, body: SavedSearchCreate):
     Returns a confirmation with the saved search ID.
     """
     try:
-        db = await get_db()
+        db = get_db()
         
         # Create unique ID for the saved search
         search_id = str(uuid.uuid4())
