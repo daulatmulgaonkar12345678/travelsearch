@@ -140,7 +140,7 @@ async def get_saved_searches(email: str):
     Get all saved searches for an email.
     """
     try:
-        db = await get_db()
+        db = get_db()
         
         searches = await db.saved_searches.find(
             {"email": email.lower(), "is_active": True},
