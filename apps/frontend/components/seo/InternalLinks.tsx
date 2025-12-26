@@ -167,41 +167,45 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
 /**
  * Flight Route Card with Image
  * Uses Next.js Image for lazy loading and optimization
+ * 
+ * Image path: /images/flights/{route-slug}.webp
+ * Alt text: "{Origin} to {Destination} flight route"
  */
 function FlightRouteCard({ route }: { route: FlightRouteData }) {
-  // For now, we use gradient fallback since images aren't uploaded yet
-  // Once WebP images are added to /public/images/routes/, set hasImage to true
-  const hasImage = false // Set to true when images are available
-  const imageSrc = route.image 
-    ? `/images/routes/${route.image}`
-    : null
+  // Image path: /images/flights/{route-slug}.webp
+  // Set hasImage to true when WebP images are added to public/images/flights/
+  const hasImage = false
+  const imageSrc = `/images/flights/${route.slug}.webp`
   
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      {/* Image with lazy loading */}
-      <div className="relative h-36 bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
-        {hasImage && imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt={`Flights from ${route.origin} to ${route.destination}`}
-            fill
-            sizes="(max-width: 768px) 100vw, 300px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
+      {/* Image container with dark gradient overlay for text readability */}
+      <div className="relative h-36 overflow-hidden">
+        {hasImage ? (
+          <>
+            <Image
+              src={imageSrc}
+              alt={`${route.origin} to ${route.destination} flight route`}
+              fill
+              sizes="(max-width: 768px) 50vw, 300px"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+            {/* Dark gradient overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          </>
         ) : (
-          /* Fallback gradient with route codes */
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
-            <span className="text-3xl font-bold text-white/30">
+          /* Gradient fallback when images not available */
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-600">
+            <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white/30">
               {route.originCode} → {route.destinationCode}
             </span>
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         )}
         
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        
-        {/* Route badge */}
+        {/* Route label - always visible */}
         <div className="absolute bottom-3 left-3 right-3">
           <span className="text-white font-semibold text-lg drop-shadow-md">
             {route.origin} → {route.destination}
@@ -209,7 +213,7 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
         </div>
       </div>
       
-      {/* CTA */}
+      {/* CTA - unchanged */}
       <Link 
         href={`/flights/${route.slug}`}
         className="block p-3 text-center text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
