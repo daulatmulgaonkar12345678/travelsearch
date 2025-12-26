@@ -147,18 +147,18 @@ def log_config_status():
     logger.info(f"✅ Real Search Enabled: {settings.amadeus_real_search_enabled}")
     logger.info(f"✅ Daily Search Cap: {settings.daily_search_cap}")
 
-    # --- Provider Lock ---
-    if settings.flight_provider != "amadeus":
-        logger.critical("❌ INVALID PROVIDER CONFIG — FLIGHT_PROVIDER MUST BE 'amadeus'")
-        raise RuntimeError("Invalid flight provider configuration")
-
-    logger.info("🔒 Flight Provider Locked: AMADEUS ONLY")
+    # --- Provider Info ---
+    logger.info(f"📡 Flight Provider Config: {settings.flight_provider}")
+    logger.info("📡 Provider Priority: Aviasales (PRIMARY) → Amadeus (FALLBACK)")
 
     # --- Database ---
     logger.info(f"✅ MongoDB: {settings.mongo_url}/{settings.db_name}")
 
-    # --- Disabled Providers ---
-    logger.info("🚫 Disabled Providers: Aviasales, Duffel, Kiwi, FlightAPI")
+    # --- Travelpayouts/Aviasales ---
+    if settings.travelpayouts_api_token:
+        logger.info("✅ Travelpayouts API Token: Configured")
+    else:
+        logger.warning("⚠️ Travelpayouts API Token: Not configured (Aviasales may not work)")
 
     logger.info("=" * 60)
 
