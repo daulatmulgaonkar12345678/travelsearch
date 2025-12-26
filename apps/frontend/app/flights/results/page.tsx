@@ -544,6 +544,8 @@ useEffect(() => {
           : undefined
         const currency = fetchedOffers[0]?.currency || 'INR'
         
+        // Save search params to localStorage (display price is for reference only)
+        // When user re-runs this search, prices are ALWAYS fetched fresh
         addRecentSearch({
           origin: searchParamsObj.origin,
           destination: searchParamsObj.destination,
@@ -552,8 +554,8 @@ useEffect(() => {
           adults: parseInt(searchParamsObj.adults || '1'),
           cabinClass: searchParamsObj.cabin_class || 'economy',
           tripType: searchParamsObj.trip_type || 'oneway',
-          lastKnownPrice: minPrice,
-          lastKnownCurrency: currency,
+          displayPrice: minPrice,        // For UI display only
+          displayCurrency: currency,     // For UI display only
         })
         console.log('[RecentSearch] Automatically saved search to localStorage')
       } catch (recentSearchErr) {
