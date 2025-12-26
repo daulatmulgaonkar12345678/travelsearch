@@ -20,11 +20,21 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     """Single source of truth for all configuration"""
     
-    # ===== AMADEUS API (Fallback Flight Provider) =====
+    # ===== AMADEUS API (Production - Cost Controlled) =====
     amadeus_api_key: str
     amadeus_api_secret: str
-    amadeus_base_url: str = "https://test.api.amadeus.com"
-    amadeus_environment: str = "test"
+    amadeus_base_url: str = "https://api.amadeus.com"
+    amadeus_environment: str = "production"
+    
+    # ===== AMADEUS COST CONTROL (CRITICAL) =====
+    # Daily cap for real Amadeus flight searches
+    daily_search_cap: int = 70
+    # Cache TTL in seconds (10-15 min)
+    flight_cache_ttl_seconds: int = 900
+    # Per-IP rate limit for real searches
+    search_rate_limit_per_ip: int = 5
+    # Feature flag to instantly disable real searches
+    amadeus_real_search_enabled: bool = True
     
     # Amadeus Rate Limiting & Circuit Breaker
     amadeus_rps: int = 3
