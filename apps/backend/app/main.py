@@ -20,6 +20,7 @@ from app.routers import (
 )
 from app.routers import health_aviasales
 from app.routers import internal_stats
+from app.routers import saved_searches
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.db.mongodb import connect_db, close_db
