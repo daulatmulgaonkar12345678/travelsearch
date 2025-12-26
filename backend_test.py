@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Aviasales-First Flight Search Infrastructure
-Tests the new Aviasales integration with health endpoints and fallback logic
+Backend API Testing for Search Persistence System
+Tests the Saved Searches (Backend - MongoDB) functionality
 """
 
 import asyncio
@@ -14,11 +14,12 @@ import os
 # Backend URL - using localhost as per system setup
 BACKEND_URL = "http://localhost:8001"
 
-class AviasalesInfrastructureTester:
+class SavedSearchesTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.client = httpx.AsyncClient(timeout=60.0)
         self.test_results = []
+        self.created_search_ids = []  # Track created searches for cleanup
         
     async def __aenter__(self):
         return self
@@ -43,14 +44,31 @@ class AviasalesInfrastructureTester:
         if response_data and not success:
             print(f"   Response: {json.dumps(response_data, indent=2)}")
     
-    async def test_health_aviasales(self):
-        """Test /api/health/aviasales endpoint"""
+    async def test_save_search_valid(self):
+        """Test POST /api/saved-searches with valid data"""
         try:
-            response = await self.client.get(f"{self.backend_url}/api/health/aviasales")
+            payload = {
+                "email": "test2@example.com",
+                "search": {
+                    "origin": "BLR",
+                    "destination": "CCU",
+                    "departure_date": "2026-02-15",
+                    "adults": 2,
+                    "cabin_class": "economy",
+                    "trip_type": "oneway"
+                },
+                "last_known_price": 12500,
+                "last_known_currency": "INR"
+            }
+            
+            response = await self.client.post(
+                f"{self.backend_url}/api/saved-searches",
+                json=payload
+            )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Health Aviasales", 
+                    "Save Search Valid", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -59,303 +77,65 @@ class AviasalesInfrastructureTester:
             
             data = response.json()
             
-            # Check expected structure
-            required_fields = ["provider", "status", "checks"]
+            # Check required fields in response
+            required_fields = ["id", "message", "created_at"]
             missing_fields = [field for field in required_fields if field not in data]
             
             if missing_fields:
                 self.log_result(
-                    "Health Aviasales",
+                    "Save Search Valid",
                     False,
-                    f"Missing required fields: {missing_fields}",
+                    f"Missing required fields in response: {missing_fields}",
                     data
                 )
                 return False
             
-            # Since token is not configured, expect "unconfigured" status
-            if data.get("status") != "unconfigured":
+            # Validate response structure
+            if not isinstance(data.get("id"), str) or len(data["id"]) < 10:
                 self.log_result(
-                    "Health Aviasales",
+                    "Save Search Valid",
                     False,
-                    f"Expected status 'unconfigured' (token not set), got '{data.get('status')}'",
+                    f"Invalid search ID format: {data.get('id')}",
                     data
                 )
                 return False
             
-            # Check token check
-            token_check = data.get("checks", {}).get("token", {})
-            if token_check.get("status") != "missing":
+            if "saved" not in data.get("message", "").lower():
                 self.log_result(
-                    "Health Aviasales",
+                    "Save Search Valid",
                     False,
-                    f"Expected token status 'missing', got '{token_check.get('status')}'",
+                    f"Unexpected message format: {data.get('message')}",
                     data
                 )
                 return False
+            
+            # Store search ID for later tests
+            self.created_search_ids.append(data["id"])
             
             self.log_result(
-                "Health Aviasales",
+                "Save Search Valid",
                 True,
-                f"Correctly shows unconfigured status (token not set)"
+                f"Successfully saved search with ID: {data['id']}"
             )
             return True
             
         except Exception as e:
-            self.log_result("Health Aviasales", False, f"Exception: {str(e)}")
+            self.log_result("Save Search Valid", False, f"Exception: {str(e)}")
             return False
     
-    async def test_health_providers(self):
-        """Test /api/health/providers endpoint"""
+    async def test_get_saved_searches(self):
+        """Test GET /api/saved-searches?email=test2@example.com"""
         try:
-            response = await self.client.get(f"{self.backend_url}/api/health/providers")
+            response = await self.client.get(
+                f"{self.backend_url}/api/saved-searches",
+                params={"email": "test2@example.com"}
+            )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Health Providers", 
+                    "Get Saved Searches", 
                     False, 
                     f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check structure
-            required_fields = ["primary", "fallback", "providers", "summary"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                self.log_result(
-                    "Health Providers",
-                    False,
-                    f"Missing required fields: {missing_fields}",
-                    data
-                )
-                return False
-            
-            # Since Aviasales is not configured, Amadeus should be primary
-            if data.get("primary") != "amadeus":
-                self.log_result(
-                    "Health Providers",
-                    False,
-                    f"Expected primary provider 'amadeus' (since Aviasales unconfigured), got '{data.get('primary')}'",
-                    data
-                )
-                return False
-            
-            # Check providers structure
-            providers = data.get("providers", {})
-            if "aviasales" not in providers or "amadeus" not in providers:
-                self.log_result(
-                    "Health Providers",
-                    False,
-                    "Missing aviasales or amadeus in providers",
-                    data
-                )
-                return False
-            
-            # Aviasales should be disabled
-            aviasales_info = providers.get("aviasales", {})
-            if aviasales_info.get("enabled") != False:
-                self.log_result(
-                    "Health Providers",
-                    False,
-                    f"Expected aviasales enabled=false, got {aviasales_info.get('enabled')}",
-                    data
-                )
-                return False
-            
-            # Amadeus should be enabled and primary
-            amadeus_info = providers.get("amadeus", {})
-            if amadeus_info.get("role") != "primary":
-                self.log_result(
-                    "Health Providers",
-                    False,
-                    f"Expected amadeus role='primary', got '{amadeus_info.get('role')}'",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Health Providers",
-                True,
-                f"Correctly shows Amadeus as primary (Aviasales unconfigured)"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Health Providers", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_health_airports(self):
-        """Test /api/health/airports endpoint"""
-        try:
-            response = await self.client.get(f"{self.backend_url}/api/health/airports")
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Health Airports", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check structure
-            if data.get("status") != "ok":
-                self.log_result(
-                    "Health Airports",
-                    False,
-                    f"Expected status 'ok', got '{data.get('status')}'",
-                    data
-                )
-                return False
-            
-            stats = data.get("stats", {})
-            if not stats:
-                self.log_result(
-                    "Health Airports",
-                    False,
-                    "Missing stats in response",
-                    data
-                )
-                return False
-            
-            # Check for expected airport counts
-            total_airports = stats.get("total_airports", 0)
-            india_airports = stats.get("india_airports", 0)
-            
-            # Should have 9015 total airports and 166 Indian airports as per review request
-            if total_airports != 9015:
-                self.log_result(
-                    "Health Airports",
-                    False,
-                    f"Expected 9015 total airports, got {total_airports}",
-                    data
-                )
-                return False
-            
-            if india_airports != 166:
-                self.log_result(
-                    "Health Airports",
-                    False,
-                    f"Expected 166 Indian airports, got {india_airports}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Health Airports",
-                True,
-                f"Airport database loaded: {total_airports} total, {india_airports} Indian"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Health Airports", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_airport_validation(self):
-        """Test airport validation with valid and invalid codes"""
-        try:
-            # Test valid Indian airports
-            valid_airports = ["DEL", "BOM", "PNQ", "GOI", "BLR"]
-            
-            for airport in valid_airports:
-                # Test via search endpoint (which should validate airports)
-                params = {
-                    "origin": airport,
-                    "destination": "DEL" if airport != "DEL" else "BOM",
-                    "departure_date": "2025-12-30",  # Future date
-                    "trip_type": "oneway",
-                    "adults": 1
-                }
-                
-                response = await self.client.get(
-                    f"{self.backend_url}/api/search/flights",
-                    params=params
-                )
-                
-                # Should not return validation error (200 OK with error message or results)
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get("outcome") == "error" and "Invalid airport" in data.get("message", ""):
-                        self.log_result(
-                            "Airport Validation",
-                            False,
-                            f"Valid airport {airport} was rejected",
-                            data
-                        )
-                        return False
-            
-            # Test invalid airport
-            params = {
-                "origin": "XXX",  # Invalid airport
-                "destination": "DEL",
-                "departure_date": "2025-12-30",  # Future date
-                "trip_type": "oneway",
-                "adults": 1
-            }
-            
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/flights",
-                params=params
-            )
-            
-            # Should return validation error for invalid airport (200 OK with error outcome)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("outcome") != "error" or "Invalid airport" not in data.get("message", ""):
-                    self.log_result(
-                        "Airport Validation",
-                        False,
-                        f"Invalid airport XXX was not rejected properly",
-                        data
-                    )
-                    return False
-            else:
-                self.log_result(
-                    "Airport Validation",
-                    False,
-                    f"Unexpected status code {response.status_code} for invalid airport",
-                    response.text
-                )
-                return False
-            
-            self.log_result(
-                "Airport Validation",
-                True,
-                f"Valid airports accepted, invalid airports rejected"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Airport Validation", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_search_amadeus_fallback(self):
-        """Test flight search with Amadeus fallback (since Aviasales not configured)"""
-        try:
-            params = {
-                "origin": "DEL",
-                "destination": "BOM",
-                "departure_date": "2025-12-30",  # Future date
-                "trip_type": "oneway",
-                "adults": 1
-            }
-            
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/flights",
-                params=params
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Search Amadeus Fallback",
-                    False,
-                    f"Search failed with status {response.status_code}",
                     response.text
                 )
                 return False
@@ -363,223 +143,437 @@ class AviasalesInfrastructureTester:
             data = response.json()
             
             # Check response structure
-            if data.get("status") != "completed":
+            if "searches" not in data or "count" not in data:
                 self.log_result(
-                    "Search Amadeus Fallback",
+                    "Get Saved Searches",
                     False,
-                    f"Expected status 'completed', got '{data.get('status')}'",
+                    "Missing 'searches' or 'count' in response",
                     data
                 )
                 return False
             
-            # Check if we got results or proper no_results response
-            outcome = data.get("outcome")
-            if outcome == "results":
-                # We got results - check they're from amadeus
-                offers = data.get("offers", [])
-                if not offers:
-                    self.log_result(
-                        "Search Amadeus Fallback",
-                        False,
-                        "Outcome is 'results' but no offers returned",
-                        data
-                    )
-                    return False
-                
-                # Check supplier is amadeus (fallback)
-                supplier = data.get("supplier")
-                if supplier != "amadeus":
-                    self.log_result(
-                        "Search Amadeus Fallback",
-                        False,
-                        f"Expected supplier 'amadeus', got '{supplier}'",
-                        data
-                    )
-                    return False
-                
-                # Check offer structure
-                first_offer = offers[0]
-                required_fields = ["offer_id", "source", "price", "currency", "segments"]
-                missing_fields = [field for field in required_fields if field not in first_offer]
+            searches = data.get("searches", [])
+            count = data.get("count", 0)
+            
+            if len(searches) != count:
+                self.log_result(
+                    "Get Saved Searches",
+                    False,
+                    f"Count mismatch: {count} reported but {len(searches)} searches returned",
+                    data
+                )
+                return False
+            
+            # If we have searches, validate structure
+            if searches:
+                first_search = searches[0]
+                required_fields = ["id", "email", "search", "created_at", "is_active"]
+                missing_fields = [field for field in required_fields if field not in first_search]
                 
                 if missing_fields:
                     self.log_result(
-                        "Search Amadeus Fallback",
+                        "Get Saved Searches",
                         False,
-                        f"Missing required fields in offer: {missing_fields}",
-                        first_offer
+                        f"Missing required fields in search: {missing_fields}",
+                        first_search
                     )
                     return False
                 
-                self.log_result(
-                    "Search Amadeus Fallback",
-                    True,
-                    f"Search returned {len(offers)} offers from Amadeus fallback"
-                )
-                return True
+                # Check MongoDB schema fields
+                expected_schema_fields = ["notification_count", "last_notified_at"]
+                for field in expected_schema_fields:
+                    if field not in first_search:
+                        self.log_result(
+                            "Get Saved Searches",
+                            False,
+                            f"Missing MongoDB schema field: {field}",
+                            first_search
+                        )
+                        return False
                 
-            elif outcome == "no_results":
-                # No results is acceptable - check that fallback was attempted
-                logs = data.get("logs", [])
-                amadeus_attempted = any(log.get("step") == "amadeus" for log in logs)
-                
-                if not amadeus_attempted:
+                # Validate initial values
+                if first_search.get("notification_count") != 0:
                     self.log_result(
-                        "Search Amadeus Fallback",
+                        "Get Saved Searches",
                         False,
-                        "No results but Amadeus fallback was not attempted",
-                        data
+                        f"Expected notification_count=0, got {first_search.get('notification_count')}",
+                        first_search
                     )
                     return False
                 
-                self.log_result(
-                    "Search Amadeus Fallback",
-                    True,
-                    "Amadeus fallback was attempted (no results available for this route/date)"
-                )
-                return True
-            
-            else:
-                self.log_result(
-                    "Search Amadeus Fallback",
-                    False,
-                    f"Unexpected outcome: {outcome}",
-                    data
-                )
-                return False
-            
-        except Exception as e:
-            self.log_result("Search Amadeus Fallback", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_code_structure(self):
-        """Verify the new files exist and have correct structure"""
-        try:
-            files_to_check = [
-                "/app/apps/backend/app/services/adapters/aviasales_adapter.py",
-                "/app/apps/backend/app/services/aviasales_orchestrator.py", 
-                "/app/apps/backend/app/services/airport_validator.py",
-                "/app/apps/backend/app/routers/health_aviasales.py"
-            ]
-            
-            missing_files = []
-            for file_path in files_to_check:
-                if not os.path.exists(file_path):
-                    missing_files.append(file_path)
-            
-            if missing_files:
-                self.log_result(
-                    "Code Structure",
-                    False,
-                    f"Missing files: {missing_files}"
-                )
-                return False
-            
-            # Check AviasalesAdapter class exists
-            try:
-                import sys
-                sys.path.insert(0, "/app/apps/backend")
-                from app.services.adapters.aviasales_adapter import AviasalesAdapter
-                
-                # Check if it has required methods
-                if not hasattr(AviasalesAdapter, 'search_flights'):
+                if first_search.get("last_notified_at") is not None:
                     self.log_result(
-                        "Code Structure",
+                        "Get Saved Searches",
                         False,
-                        "AviasalesAdapter missing search_flights method"
+                        f"Expected last_notified_at=null, got {first_search.get('last_notified_at')}",
+                        first_search
                     )
                     return False
                 
-                if not hasattr(AviasalesAdapter, 'is_available'):
+                if first_search.get("is_active") != True:
                     self.log_result(
-                        "Code Structure",
+                        "Get Saved Searches",
                         False,
-                        "AviasalesAdapter missing is_available method"
+                        f"Expected is_active=true, got {first_search.get('is_active')}",
+                        first_search
                     )
                     return False
-                
-            except ImportError as e:
-                self.log_result(
-                    "Code Structure",
-                    False,
-                    f"Failed to import AviasalesAdapter: {e}"
-                )
-                return False
-            
-            # Check AviasalesFirstOrchestrator
-            try:
-                from app.services.aviasales_orchestrator import AviasalesFirstOrchestrator
-                
-                if not hasattr(AviasalesFirstOrchestrator, 'search'):
-                    self.log_result(
-                        "Code Structure",
-                        False,
-                        "AviasalesFirstOrchestrator missing search method"
-                    )
-                    return False
-                
-            except ImportError as e:
-                self.log_result(
-                    "Code Structure",
-                    False,
-                    f"Failed to import AviasalesFirstOrchestrator: {e}"
-                )
-                return False
-            
-            # Check airport validator
-            try:
-                from app.services.airport_validator import is_valid_airport
-                
-                # Test the function
-                if not is_valid_airport("DEL"):
-                    self.log_result(
-                        "Code Structure",
-                        False,
-                        "Airport validator not working - DEL should be valid"
-                    )
-                    return False
-                
-                if is_valid_airport("XXX"):
-                    self.log_result(
-                        "Code Structure",
-                        False,
-                        "Airport validator not working - XXX should be invalid"
-                    )
-                    return False
-                
-            except ImportError as e:
-                self.log_result(
-                    "Code Structure",
-                    False,
-                    f"Failed to import airport validator: {e}"
-                )
-                return False
             
             self.log_result(
-                "Code Structure",
+                "Get Saved Searches",
                 True,
-                "All required files exist and classes/functions are properly defined"
+                f"Retrieved {count} saved searches with correct schema"
             )
             return True
             
         except Exception as e:
-            self.log_result("Code Structure", False, f"Exception: {str(e)}")
+            self.log_result("Get Saved Searches", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_duplicate_prevention(self):
+        """Test saving same search twice should update, not create duplicate"""
+        try:
+            # Save the same search again
+            payload = {
+                "email": "test2@example.com",
+                "search": {
+                    "origin": "BLR",
+                    "destination": "CCU",
+                    "departure_date": "2026-02-15",
+                    "adults": 2,
+                    "cabin_class": "economy",
+                    "trip_type": "oneway"
+                },
+                "last_known_price": 13000,  # Different price
+                "last_known_currency": "INR"
+            }
+            
+            response = await self.client.post(
+                f"{self.backend_url}/api/saved-searches",
+                json=payload
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Duplicate Prevention", 
+                    False, 
+                    f"Expected 200, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Should get "updated" message
+            if "updated" not in data.get("message", "").lower():
+                self.log_result(
+                    "Duplicate Prevention",
+                    False,
+                    f"Expected 'updated' message, got: {data.get('message')}",
+                    data
+                )
+                return False
+            
+            # Verify only one search exists for this route
+            get_response = await self.client.get(
+                f"{self.backend_url}/api/saved-searches",
+                params={"email": "test2@example.com"}
+            )
+            
+            if get_response.status_code != 200:
+                self.log_result(
+                    "Duplicate Prevention",
+                    False,
+                    f"Failed to verify duplicate prevention: {get_response.status_code}",
+                    get_response.text
+                )
+                return False
+            
+            get_data = get_response.json()
+            blr_ccu_searches = [
+                s for s in get_data.get("searches", [])
+                if s.get("search", {}).get("origin") == "BLR" 
+                and s.get("search", {}).get("destination") == "CCU"
+                and s.get("search", {}).get("departure_date") == "2026-02-15"
+            ]
+            
+            if len(blr_ccu_searches) != 1:
+                self.log_result(
+                    "Duplicate Prevention",
+                    False,
+                    f"Expected 1 BLR-CCU search, found {len(blr_ccu_searches)}",
+                    get_data
+                )
+                return False
+            
+            # Check that price was updated
+            updated_search = blr_ccu_searches[0]
+            if updated_search.get("last_known_price") != 13000:
+                self.log_result(
+                    "Duplicate Prevention",
+                    False,
+                    f"Price not updated: expected 13000, got {updated_search.get('last_known_price')}",
+                    updated_search
+                )
+                return False
+            
+            self.log_result(
+                "Duplicate Prevention",
+                True,
+                "Duplicate search correctly updated existing record"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Duplicate Prevention", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_delete_saved_search(self):
+        """Test DELETE /api/saved-searches/{search_id}?email=test2@example.com"""
+        try:
+            if not self.created_search_ids:
+                self.log_result(
+                    "Delete Saved Search",
+                    False,
+                    "No search ID available for deletion test"
+                )
+                return False
+            
+            search_id = self.created_search_ids[0]
+            
+            response = await self.client.delete(
+                f"{self.backend_url}/api/saved-searches/{search_id}",
+                params={"email": "test2@example.com"}
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Delete Saved Search", 
+                    False, 
+                    f"Expected 200, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check response structure
+            if "message" not in data or "id" not in data:
+                self.log_result(
+                    "Delete Saved Search",
+                    False,
+                    "Missing 'message' or 'id' in delete response",
+                    data
+                )
+                return False
+            
+            if data.get("id") != search_id:
+                self.log_result(
+                    "Delete Saved Search",
+                    False,
+                    f"ID mismatch: expected {search_id}, got {data.get('id')}",
+                    data
+                )
+                return False
+            
+            # Verify soft delete - search should not appear in active searches
+            get_response = await self.client.get(
+                f"{self.backend_url}/api/saved-searches",
+                params={"email": "test2@example.com"}
+            )
+            
+            if get_response.status_code == 200:
+                get_data = get_response.json()
+                active_searches = get_data.get("searches", [])
+                deleted_search = next((s for s in active_searches if s.get("id") == search_id), None)
+                
+                if deleted_search:
+                    self.log_result(
+                        "Delete Saved Search",
+                        False,
+                        f"Deleted search {search_id} still appears in active searches",
+                        deleted_search
+                    )
+                    return False
+            
+            self.log_result(
+                "Delete Saved Search",
+                True,
+                f"Successfully soft-deleted search {search_id}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Delete Saved Search", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_invalid_email_validation(self):
+        """Test validation with invalid email"""
+        try:
+            payload = {
+                "email": "invalid-email",  # Invalid email format
+                "search": {
+                    "origin": "BLR",
+                    "destination": "CCU",
+                    "departure_date": "2026-02-15",
+                    "adults": 2,
+                    "cabin_class": "economy",
+                    "trip_type": "oneway"
+                },
+                "last_known_price": 12500,
+                "last_known_currency": "INR"
+            }
+            
+            response = await self.client.post(
+                f"{self.backend_url}/api/saved-searches",
+                json=payload
+            )
+            
+            # Should return validation error (422)
+            if response.status_code != 422:
+                self.log_result(
+                    "Invalid Email Validation", 
+                    False, 
+                    f"Expected 422 for invalid email, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check that it's a validation error
+            if "detail" not in data:
+                self.log_result(
+                    "Invalid Email Validation",
+                    False,
+                    "Missing validation error details",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Invalid Email Validation",
+                True,
+                "Invalid email correctly rejected with 422"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Invalid Email Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_missing_required_fields(self):
+        """Test validation with missing required fields"""
+        try:
+            payload = {
+                "email": "test@example.com",
+                "search": {
+                    "origin": "BLR",
+                    # Missing destination
+                    "departure_date": "2026-02-15",
+                    "adults": 2,
+                    "cabin_class": "economy",
+                    "trip_type": "oneway"
+                },
+                "last_known_price": 12500,
+                "last_known_currency": "INR"
+            }
+            
+            response = await self.client.post(
+                f"{self.backend_url}/api/saved-searches",
+                json=payload
+            )
+            
+            # Should return validation error (422)
+            if response.status_code != 422:
+                self.log_result(
+                    "Missing Required Fields", 
+                    False, 
+                    f"Expected 422 for missing fields, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check that it's a validation error
+            if "detail" not in data:
+                self.log_result(
+                    "Missing Required Fields",
+                    False,
+                    "Missing validation error details",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Missing Required Fields",
+                True,
+                "Missing required fields correctly rejected with 422"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Missing Required Fields", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_delete_nonexistent_search(self):
+        """Test deleting a non-existent search"""
+        try:
+            fake_id = "00000000-0000-0000-0000-000000000000"
+            
+            response = await self.client.delete(
+                f"{self.backend_url}/api/saved-searches/{fake_id}",
+                params={"email": "test2@example.com"}
+            )
+            
+            # Should return 404 for non-existent search
+            if response.status_code != 404:
+                self.log_result(
+                    "Delete Nonexistent Search", 
+                    False, 
+                    f"Expected 404 for non-existent search, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            if "detail" not in data:
+                self.log_result(
+                    "Delete Nonexistent Search",
+                    False,
+                    "Missing error details for 404",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Delete Nonexistent Search",
+                True,
+                "Non-existent search correctly returns 404"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Delete Nonexistent Search", False, f"Exception: {str(e)}")
             return False
     
     async def run_all_tests(self):
-        """Run all Aviasales infrastructure tests"""
-        print("🚀 Starting Aviasales-First Infrastructure Tests")
+        """Run all saved searches tests"""
+        print("🚀 Starting Saved Searches Backend Tests")
         print(f"Backend URL: {self.backend_url}")
         print("=" * 60)
         
-        # Run all tests
+        # Run all tests in order
         tests = [
-            self.test_health_aviasales,
-            self.test_health_providers,
-            self.test_health_airports,
-            self.test_airport_validation,
-            self.test_search_amadeus_fallback,
-            self.test_code_structure
+            self.test_save_search_valid,
+            self.test_get_saved_searches,
+            self.test_duplicate_prevention,
+            self.test_delete_saved_search,
+            self.test_invalid_email_validation,
+            self.test_missing_required_fields,
+            self.test_delete_nonexistent_search
         ]
         
         results = []
@@ -593,7 +587,7 @@ class AviasalesInfrastructureTester:
         
         # Summary
         print("\n" + "=" * 60)
-        print("📊 AVIASALES INFRASTRUCTURE TEST SUMMARY")
+        print("📊 SAVED SEARCHES TEST SUMMARY")
         print("=" * 60)
         
         passed = sum(results)
@@ -606,8 +600,10 @@ class AviasalesInfrastructureTester:
         print(f"\n🎯 Results: {passed}/{total} tests passed")
         
         if passed == total:
-            print("🎉 All tests passed! Aviasales infrastructure is correctly implemented.")
-            print("📝 Note: Aviasales is ready but requires TRAVELPAYOUTS_API_TOKEN to be configured.")
+            print("🎉 All saved searches tests passed!")
+            print("📝 MongoDB schema validation successful")
+            print("📝 Duplicate prevention working correctly")
+            print("📝 Soft delete functionality verified")
         else:
             print("⚠️  Some tests failed. Check the details above.")
         
@@ -615,7 +611,7 @@ class AviasalesInfrastructureTester:
 
 async def main():
     """Main test runner"""
-    async with AviasalesInfrastructureTester() as tester:
+    async with SavedSearchesTester() as tester:
         success = await tester.run_all_tests()
         sys.exit(0 if success else 1)
 
