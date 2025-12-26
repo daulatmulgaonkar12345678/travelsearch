@@ -1029,22 +1029,31 @@ useEffect(() => {
               <PriceComparisonNotice />
             </div>
 
-            {/* Results count with price source indicator */}
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-gray-600 text-sm">
-                {filteredOffers.length === offers.length
-                  ? `${offers.length} flight${offers.length !== 1 ? 's' : ''} found`
-                  : `${filteredOffers.length} of ${offers.length} flights`}
-              </p>
+            {/* Results count with price source indicator and Refresh button */}
+            <div className="mb-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-gray-600 text-sm">
+                  {filteredOffers.length === offers.length
+                    ? `${offers.length} flight${offers.length !== 1 ? 's' : ''} found`
+                    : `${filteredOffers.length} of ${offers.length} flights`}
+                </p>
+              </div>
               
-              {/* Price Source Badge - Shows "Live price" or "Showing recent prices" */}
-              {searchSource && (
-                <PriceSourceBadge
-                  isLive={isLiveResults}
-                  timestampDisplay={lastUpdatedAt}
-                  helperText={cacheMessage ? "Prices may change on the booking site" : undefined}
-                />
-              )}}
+              {/* Refresh Live Price Component */}
+              <RefreshLivePrice
+                searchParams={{
+                  origin,
+                  destination,
+                  departureDate: selectedDate,
+                  returnDate: returnDate || undefined,
+                  adults: parseInt(adults || '1'),
+                  cabinClass: cabinClass || 'economy',
+                  tripType: tripType || 'oneway',
+                }}
+                onPriceRefresh={handlePriceRefresh}
+                lastUpdatedAt={lastUpdatedAt || undefined}
+                isLive={isLiveResults}
+              />
             </div>
 
             {/* Flight Cards */}
