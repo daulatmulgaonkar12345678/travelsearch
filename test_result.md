@@ -4,11 +4,59 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 6
+test_sequence: 7
 run_ui: true
 ```
 
 ## Test Tasks
+
+- task: "Cost-controlled Amadeus system with daily caps"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/services/search_control.py, /app/apps/backend/app/services/amadeus_protected.py"
+  stuck_count: 0
+  priority: "critical"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented complete cost-control system: 1) Daily search cap (70/day) with UTC midnight reset, 2) Cache TTL (15 min), 3) Per-IP rate limiting (5/min), 4) Intent-based gating (x-search-intent header), 5) Last Known Live Price tracking with timestamps, 6) Source badges (AMADEUS/CACHE). Frontend updated with PriceSourceBadge component showing 'Live price' or 'Showing recent prices'."
+
+- task: "Internal monitoring endpoint"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/routers/internal_stats.py"
+  stuck_count: 0
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Created /api/internal/search-stats, /api/internal/quota-status, /api/internal/cost-estimate endpoints for tracking search usage, cache hits, and quota status."
+
+- task: "Frontend x-search-intent header"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/app/flights/results/page.tsx"
+  stuck_count: 0
+  priority: "critical"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Added x-search-intent: 'real' header to flight search requests. Added PriceSourceBadge component to display Live price / Showing recent prices badges. Updated button text to 'Continue to booking' with helper text 'Final price confirmed on partner site'."
+
+- task: "Aviasales PRIMARY with Amadeus FALLBACK"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/routers/search.py"
+  stuck_count: 0
+  priority: "critical"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Updated search router to try Aviasales first (PRIMARY), then fall back to cost-controlled Amadeus if Aviasales returns empty results."
 
 - task: "Aviasales as PRIMARY flight search provider"
   implemented: true
