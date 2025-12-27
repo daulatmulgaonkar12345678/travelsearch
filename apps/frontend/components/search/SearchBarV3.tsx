@@ -785,37 +785,33 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : searchType === 'trains' ? (
-          /* Train Search Form */
+          /* Train Search Form - Same dropdown behavior as Flights */
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
-                <div className="relative">
-                  <Train className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    data-testid="train-origin"
-                    value={trainOrigin}
-                    onChange={(e) => setTrainOrigin(e.target.value)}
-                    placeholder="City or station (e.g., Delhi, NDLS)"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
-                <div className="relative">
-                  <Train className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    data-testid="train-destination"
-                    value={trainDestination}
-                    onChange={(e) => setTrainDestination(e.target.value)}
-                    placeholder="City or station (e.g., Mumbai, CSMT)"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
+              <TransportAutocomplete
+                value={trainOriginText}
+                selectedLocation={trainOriginLocation}
+                onChange={(text, location) => {
+                  setTrainOriginText(text)
+                  setTrainOriginLocation(location)
+                }}
+                mode="train"
+                label="From"
+                testId="train-origin"
+                placeholder="Select city (e.g., Delhi)"
+              />
+              <TransportAutocomplete
+                value={trainDestinationText}
+                selectedLocation={trainDestinationLocation}
+                onChange={(text, location) => {
+                  setTrainDestinationText(text)
+                  setTrainDestinationLocation(location)
+                }}
+                mode="train"
+                label="To"
+                testId="train-destination"
+                placeholder="Select city (e.g., Mumbai)"
+              />
             </div>
             
             <div className="grid md:grid-cols-3 gap-4">
@@ -828,7 +824,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     data-testid="train-date"
                     value={trainDate}
                     min={getTodayDate()}
-                    onChange={(e) => setTrainDate(e.target.value)}
+                    onChange={(e) => handleTrainDateChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -874,37 +870,33 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : searchType === 'buses' ? (
-          /* Bus Search Form */
+          /* Bus Search Form - Same dropdown behavior as Flights */
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
-                <div className="relative">
-                  <Bus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    data-testid="bus-origin"
-                    value={busOrigin}
-                    onChange={(e) => setBusOrigin(e.target.value)}
-                    placeholder="City (e.g., Mumbai, Pune)"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
-                <div className="relative">
-                  <Bus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    data-testid="bus-destination"
-                    value={busDestination}
-                    onChange={(e) => setBusDestination(e.target.value)}
-                    placeholder="City (e.g., Goa, Bangalore)"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
+              <TransportAutocomplete
+                value={busOriginText}
+                selectedLocation={busOriginLocation}
+                onChange={(text, location) => {
+                  setBusOriginText(text)
+                  setBusOriginLocation(location)
+                }}
+                mode="bus"
+                label="From"
+                testId="bus-origin"
+                placeholder="Select city (e.g., Mumbai)"
+              />
+              <TransportAutocomplete
+                value={busDestinationText}
+                selectedLocation={busDestinationLocation}
+                onChange={(text, location) => {
+                  setBusDestinationText(text)
+                  setBusDestinationLocation(location)
+                }}
+                mode="bus"
+                label="To"
+                testId="bus-destination"
+                placeholder="Select city (e.g., Pune)"
+              />
             </div>
             
             <div className="grid md:grid-cols-3 gap-4">
