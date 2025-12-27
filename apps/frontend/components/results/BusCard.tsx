@@ -229,8 +229,16 @@ export default function BusCard({ offer }: BusCardProps) {
           </div>
         )}
 
+        {/* Likely Stops on Route - Expandable Section */}
+        {!offer.is_fallback && (
+          <LikelyStops 
+            fromCity={offer.from_city} 
+            toCity={offer.to_city} 
+          />
+        )}
+
         {/* Booking Partners */}
-        <div className="border-t pt-4">
+        <div className="border-t pt-4 mt-3">
           <p className="text-xs text-gray-500 mb-2">Book on:</p>
           <div className="flex flex-wrap gap-2">
             {sortedPartners.map(partner => (
