@@ -496,11 +496,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   return (
     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
       {/* Tab Selector */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 overflow-x-auto">
         <button
           data-testid="flights-tab"
           onClick={() => setSearchType('flights')}
-          className={`flex-1 py-4 px-6 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
             searchType === 'flights'
               ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -510,9 +510,33 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           <span>Flights</span>
         </button>
         <button
+          data-testid="trains-tab"
+          onClick={() => setSearchType('trains')}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+            searchType === 'trains'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <Train className="h-5 w-5" />
+          <span>Trains</span>
+        </button>
+        <button
+          data-testid="buses-tab"
+          onClick={() => setSearchType('buses')}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+            searchType === 'buses'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <Bus className="h-5 w-5" />
+          <span>Buses</span>
+        </button>
+        <button
           data-testid="hotels-tab"
           onClick={() => setSearchType('hotels')}
-          className={`flex-1 py-4 px-6 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
             searchType === 'hotels'
               ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
