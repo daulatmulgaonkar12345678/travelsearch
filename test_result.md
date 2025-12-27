@@ -73,8 +73,8 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Popular Flight Routes UX Flow testing completed successfully"
-  - "All major features tested and working"
+  - "Train & Bus Search API testing completed successfully"
+  - "All major backend features tested and working"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
