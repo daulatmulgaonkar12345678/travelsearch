@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plane, Hotel, Calendar, Users } from 'lucide-react'
+import { Plane, Hotel, Calendar, Users, Train, Bus } from 'lucide-react'
 import TripTypeSelector from './TripTypeSelector'
 import CabinClassSelector from './CabinClassSelector'
 import AdvancedPassengerModal from './AdvancedPassengerModal'
@@ -13,7 +13,7 @@ import CityAutocomplete from './CityAutocomplete'
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
 
-type SearchType = 'flights' | 'hotels'
+type SearchType = 'flights' | 'hotels' | 'trains' | 'buses'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
 type CabinClass = 'economy' | 'premium_economy' | 'business' | 'first'
 type RoomType = 'Standard' | 'Deluxe' | 'Suite'
