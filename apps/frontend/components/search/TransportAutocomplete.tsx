@@ -153,7 +153,10 @@ export default function TransportAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const fetchSuggestions = (searchQuery: string) => {
+  /**
+   * Fetch suggestions - uses backend API for bus mode, client-side for others
+   */
+  const fetchSuggestions = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setSuggestions([])
       return
@@ -161,21 +164,69 @@ export default function TransportAutocomplete({
 
     setIsLoading(true)
     
-    // Small delay for UX
-    setTimeout(() => {
-      let results = searchLocations(searchQuery)
+    try {
+      // For BUS mode: Use backend autocomplete API with state bias
+      if (mode === 'bus') {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+        const response = await fetch(
+          `${backendUrl}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
+        )
+        
+        if (response.ok) {
+          const data = await response.json()
+          
+          // Convert API response to TransportLocation format
+          const busResults: TransportLocation[] = data.results.map((r: any) => ({
+            city_id: r.id,
+            label: r.label,
+            city: r.city,
+            state: r.state || 'India',
+            country: 'India',
+            flight_codes: [],
+            rail_codes: [],
+            bus_codes: [r.id], // Use ID as bus code
+            // Extra fields for display
+            _type: r.type,
+            _operator: r.operator,
+            _isSearchSurface: r.is_search_surface,
+            _cityLocal: r.city_local,
+          }))
+          
+          setSuggestions(busResults)
+          setIsLoading(false)
+          return
+        }
+      }
       
-      // Filter by mode support
+      // For other modes OR if bus API fails: Use client-side Fuse.js search
+      setTimeout(() => {
+        let results = searchLocations(searchQuery)
+        
+        // Filter by mode support
+        results = results.filter(loc => {
+          if (mode === 'flight') return loc.flight_codes.length > 0
+          if (mode === 'train') return loc.rail_codes.length > 0
+          if (mode === 'bus') return loc.bus_codes.length > 0
+          return true
+        })
+        
+        setSuggestions(results)
+        setIsLoading(false)
+      }, 100)
+      
+    } catch (error) {
+      console.error('Autocomplete fetch error:', error)
+      // Fallback to client-side search on error
+      let results = searchLocations(searchQuery)
       results = results.filter(loc => {
         if (mode === 'flight') return loc.flight_codes.length > 0
         if (mode === 'train') return loc.rail_codes.length > 0
         if (mode === 'bus') return loc.bus_codes.length > 0
         return true
       })
-      
       setSuggestions(results)
       setIsLoading(false)
-    }, 100)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
