@@ -19,7 +19,7 @@ import sys
 import time
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://travel-api-shield.preview.emergentagent.com"
+BACKEND_URL = "https://travel-meta-2.preview.emergentagent.com"
 
 class CostControlledAmadeusTest:
     def __init__(self):

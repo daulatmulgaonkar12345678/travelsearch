@@ -22,7 +22,7 @@ Updated `/app/apps/frontend/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:8001
 
 # After
-NEXT_PUBLIC_API_URL=https://travel-api-shield.preview.emergentagent.com
+NEXT_PUBLIC_API_URL=https://travel-meta-2.preview.emergentagent.com
 ```
 
 **Technical Details:**
@@ -271,14 +271,14 @@ curl -X POST "http://localhost:8001/api/search/flights" \
 
 ### 3. Flight Search from Browser (via preview URL)
 ```
-https://travel-api-shield.preview.emergentagent.com/flights/results?origin=PNQ&destination=BOM&departure_date=2025-12-07&adults=1&cabin_class=economy
+https://travel-meta-2.preview.emergentagent.com/flights/results?origin=PNQ&destination=BOM&departure_date=2025-12-07&adults=1&cabin_class=economy
 ```
 
 ### 4. Backend API Documentation
 ```
 http://localhost:8001/api/docs
 # OR via preview URL:
-https://travel-api-shield.preview.emergentagent.com/api/docs
+https://travel-meta-2.preview.emergentagent.com/api/docs
 ```
 
 ---
@@ -308,7 +308,7 @@ yarn test:e2e
 ### Manual Testing Flow
 
 **1. Test Autocomplete:**
-- Open: https://travel-api-shield.preview.emergentagent.com
+- Open: https://travel-meta-2.preview.emergentagent.com
 - Type "pu" in "From" field
 - ✅ Should see "Pune, India - PNQ" in dropdown
 - Select it
@@ -337,7 +337,7 @@ yarn test:e2e
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Browser (User)                                         │
-│  https://travel-api-shield.preview.emergentagent.com        │
+│  https://travel-meta-2.preview.emergentagent.com        │
 └──────────────────────┬──────────────────────────────────┘
                        │
                        │ HTTPS
@@ -404,7 +404,7 @@ class Settings(BaseSettings):
 
 **1. Environment Variables:** `/app/apps/frontend/.env.local`
 ```bash
-NEXT_PUBLIC_API_URL=https://travel-api-shield.preview.emergentagent.com
+NEXT_PUBLIC_API_URL=https://travel-meta-2.preview.emergentagent.com
 ```
 
 **2. Usage in Components:**
