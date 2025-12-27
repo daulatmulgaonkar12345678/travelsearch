@@ -1,0 +1,290 @@
+[
+  {
+    "city_id": 1,
+    "name_en": "Mumbai",
+    "name_local": "मुंबई",
+    "normalized_key": "mumbai",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 2,
+    "name_en": "Mumbai Suburban",
+    "name_local": "मुंबई उपनगर",
+    "normalized_key": "mumbai-suburban",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 3,
+    "name_en": "Thane",
+    "name_local": "ठाणे",
+    "normalized_key": "thane",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 4,
+    "name_en": "Palghar",
+    "name_local": "पालघर",
+    "normalized_key": "palghar",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 5,
+    "name_en": "Raigad",
+    "name_local": "रायगड",
+    "normalized_key": "raigad",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 6,
+    "name_en": "Ratnagiri",
+    "name_local": "रत्नागिरी",
+    "normalized_key": "ratnagiri",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 7,
+    "name_en": "Sindhudurg",
+    "name_local": "सिंधुदुर्ग",
+    "normalized_key": "sindhudurg",
+    "state_code": "MH",
+    "division": "Konkan"
+  },
+  {
+    "city_id": 8,
+    "name_en": "Pune",
+    "name_local": "पुणे",
+    "normalized_key": "pune",
+    "state_code": "MH",
+    "division": "Pune"
+  },
+  {
+    "city_id": 9,
+    "name_en": "Satara",
+    "name_local": "सातारा",
+    "normalized_key": "satara",
+    "state_code": "MH",
+    "division": "Pune"
+  },
+  {
+    "city_id": 10,
+    "name_en": "Sangli",
+    "name_local": "सांगली",
+    "normalized_key": "sangli",
+    "state_code": "MH",
+    "division": "Pune"
+  },
+  {
+    "city_id": 11,
+    "name_en": "Kolhapur",
+    "name_local": "कोल्हापूर",
+    "normalized_key": "kolhapur",
+    "state_code": "MH",
+    "division": "Pune"
+  },
+  {
+    "city_id": 12,
+    "name_en": "Solapur",
+    "name_local": "सोलापूर",
+    "normalized_key": "solapur",
+    "state_code": "MH",
+    "division": "Pune"
+  },
+  {
+    "city_id": 13,
+    "name_en": "Nashik",
+    "name_local": "नाशिक",
+    "normalized_key": "nashik",
+    "state_code": "MH",
+    "division": "Nashik"
+  },
+  {
+    "city_id": 14,
+    "name_en": "Ahmednagar",
+    "name_local": "अहमदनगर",
+    "normalized_key": "ahmednagar",
+    "state_code": "MH",
+    "division": "Nashik"
+  },
+  {
+    "city_id": 15,
+    "name_en": "Dhule",
+    "name_local": "धुळे",
+    "normalized_key": "dhule",
+    "state_code": "MH",
+    "division": "Nashik"
+  },
+  {
+    "city_id": 16,
+    "name_en": "Jalgaon",
+    "name_local": "जळगाव",
+    "normalized_key": "jalgaon",
+    "state_code": "MH",
+    "division": "Nashik"
+  },
+  {
+    "city_id": 17,
+    "name_en": "Nandurbar",
+    "name_local": "नंदुरबार",
+    "normalized_key": "nandurbar",
+    "state_code": "MH",
+    "division": "Nashik"
+  },
+  {
+    "city_id": 18,
+    "name_en": "Aurangabad",
+    "name_local": "औरंगाबाद",
+    "normalized_key": "aurangabad",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 19,
+    "name_en": "Jalna",
+    "name_local": "जालना",
+    "normalized_key": "jalna",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 20,
+    "name_en": "Beed",
+    "name_local": "बीड",
+    "normalized_key": "beed",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 21,
+    "name_en": "Latur",
+    "name_local": "लातूर",
+    "normalized_key": "latur",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 22,
+    "name_en": "Osmanabad",
+    "name_local": "उस्मानाबाद",
+    "normalized_key": "osmanabad",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 23,
+    "name_en": "Nanded",
+    "name_local": "नांदेड",
+    "normalized_key": "nanded",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 24,
+    "name_en": "Parbhani",
+    "name_local": "परभणी",
+    "normalized_key": "parbhani",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 25,
+    "name_en": "Hingoli",
+    "name_local": "हिंगोली",
+    "normalized_key": "hingoli",
+    "state_code": "MH",
+    "division": "Aurangabad"
+  },
+  {
+    "city_id": 26,
+    "name_en": "Nagpur",
+    "name_local": "नागपूर",
+    "normalized_key": "nagpur",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 27,
+    "name_en": "Wardha",
+    "name_local": "वर्धा",
+    "normalized_key": "wardha",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 28,
+    "name_en": "Bhandara",
+    "name_local": "भंडारा",
+    "normalized_key": "bhandara",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 29,
+    "name_en": "Gondia",
+    "name_local": "गोंदिया",
+    "normalized_key": "gondia",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 30,
+    "name_en": "Chandrapur",
+    "name_local": "चंद्रपूर",
+    "normalized_key": "chandrapur",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 31,
+    "name_en": "Gadchiroli",
+    "name_local": "गडचिरोली",
+    "normalized_key": "gadchiroli",
+    "state_code": "MH",
+    "division": "Nagpur"
+  },
+  {
+    "city_id": 32,
+    "name_en": "Amravati",
+    "name_local": "अमरावती",
+    "normalized_key": "amravati",
+    "state_code": "MH",
+    "division": "Amravati"
+  },
+  {
+    "city_id": 33,
+    "name_en": "Akola",
+    "name_local": "अकोला",
+    "normalized_key": "akola",
+    "state_code": "MH",
+    "division": "Amravati"
+  },
+  {
+    "city_id": 34,
+    "name_en": "Washim",
+    "name_local": "वाशीम",
+    "normalized_key": "washim",
+    "state_code": "MH",
+    "division": "Amravati"
+  },
+  {
+    "city_id": 35,
+    "name_en": "Buldhana",
+    "name_local": "बुलढाणा",
+    "normalized_key": "buldhana",
+    "state_code": "MH",
+    "division": "Amravati"
+  },
+  {
+    "city_id": 36,
+    "name_en": "Yavatmal",
+    "name_local": "यवतमाळ",
+    "normalized_key": "yavatmal",
+    "state_code": "MH",
+    "division": "Amravati"
+  }
+]
