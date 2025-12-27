@@ -157,3 +157,27 @@ test_priority: "high_first"
   message: "✅ TRAIN & BUS SEARCH UI TESTING COMPLETE: All 7 comprehensive test cases passed successfully. Homepage Tab Navigation: All 4 tabs working with proper highlighting. Train Search Flow: Complete functionality from form input to results display - train cards show correct details (name/number, times, duration, price in INR without NaN, available classes, booking partners IRCTC/ixigo/Paytm). Bus Search Flow: Complete functionality - bus cards show operator names, AC/Sleeper badges, prices, booking partners redBus/AbhiBus/Paytm. Fallback Route Test: 'Redirect Only' badges and amber warning messages working for unknown routes. Navigation Bar: All nav links redirect properly to homepage with correct tabs. Sort Functionality: Train and bus sort buttons (Departure, Duration, Price) working. Form Validation: Empty field and same origin/destination validation working with alerts. Full end-to-end Train & Bus Search feature is production-ready."
 - agent: "testing"
   message: "✅ IMPROVED TRAIN & BUS SEARCH VALIDATION TESTING COMPLETE: All critical requirements verified successfully. The improved Train & Bus Search now behaves exactly like Flights with strict dropdown validation. Key findings: 1) Dropdown Validation Working: Typing 'Del' shows 'New Delhi, Delhi' with station codes, typing '123' shows 'No cities found', free text typing alone does NOT allow search, 2) Search Button Logic Perfect: Disabled until both origin AND destination selected from dropdown, shows clear messages when disabled, enables only with valid dropdown selections, 3) Multiple Results Display: Train search (Delhi→Mumbai) shows 3+ trains (Mumbai Rajdhani #12952, #12951), Bus search (Mumbai→Pune) shows 4+ buses with different types (MSRTC Ordinary ₹220, Volvo/Premium AC ₹450), 4) Bus Type Filter: Dropdown with All Types, Non-AC, AC Seater, AC Sleeper (not AC checkbox), 5) Mode Switching: Tabs work correctly, dates sync across modes, from/to fields independent, 6) Same Location Validation: Prevents search with 'Origin and destination cannot be the same' message, 7) Card Layout Consistency: Train and bus cards follow flight card design, 8) Search Button Colors: Blue for trains, orange for buses. Complete flight-like behavior successfully implemented and tested."
+
+- task: "MSRTC Scraper Implementation"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/scrapers/msrtc_seed_data.py, /app/apps/backend/app/scrapers/msrtc_service.py, /app/apps/backend/app/routers/msrtc.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented MSRTC (Maharashtra State Road Transport Corporation) timetable scraper with: 1) Seed data for Phase 1 routes (Pune↔Mumbai, Pune↔Nashik, Mumbai↔Kolhapur, Pune↔Kolhapur, Pune↔Aurangabad), 2) 17 bus stops with Marathi names (UTF-8), 3) 6 bus types (ST, Semi-Luxury, Asiad, Shivneri, Shivshahi, Ashwamedh), 4) Variant-level expansion (one card per bus type), 5) Distance-based fare calculation, 6) API endpoints: POST /api/msrtc/search, GET /api/msrtc/stops, GET /api/msrtc/routes, GET /api/msrtc/bus-types, POST /api/msrtc/sync, 7) Marathi input support for search, 8) Booking partner URLs (MSRTC Official, redBus, AbhiBus)."
+
+- task: "Tab Order UI Fix"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/components/search/SearchBarV3.tsx"
+  stuck_count: 0
+  priority: "P1"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Fixed tab order from [Flights, Trains, Buses, Hotels] to [Flights, Buses, Trains, Hotels] as per user requirement."
