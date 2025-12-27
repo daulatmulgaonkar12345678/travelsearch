@@ -169,6 +169,12 @@ app.include_router(saved_searches.router, prefix="/api", tags=["saved-searches"]
 from app.routers import track_price
 app.include_router(track_price.router, prefix="/api", tags=["track-price"])
 
+# Train & Bus Search
+from app.routers import train as train_router
+from app.routers import bus as bus_router
+app.include_router(train_router.router, prefix="/api", tags=["trains"])
+app.include_router(bus_router.router, prefix="/api", tags=["buses"])
+
 # ============================================================
 # Local Run
 # ============================================================
