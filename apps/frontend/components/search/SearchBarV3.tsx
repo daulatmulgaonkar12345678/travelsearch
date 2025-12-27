@@ -10,6 +10,7 @@ import DateInputs from './DateInputs'
 import AirportAutocomplete from './AirportAutocomplete'
 import ValidatedAirportInput from './ValidatedAirportInput'
 import CityAutocomplete from './CityAutocomplete'
+import TransportAutocomplete, { TransportLocation } from './TransportAutocomplete'
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
 
