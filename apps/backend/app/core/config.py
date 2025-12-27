@@ -26,10 +26,10 @@ class Settings(BaseSettings):
     """Single source of truth for all configuration"""
 
     # ==================================================
-    # AMADEUS (PRIMARY & ONLY FLIGHT PROVIDER)
+    # AMADEUS (PRIMARY FLIGHT PROVIDER)
     # ==================================================
-    amadeus_api_key: str
-    amadeus_api_secret: str
+    amadeus_api_key: str = "wp5j1JasCglCPHyy21RSIPEEOTQbCF5x"
+    amadeus_api_secret: str = "3VwWw9GS7rCpA0tv"
     amadeus_base_url: str = "https://api.amadeus.com"
     amadeus_environment: str = "production"
 
@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     hotel_provider: str = "amadeus"
 
     # ==================================================
-    # DISABLED PROVIDERS (KEPT FOR FUTURE, OFF BY DEFAULT)
+    # DISABLED PROVIDERS (FUTURE USE – OFF BY DEFAULT)
     # ==================================================
     aviasales_enabled: bool = False
     travelpayouts_api_token: Optional[str] = None
@@ -78,11 +78,10 @@ class Settings(BaseSettings):
     # ==================================================
     mongo_url: str = "mongodb://localhost:27017"
     db_name: str = "test_database"
-    mongodb_uri: Optional[str] = None
     redis_url: Optional[str] = None
 
     # ==================================================
-    # AUTH & SECURITY
+    # AUTH & SECURITY (REQUIRED)
     # ==================================================
     jwt_secret: str
     admin_totp_issuer: str = "MetasearchPlatform"
@@ -148,17 +147,17 @@ def log_config_status():
     logger.info(f"✅ Daily Search Cap: {settings.daily_search_cap}")
 
     # --- Provider Info ---
-    logger.info(f"📡 Flight Provider Config: {settings.flight_provider}")
-    logger.info("📡 Provider Priority: Aviasales (PRIMARY) → Amadeus (FALLBACK)")
+    logger.info(f"📡 Flight Provider: {settings.flight_provider}")
+    logger.info(f"📡 Hotel Provider: {settings.hotel_provider}")
 
     # --- Database ---
     logger.info(f"✅ MongoDB: {settings.mongo_url}/{settings.db_name}")
 
-    # --- Travelpayouts/Aviasales ---
+    # --- Optional Providers ---
     if settings.travelpayouts_api_token:
         logger.info("✅ Travelpayouts API Token: Configured")
     else:
-        logger.warning("⚠️ Travelpayouts API Token: Not configured (Aviasales may not work)")
+        logger.info("ℹ️ Travelpayouts API Token: Not configured (expected)")
 
     logger.info("=" * 60)
 
