@@ -12,6 +12,7 @@ import {
   Snowflake,
   Info,
 } from 'lucide-react'
+import LikelyStops from './LikelyStops'
 
 interface BusOffer {
   offer_id: string
