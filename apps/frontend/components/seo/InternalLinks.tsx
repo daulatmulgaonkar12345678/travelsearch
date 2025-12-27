@@ -173,8 +173,8 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
  */
 function FlightRouteCard({ route }: { route: FlightRouteData }) {
   // Image path: /images/flights/{route-slug}.webp
-  // Set hasImage to true when WebP images are added to public/images/flights/
-  const hasImage = false
+  // Images are now available in public/images/flights/
+  const hasImage = true
   const imageSrc = `/images/flights/${route.slug}.webp`
   
   return (
