@@ -160,24 +160,30 @@ test_priority: "high_first"
 
 - task: "MSRTC Scraper Implementation"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/backend/app/scrapers/msrtc_seed_data.py, /app/apps/backend/app/scrapers/msrtc_service.py, /app/apps/backend/app/routers/msrtc.py"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented MSRTC (Maharashtra State Road Transport Corporation) timetable scraper with: 1) Seed data for Phase 1 routes (Pune↔Mumbai, Pune↔Nashik, Mumbai↔Kolhapur, Pune↔Kolhapur, Pune↔Aurangabad), 2) 17 bus stops with Marathi names (UTF-8), 3) 6 bus types (ST, Semi-Luxury, Asiad, Shivneri, Shivshahi, Ashwamedh), 4) Variant-level expansion (one card per bus type), 5) Distance-based fare calculation, 6) API endpoints: POST /api/msrtc/search, GET /api/msrtc/stops, GET /api/msrtc/routes, GET /api/msrtc/bus-types, POST /api/msrtc/sync, 7) Marathi input support for search, 8) Booking partner URLs (MSRTC Official, redBus, AbhiBus)."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL MSRTC API TESTS PASSED (5/5): 1) GET /api/msrtc/bus-types returns 6 bus types with correct fields (code, name_marathi, name_english, is_ac, is_sleeper, fare_multiplier) and expected codes (ST, SEMI_LUX, ASIAD, SHIVNERI, SHIVSHAHI, ASHWAMEDH), 2) GET /api/msrtc/stops returns 17 stops with required fields, query filter working (pune returns 2 stops), stop_type filter working (major returns 15 stops), 3) GET /api/msrtc/routes returns 14 total routes, phase=1 filter returns 10 Phase 1 routes including Pune-Mumbai route, 4) POST /api/msrtc/search working perfectly: Pune→Mumbai returns 5 offers (one per bus type), variant-level data verified with different prices (₹277-₹604), booking partners (MSRTC Official, redBus, AbhiBus), Marathi input support working (पुणे→मुंबई), validation working (past dates/same origin-destination return 400), invalid routes return empty offers with message, 5) Marathi station names verification passed - all offers contain Marathi station names (पुणे स्वारगेट बस स्थानक → मुंबई सेंट्रल बस स्थानक). Complete MSRTC scraper implementation is production-ready."
 
 - task: "Tab Order UI Fix"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/components/search/SearchBarV3.tsx"
   stuck_count: 0
   priority: "P1"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Fixed tab order from [Flights, Trains, Buses, Hotels] to [Flights, Buses, Trains, Hotels] as per user requirement."
+    - working: true
+      agent: "testing"
+      comment: "✅ TAB ORDER UI FIX VERIFIED: Code review confirms tab order has been correctly implemented as [Flights, Buses, Trains, Hotels] in SearchBarV3.tsx. The tab selector comment and button order match the required specification. Tab order fix is working as requested."
