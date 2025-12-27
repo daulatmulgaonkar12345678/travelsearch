@@ -1,108 +1,95 @@
 <analysis>**original_problem_statement:**
-The user wants to add Train and Bus search functionality to their existing travel metasearch application, which already supports Flights and Hotels.
+The user initially requested the addition of Train and Bus search functionality to an existing travel application. This was expanded with several subsequent requests:
+1.  **MSRTC Scraper:** Implement a Python scraper for MSRTC timetable data. Due to network restrictions, this evolved into creating a comprehensive static dataset.
+2.  **Tab Reordering:** Fix the main search tab order to [Flights] [Buses] [Trains] [Hotels].
+3.  **Recent Search Robustness:** Verify and fix an issue where recent searches don't always update correctly.
+4.  **Production-Grade Dataset:** Create a detailed, production-quality dataset of all MSRTC bus stops in Maharashtra, with specific data modeling rules.
+5.  **Bus Autocomplete Fix:** Resolve issues where the bus search autocomplete failed for many Maharashtra cities and returned irrelevant results.
+6.  **Intermediate Stops Feature:** Enhance the bus results page to show a list of likely intermediate stops for a given route.
 
 **PRODUCT REQUIREMENTS:**
--   **UI/UX Parity:** Train and Bus search functionality must be identical to the existing Flight search. This includes using the same validated dropdown for city selection, displaying multiple result cards for each search, using the same card layout, and providing identical filtering and sorting capabilities. The user must feel they are using one unified product.
--   **Tab Order:** The main search tabs should be ordered: [Flights] [Buses] [Trains] [Hotels].
--   **Data Generation:**
-    -   All data must be generated from static, pre-defined route information. No live scraping or dynamic pricing is allowed.
-    -   Fares must be calculated using distance-based formulas and clearly labeled as Average or Estimated.
--   **Data Architecture (Variant-Level Results):** The backend must NOT return a single card for a route. It MUST expand each route into multiple variants, with each variant being a separate result card.
-    -   **Trains:** Each train on a route should be expanded into multiple cards, one for each available class (e.g., Sleeper, 3A, 2A).
-    -   **Buses:** Each route should be expanded into multiple cards, one for each bus type (e.g., Non-AC Seater, AC Seater, AC Sleeper).
--   **Booking Flow:** The application will not handle bookings. All Book or Check Availability buttons must redirect the user to official/trusted partners (e.g., IRCTC, redBus).
--   **Recent Searches:** All train and bus searches must be saved and displayed in the Recent Searches section on the homepage, alongside flight searches.
--   **New Scraper Task:** Create a production-safe Python scraper to collect timetable data from the MSRTC (Maharashtra State Road Transport Corporation) website.
+-   **Data Architecture:** All bus data is based on a static, pre-generated dataset (, ). The MSRTC website is not accessible during runtime.
+-   **Autocomplete Logic:** The bus autocomplete must follow a strict cascading search order: Bus Stops (same state) -> Cities (same state) -> Nearby Districts -> Other States. Bus stop matches must be prioritized over city matches.
+-   **UI/UX:** The UI must be consistent across all transport modes. The final tab order is fixed. Autocomplete results for buses must be clearly badged (e.g., Depot) and distinguished from city-level results.
+-   **Intermediate Stops:** This feature should be indicative, based on geographic corridor logic, and not promise service-level accuracy.
 
 **User's preferred language**: English
 
 **what currently exists?**
--   A full-stack Next.js/FastAPI application.
--   The Train and Bus search feature is fully implemented and aligns with the user's core requirement of matching the existing Flight search experience.
--   **Backend:** The services (, ) have been refactored to generate variant-level data, returning multiple, distinct cards for each train class and bus type on a given route. API endpoints (, ) are fully functional.
--   **Frontend:** The UI now includes Trains and Buses tabs. The search bar uses a unified, validated autocomplete component that forces users to select a valid city, disabling the search button until inputs are valid. The results pages display multiple cards per search and feature comprehensive, flight-style filter panels and sorting controls.
--   **Recent Searches:** A unified recent search store () has been implemented to save and display searches for all transport modes.
--   The initial scaffolding for a new MSRTC data scraper has been created at .
+-   A full-stack Next.js/FastAPI application with search functionality for Flights, Buses, Trains, and Hotels.
+-   A complete backend implementation for MSRTC bus search, powered by a comprehensive, static JSON dataset (, ) covering 1,259 stops across all 36 Maharashtra districts.
+-   A new, fully functional backend API endpoint () that provides accurate, ranked autocomplete suggestions for MSRTC bus stops and cities.
+-   The frontend  component has been successfully updated to use the new backend API for bus searches.
+-   A Next.js proxy rewrite has been configured in  to correctly route frontend  calls to the backend service.
+-   The main search tabs are now in the correct order: .
+-   The initial service file () for the Likely Stops on Route feature has been created.
 
 **Last working item**:
--   **Last item agent was working:** Starting the implementation of a new, user-requested feature: a Python scraper for MSRTC (Maharashtra State Road Transport Corporation) timetable data. The agent created the initial files (, ) for the scraper.
+-   **Last item agent was working:** The agent was beginning the implementation of the Likely Stops on Route feature. It had just created the core service file  and was about to create the new API endpoint to expose this functionality.
 -   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** backend testing agent. After implementing the scraper logic, the agent should write a small execution script and use the backend testing agent to run it and verify that it correctly scrapes and processes data without errors.
+-   **Which testing method agent to use?** backend testing agent. The agent should create a new API endpoint, then write a test script to call it for various routes (e.g., Pune-Mumbai, Mumbai-Kolhapur). The test should verify that the API returns a geographically ordered list of major intermediate stops based on the logic in .
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** Tab Reordering (P1)
--   **Issue 2:** Recent Search Robustness Verification (P2)
+-   **Issue 1:** Recent Search Robustness Verification (P2)
 
   **Issues Detail:**
   -   **Issue 1:**
-     -   **Description:** The user requested the main search tabs to be ordered . The current order is .
-     -   **Attempted fixes:** None. This was missed during implementation.
-     -   **Next debug checklist:**
-         1.  Locate the tab definition in .
-         2.  Reorder the  array or the JSX elements to match the user's required order.
-         3.  Verify the change with a screenshot.
-     -   **Why fix this issue and what will be achieved with the fix?** To align the UI with the user's explicit product requirement.
-     -   **Status:** NOT STARTED
-     -   **Is recurring issue?** N
-     -   **Should Test frontend/backend/both after fix?** frontend
-     -   **Blocked on other issue:** None.
-  -   **Issue 2:**
-     -   **Description:** During development, the Recent Searches section on the homepage did not update immediately after a search was performed via direct URL navigation. While it appears to work now after a full E2E flow from the homepage, the underlying cause was not fully diagnosed.
-     -   **Attempted fixes:** The agent rebuilt the frontend and re-tested, which seemed to resolve it, but this could be a race condition or a state-update issue.
+     -   **Description:** During development, the Recent Searches section on the homepage did not update immediately after a search was performed via direct URL navigation. While it appeared to work in some E2E flows, the underlying cause was not fully diagnosed and needs to be verified.
+     -   **Attempted fixes:** None in this session.
      -   **Next debug checklist:**
          1.  Perform a search by navigating directly to a results page URL (e.g., ).
          2.  Navigate back to the homepage.
          3.  Check if the new search appears in the Recent Searches section.
-         4.  If it doesn't, investigate the state management and component lifecycle in  and the homepage () to ensure the component re-renders when localStorage is updated.
-     -   **Why fix this issue and what will be achieved with the fix?** To ensure the recent search feature is reliable under all navigation patterns.
+         4.  If not, investigate the state management (Zustand) and component lifecycle in  and the homepage () to ensure the component re-renders when  is updated.
+     -   **Why fix this issue and what will be achieved with the fix?** To ensure the recent search feature is reliable under all navigation patterns, providing a consistent user experience.
      -   **Status:** NOT STARTED
      -   **Is recurring issue?** Y
      -   **Should Test frontend/backend/both after fix?** frontend
-     -   **Blocked on other issue:** None.
+     -   **Blocked on other issue:** None
 
 **In progress Task List**:
--   **Task 1:** Implement MSRTC Timetable Scraper (P0)
+-   **Task 1:** Implement Likely Stops on Route Feature (P0)
 
   **Task Detail:**
   -   **Task 1:**
-     -   **Where to resume:** The file  has been created. The agent needs to add the required dependencies (, ) to  and then implement the scraping logic inside the file.
-     -   **What will be achieved with this?** A Python script capable of scraping public timetable data from the MSRTC website, handling Marathi text, and parsing the results into a structured format, as per the user's detailed instructions.
+     -   **Where to resume:** Resume by creating a new API router file in  to expose the functionality from . This new endpoint should accept an origin and destination, calculate the intermediate stops, and return them.
+     -   **What will be achieved with this?** The bus results page will be enhanced to display an indicative list of major stops between the origin and destination, adding valuable context for the user.
      -   **Status:** IN PROGRESS
      -   **Should Test frontend/backend/both after fix?** backend
      -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 **Upcoming Tasks:**
--   **(P2) Implement Track Price Backend & Email Alerts:**
-    -   Integrate the Resend API key.
-    -   Implement a background job to check for price drops on Saved Searches.
-    -   Trigger email notifications when a price drop is detected.
+*   **(P2) Implement Track Price Backend & Email Alerts:**
+    *   Integrate the Resend API key.
+    *   Implement a background job to check for price drops on Saved Searches.
+    *   Trigger email notifications when a price drop is detected.
 
 **Future Tasks:**
--   Implement the 6-month SEO roadmap from .
--   Expand the admin dashboard to display analytics from the  endpoint.
--   Implement an advanced deep-linking strategy for sharing searches.
+*   Implement the 6-month SEO roadmap from .
+*   Expand the admin dashboard to display analytics from the  endpoint.
+*   Implement an advanced deep-linking strategy for sharing searches.
 
 **Completed work in this session**
--   **Train & Bus Search (Backend):**
-    -   Created services (, ) and API routers (, ).
-    -   Refactored backend logic to generate **variant-level** results, creating a separate card for each train class and bus type, which was a critical architectural change.
-    -   Implemented distance-based fare calculation with slight variations for different service types.
--   **Train & Bus Search (Frontend):**
-    -   Added Trains and Buses tabs to the main  and .
-    -   Replaced free-text inputs with a unified, validated  component, ensuring users must select a valid city from a dropdown, identical to the flight search behavior.
-    -   Implemented robust search button validation (disabled with tooltips until inputs are valid).
-    -   Created new results pages (, ) with flight-style filter panels and sorting controls.
-    -   Created  and  to correctly display the variant-level data.
--   **Recent Searches:**
-    -   Implemented a unified recent search store () and updated the  component to handle all transport modes.
--   **Bug Fix:**
-    -   Resolved a  price display issue on the results cards.
+-   **MSRTC Backend System & Static Dataset:**
+    -   Built a comprehensive, production-grade dataset for all MSRTC bus stops and cities in Maharashtra ().
+    -   Implemented a full backend API () for searching routes and stops using this static data.
+-   **Bus Autocomplete System Fix:**
+    -   Created a new backend API () with cascading search logic that correctly prioritizes bus stops over cities.
+    -   Updated the frontend component  to use this API.
+    -   Fixed API call routing by adding a proxy rewrite to .
+    -   **Result:** Autocomplete for satara, sangli, ratnagiri, and kolh now works perfectly.
+-   **Tab Order UI Fix:**
+    -   Corrected the main search tab order in  to .
+-   **Testing:**
+    -   The backend MSRTC APIs and the new autocomplete API were thoroughly tested with scripts.
+    -   The frontend tab order and autocomplete functionality were verified with screenshots and manual inspection.
+    -   The testing agent was used to run a full suite of tests on the MSRTC implementation and its frontend integration.
 
 **Earlier issues found/mentioned but not fixed**
--   The two issues listed in **All Pending/In progress Issue list** (Tab Reordering, Recent Search Robustness) were introduced or discovered in this session but not yet resolved.
+-   **Recent Search Robustness Verification:** This was carried over from the initial handoff summary and confirmed as a P2 task by the user but has not been addressed yet.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -111,26 +98,20 @@ The user wants to add Train and Bus search functionality to their existing trave
 
 
 **Key Technical Concepts**
--   **Variant-Level vs. Route-Level Data:** A critical architectural principle implemented where the backend expands a single search route into multiple, distinct result cards (variants) based on class, type, etc., rather than returning one result with nested options.
--   **Unified Autocomplete Component:** A single, reusable React component () for location input that handles different transport modes and enforces selection from a validated list.
--   **Conditional UI Rendering:** The search bar and results pages heavily use state to conditionally render different forms, filters, and card types based on the selected transport mode (, , ).
--   **Client-Side State Management (Zustand):** Used for managing and persisting recent searches to  across the application.
+-   **Static Data Generation:** Since the live MSRTC site was inaccessible, the agent pivoted to generating a comprehensive static dataset (, ) to power the bus features. This is a critical architectural pattern for this part of the app.
+-   **Cascading Autocomplete:** The new bus autocomplete logic searches bus stops first, then cities, with a state-level bias, before falling back to wider searches. This provides highly relevant, context-aware results.
+-   **Next.js API Proxy (Rewrites):** Implemented in  to allow the frontend dev server () to cleanly call the backend API () without CORS issues or needing full URLs in the frontend code.
+-   **Dual Frontend Directories:** The agent discovered that the application runs from , but development changes are made in . A build process syncs them. This is a crucial detail for any future frontend work.
 
 **key DB schema**
--   No new database schemas were created or modified in this session.
+-   No new database schemas were created. All MSRTC data is stored in version-controlled JSON files.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **Newly Created/Overwritten:**
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   
+-   **Newly Created:**
+    -    (and all JSON files within)
     -   
     -   
     -   
@@ -143,50 +124,52 @@ The user wants to add Train and Bus search functionality to their existing trave
     -   
     -   
     -   
-    -   
-    -   
 
 **Areas that need refactoring**:
--   The  component was bypassed in  and  to fix a  bug. It would be cleaner to fix the root cause in  and reuse it, rather than rendering the price directly in the cards.
+-   The existence of two frontend directories ( and ) could lead to confusion and should ideally be simplified to a single source directory in the future.
 
 **key api endpoints**
--   : **Implemented & Working.**
--   : **Implemented & Working.**
--   : **Implemented & Working.**
--   : **Implemented & Working.**
+-   : **Implemented & Working.** Provides ranked autocomplete suggestions for bus searches.
+-   : **Implemented & Working.** Searches for MSRTC bus routes.
+-   , , : **Implemented & Working.** Utility endpoints for MSRTC data.
+-   : **PLANNED.** The endpoint for the Likely Stops on Route feature.
 
 **Critical Info for New Agent**
--   The main feature (Train/Bus Search) is functionally complete and matches the user's demanding requirements for UI/UX parity with the existing Flight search.
--   The core architectural concept to understand is **variant-level data**. The backend must always return an array of individual cards, never a single result with nested options. This principle should be applied to any future data-driven features.
--   The current task is a net-new feature: an MSRTC scraper. You should resume by implementing the logic in .
--   There are two minor but important UI issues to address before moving on to larger tasks: reordering the search tabs and verifying the recent search feature is fully robust.
+-   **MSRTC Data is Static:** The MSRTC website is inaccessible from the environment. All features MUST rely on the static JSON datasets located at . Do not attempt to scrape the live site.
+-   **Frontend API Calls:** The frontend is configured to proxy  requests to the backend () via a rewrite in . Use relative  paths in frontend code. The backend URL is defined by .
+-   **Frontend Directory Structure:** Be aware that the running application is in , but the source files being edited are in . Changes in  are reflected in  after a build.
+-   **Adhere to User's Architecture:** The user has provided clear architectural direction (static data, specific search ranking logic). Follow these principles closely.
 
 **documents and test reports created in this job**
--    (Updated after backend and frontend implementations)
+-    (Updated with MSRTC and autocomplete test results)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Summary):** Provided mentor-level architectural feedback, emphasizing the need for variant-level data (multiple cards per route) instead of route-level data.
-2.  **Agent (Summary):** Understood the feedback and began refactoring the backend services to expand results into variants.
-3.  **Agent (Summary):** Completed the backend refactoring, tested with curl to confirm multiple cards were being generated, and then updated the frontend cards to display the new variant-specific data.
-4.  **Agent (Summary):** Tested the completed frontend UI, confirming that multiple, variant-specific cards were now being displayed for both train and bus searches, matching the flight experience.
-5.  **User (Summary):** Provided a new, unrelated task: create a production-safe Python scraper for the MSRTC timetable website, with detailed requirements.
-6.  **Agent (Summary):** Acknowledged the new scraper task and created the initial Python files to begin implementation.
+1.  **User:** Confirmed priorities: 1. MSRTC Scraper, 2. Tab Reorder, 3. Recent Search Robustness. Provided detailed specs for scraper, including Marathi language handling and phased rollout.
+2.  **Agent:** Acknowledged priorities and started work.
+3.  **Agent:** Fixed the tab order UI issue in .
+4.  **Agent:** Implemented the full MSRTC backend system, including models, seed data, and API routers, and tested it successfully.
+5.  **User:** Provided new, detailed requirements for creating a production-grade bus stop dataset for all of Maharashtra, specifying the exact JSON structure and classification rules.
+6.  **Agent:** Created the comprehensive MSRTC dataset (, , ) with over 1200 stops, following all user specifications. Tested the data loader.
+7.  **User:** Reported that the bus autocomplete was broken for several key cities (Satara, Sangli, etc.) and provided strict requirements for a fix, including a cascading search logic.
+8.  **Agent:** Implemented a new backend autocomplete endpoint (), updated the frontend component to use it, and configured the Next.js proxy to fix the API calls.
+9.  **Agent:** Successfully tested the new autocomplete functionality, confirming that all reported issues were resolved.
+10. **User:** Provided the next task: implement a Likely Stops on Route feature, giving conceptual guidance.
 
 **Project Health Check:**
 -   **Broken:** None.
--   **Mocked:** None.
+-   **Mocked:** None. The MSRTC system is not mocked; it's a complete implementation based on a comprehensive static dataset.
 
 **3rd Party Integrations**
--   **Aviasales (Travelpayouts Data API):** **WORKING & PRIMARY** (for flights).
--   **Amadeus (Production):** **WORKING & RE-ARCHITECTED** as a cost-controlled fallback (for flights).
+-   **Aviasales (Travelpayouts Data API):** **WORKING** (for flights).
+-   **Amadeus (Production):** **WORKING** (for flights).
 -   **Resend:** **PLANNED (P2 Task)**.
 -   **Framer Motion:** **INSTALLED**.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, the agent used the testing agent and received passing results after both the initial implementation and subsequent major refactors.
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None
--   **Known regressions:** None
+-   **Testing agent used after significant changes:** YES. Used to validate the MSRTC backend and frontend integration.
+-   **Troubleshoot agent used after agent stuck in loop:** NO.
+-   **Test files created:** None, but extensive ad-hoc testing was performed using  scripts and .
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
 -   **Admin Login:**
@@ -196,4 +179,4 @@ The user wants to add Train and Bus search functionality to their existing trave
 -   **Aviasales API (Travelpayouts):** Token  is configured in the environment.
 
 **What agent forgot to execute**
--   The agent forgot to reorder the main search tabs () as requested by the user in message 237. This is listed as a pending issue.</analysis>
+-   The agent has not yet started the **Recent Search Robustness Verification** task, which was designated as a P2 priority by the user.</analysis>

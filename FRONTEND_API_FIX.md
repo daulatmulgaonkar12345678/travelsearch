@@ -64,12 +64,12 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
 
 **`.env.local` (Local Development):**
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://travel-search-14.preview.emergentagent.com
+NEXT_PUBLIC_API_BASE_URL=https://busway-planner.preview.emergentagent.com
 ```
 
 **`.env.production` (Production Build):**
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://travel-search-14.preview.emergentagent.com
+NEXT_PUBLIC_API_BASE_URL=https://busway-planner.preview.emergentagent.com
 ```
 
 **`.env.local.example` (Documentation):**
@@ -115,7 +115,7 @@ sudo supervisorctl restart frontend
 
 ### Backend API Accessibility Test
 ```bash
-curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=pu&limit=10"
+curl "https://busway-planner.preview.emergentagent.com/api/airports?query=pu&limit=10"
 
 # Result: ✅ Returns 3 airports including Pune (PNQ)
 {
@@ -128,11 +128,11 @@ curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=pu&l
 
 ### Frontend Autocomplete Test
 **Expected Behavior:**
-1. User navigates to: `https://travel-search-14.preview.emergentagent.com/`
+1. User navigates to: `https://busway-planner.preview.emergentagent.com/`
 2. Types "pu" in the From field
 3. DevTools Network tab shows request to:
    ```
-   https://travel-search-14.preview.emergentagent.com/api/airports?query=pu&limit=10
+   https://busway-planner.preview.emergentagent.com/api/airports?query=pu&limit=10
    ```
 4. Response: `200 OK` with JSON containing Pune
 5. Dropdown displays: "Pune, India - PNQ"
@@ -146,7 +146,7 @@ curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=pu&l
 
 ### Mumbai Test
 ```bash
-curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=mum&limit=10"
+curl "https://busway-planner.preview.emergentagent.com/api/airports?query=mum&limit=10"
 
 # Result: ✅ Returns Mumbai airport (BOM)
 {
@@ -176,8 +176,8 @@ curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=mum&
 ### Modified Files
 1. **`.env.local`**
    ```diff
-   - NEXT_PUBLIC_API_URL=https://travel-search-14.preview.emergentagent.com
-   + NEXT_PUBLIC_API_BASE_URL=https://travel-search-14.preview.emergentagent.com
+   - NEXT_PUBLIC_API_URL=https://busway-planner.preview.emergentagent.com
+   + NEXT_PUBLIC_API_BASE_URL=https://busway-planner.preview.emergentagent.com
    ```
 
 2. **`.env.local.example`**
@@ -227,7 +227,7 @@ yarn dev
 
 **1. Ensure `.env.production` has preview URL:**
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://travel-search-14.preview.emergentagent.com
+NEXT_PUBLIC_API_BASE_URL=https://busway-planner.preview.emergentagent.com
 ```
 
 **2. Build and deploy:**
@@ -299,7 +299,7 @@ sudo supervisorctl restart frontend
 **Check backend:**
 ```bash
 # Test backend API directly
-curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=pu"
+curl "https://busway-planner.preview.emergentagent.com/api/airports?query=pu"
 
 # Should return JSON with Pune
 ```
@@ -317,7 +317,7 @@ curl "https://travel-search-14.preview.emergentagent.com/api/airports?query=pu"
 # apps/backend/app/main.py
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://travel-search-14.preview.emergentagent.com"],
+    allow_origins=["https://busway-planner.preview.emergentagent.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -361,22 +361,22 @@ app.add_middleware(
 
 **Homepage:**
 ```
-https://travel-search-14.preview.emergentagent.com/
+https://busway-planner.preview.emergentagent.com/
 ```
 
 **Airport Autocomplete API:**
 ```
-https://travel-search-14.preview.emergentagent.com/api/airports?query=pu&limit=10
+https://busway-planner.preview.emergentagent.com/api/airports?query=pu&limit=10
 ```
 
 **Flight Search API:**
 ```
-https://travel-search-14.preview.emergentagent.com/api/search/flights?origin=PNQ&destination=BOM&departure_date=2025-12-07&adults=1
+https://busway-planner.preview.emergentagent.com/api/search/flights?origin=PNQ&destination=BOM&departure_date=2025-12-07&adults=1
 ```
 
 **API Documentation:**
 ```
-https://travel-search-14.preview.emergentagent.com/api/docs
+https://busway-planner.preview.emergentagent.com/api/docs
 ```
 
 ### Important Commands
@@ -395,7 +395,7 @@ sudo supervisorctl restart frontend
 tail -f /var/log/supervisor/frontend.err.log
 
 # Test backend API
-curl "https://travel-search-14.preview.emergentagent.com/api/health"
+curl "https://busway-planner.preview.emergentagent.com/api/health"
 ```
 
 ---
