@@ -109,6 +109,19 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   })
   const [showRoomModal, setShowRoomModal] = useState(false)
 
+  // Trains & Buses state
+  const [trainOrigin, setTrainOrigin] = useState('')
+  const [trainDestination, setTrainDestination] = useState('')
+  const [trainDate, setTrainDate] = useState(getTomorrowDate())
+  const [trainPassengers, setTrainPassengers] = useState(1)
+  const [trainClass, setTrainClass] = useState<string>('')
+  
+  const [busOrigin, setBusOrigin] = useState('')
+  const [busDestination, setBusDestination] = useState('')
+  const [busDate, setBusDate] = useState(getTomorrowDate())
+  const [busPassengers, setBusPassengers] = useState(1)
+  const [busAcOnly, setBusAcOnly] = useState(false)
+
   // Synchronize dates between flights and hotels
   useEffect(() => {
     if (searchType === 'flights') {
