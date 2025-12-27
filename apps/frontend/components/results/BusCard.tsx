@@ -7,13 +7,11 @@ import {
   ChevronUp,
   ExternalLink,
   Clock,
-  MapPin,
   Wifi,
   BatteryCharging,
   Snowflake,
   Info,
 } from 'lucide-react'
-import PriceDisplay from '@/components/ui/PriceDisplay'
 
 interface BusOffer {
   offer_id: string
