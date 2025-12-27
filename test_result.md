@@ -98,25 +98,31 @@ test_priority: "high_first"
 
 - task: "Train Search API"
   implemented: true
-  working: pending
+  working: true
   file: "/app/apps/backend/app/services/train_search.py, /app/apps/backend/app/routers/train.py"
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented train search with static Indian Railways data. Features: 1) GET /api/search/trains returns real offers for seeded routes or fallback redirect, 2) Never returns empty results, 3) Booking partners: IRCTC → ixigo → Paytm (user-approved order), 4) Distance-based fare calculation, 5) GET /api/trains/routes lists all available routes. 12 popular routes seeded. Curl testing passed."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL TRAIN SEARCH TESTS PASSED (5/5): 1) GET /api/search/trains returns real offers for popular routes (delhi→mumbai: 3 offers, bangalore→chennai: 2 offers, delhi→jaipur: 2 offers), 2) Unknown routes (varanasi→goa) correctly return fallback=true with booking partners (IRCTC, ixigo, Paytm), 3) Date validation working - past dates and >120 days future rejected with 400, 4) Input validation working - same origin/destination and missing params rejected correctly, 5) GET /api/trains/routes returns 12 available routes with proper structure, 6) Train class filter (3A) working correctly, 7) Response structure validation passed - all required fields present, booking partners in correct priority order."
 
 - task: "Bus Search API"
   implemented: true
-  working: pending
+  working: true
   file: "/app/apps/backend/app/services/bus_search.py, /app/apps/backend/app/routers/bus.py"
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented bus search with static RTC/private operator data. Features: 1) GET /api/search/buses returns offers for seeded routes or fallback redirect, 2) Never returns empty results, 3) Booking partners: redBus → AbhiBus → Paytm (user-approved order), 4) Multiple bus types with avg fares (Ordinary, AC, Sleeper, Volvo), 5) GET /api/buses/routes lists all available routes. 12 popular routes seeded. Curl testing passed."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL BUS SEARCH TESTS PASSED (5/5): 1) GET /api/search/buses returns real offers for popular routes (mumbai→pune: 4 offers, delhi→jaipur: 4 offers, bangalore→chennai: 4 offers), 2) Unknown routes (lucknow→trivandrum) correctly return fallback=true with booking partners (redBus, AbhiBus, Paytm), 3) Date validation working - past dates and >60 days future rejected with 400, 4) AC filter working - ac_only=true returns only AC buses, 5) GET /api/buses/routes returns 12 available routes with proper structure including bus types and operator counts, 6) Response structure validation passed - all required fields present, booking partners in correct priority order."
 
 - agent: "main"
   message: "Train & Bus Search Backend Implementation Complete. Created: 1) TrainSearchRequest/Response, BusSearchRequest/Response models in transport.py, 2) train_search.py and bus_search.py services with schedule conversion, fallback generation, and city normalization, 3) /api/search/trains and /api/search/buses routers with date validation, 4) /api/trains/routes and /api/buses/routes for route discovery. All endpoints curl tested. Ready for comprehensive backend testing."
