@@ -442,24 +442,20 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     # PRIORITY 1: Check MSRTC routes first (Maharashtra State)
     try:
         from app.scrapers.msrtc_service import search_msrtc_buses
-        from app.models.transport import BusSearchRequest as MSRTCRequest
         
-        # Convert to MSRTC request format
-        msrtc_request = MSRTCRequest(
+        # Call MSRTC search (not async)
+        msrtc_offers = search_msrtc_buses(
             origin=request.origin,
             destination=request.destination,
-            departure_date=request.departure_date,
-            passengers=request.passengers or 1
+            departure_date=request.departure_date
         )
         
-        msrtc_response = await search_msrtc_buses(msrtc_request)
-        
         # If MSRTC has results, return them
-        if msrtc_response.offers and not msrtc_response.is_fallback:
-            logger.info(f"✅ Found {len(msrtc_response.offers)} MSRTC bus variants for {origin} → {destination}")
+        if msrtc_offers:
+            logger.info(f"✅ Found {len(msrtc_offers)} MSRTC bus variants for {origin} → {destination}")
             
             # Apply filters to MSRTC results
-            filtered_offers = msrtc_response.offers
+            filtered_offers = msrtc_offers
             
             if request.ac_only:
                 filtered_offers = [o for o in filtered_offers if o.is_ac]
@@ -474,14 +470,14 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
                        request.bus_type.lower().replace("_", " ") in o.bus_type_label.lower()
                 ]
             
-            # Return MSRTC results with original search_id
+            # Return MSRTC results
             return BusSearchResponse(
                 offers=filtered_offers,
                 search_id=search_id,
                 cached=False,
                 timestamp=datetime.utcnow(),
-                origin_city=msrtc_response.origin,
-                destination_city=msrtc_response.destination,
+                origin_city=origin,
+                destination_city=destination,
                 distance_km=None,  # MSRTC provides this in individual offers
                 is_fallback=False,
                 fallback_message=None,
