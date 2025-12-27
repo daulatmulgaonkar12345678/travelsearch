@@ -160,12 +160,12 @@ async def sync_to_db():
     print_header("SYNCING MSRTC DATA TO DATABASE")
     
     try:
-        from app.core.database import connect_db, close_db, get_db
+        from app.db.mongodb import connect_db, close_db, get_database
         from app.scrapers.msrtc_service import save_msrtc_stops_to_db, save_msrtc_routes_to_db
         
         print("Connecting to database...")
         await connect_db()
-        db = await get_db()
+        db = get_database()
         
         print("Syncing stops...")
         stops_count = await save_msrtc_stops_to_db(db)
