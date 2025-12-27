@@ -4,9 +4,15 @@ import Footer from '@/components/layout/Footer'
 import TrustStrip from '@/components/trust/TrustStrip'
 import RecentSearches from '@/components/features/RecentSearches'
 import { PopularFlightRoutes, PopularHotelDestinations } from '@/components/seo/InternalLinks'
-import { Hotel, Shield, TrendingDown } from 'lucide-react'
+import { Hotel, Shield, TrendingDown, Train, Bus } from 'lucide-react'
 
-export default function Home() {
+interface HomeProps {
+  searchParams: { tab?: string }
+}
+
+export default function Home({ searchParams }: HomeProps) {
+  const defaultTab = (searchParams.tab as 'flights' | 'trains' | 'buses' | 'hotels') || 'flights'
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <Navigation />
@@ -18,13 +24,13 @@ export default function Home() {
             Find Your Perfect Journey
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Compare flights and hotels from multiple providers. Search options instantly.
+            Compare flights, trains, buses, and hotels from multiple providers. Search options instantly.
           </p>
         </div>
 
         {/* Search Component */}
         <div className="max-w-5xl mx-auto space-y-4">
-          <SearchBarV3 />
+          <SearchBarV3 defaultTab={defaultTab} />
           
           {/* Trust Strip - appears below search */}
           <TrustStrip />
