@@ -74,6 +74,7 @@ run_ui: true
 ```yaml
 current_focus:
   - "MSRTC Scraper Implementation testing completed successfully - all 5 API test suites passed"
+  - "MSRTC Frontend Integration completed - variant-level bus cards displaying correctly"
   - "Tab Order UI Fix verified - tabs correctly ordered as [Flights, Buses, Trains, Hotels]"
   - "All major backend and frontend features tested and working"
 stuck_tasks: []
