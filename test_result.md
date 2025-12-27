@@ -131,14 +131,17 @@ test_priority: "high_first"
 
 - task: "Train & Bus UI Integration"
   implemented: true
-  working: pending
+  working: true
   file: "/app/apps/frontend/components/search/SearchBarV3.tsx, /app/apps/frontend/components/results/TrainCard.tsx, /app/apps/frontend/components/results/BusCard.tsx"
   priority: "high"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Frontend implementation complete. Added: 1) Trains and Buses tabs to SearchBarV3 with forms, 2) TrainCard.tsx and BusCard.tsx result components, 3) /trains/results and /buses/results pages, 4) Navigation updated with all 4 transport modes. Screenshot testing shows all components working. Price display fixed. Fallback cards working for unknown routes."
+    - working: true
+      agent: "testing"
+      comment: "✅ TRAIN & BUS SEARCH UI TESTING COMPLETE: All 7 test cases passed successfully. 1) Homepage Tab Navigation: All 4 tabs (Flights, Trains, Buses, Hotels) present with proper highlighting, 2) Train Search Flow: Form functional, navigation to /trains/results working, train cards display correctly with name/number (Mumbai Rajdhani #12952), departure/arrival times (16:25→08:15), duration (15h 50m), price in INR (₹2,545 - no NaN issues), available classes (3A, 2A, 1A), booking partners (IRCTC, ixigo, Paytm), pantry indicator, 3) Bus Search Flow: Form functional, navigation to /buses/results working, bus cards display operator name (MSRTC), AC/Sleeper badges, price in INR (₹220), booking partners (redBus, AbhiBus, Paytm), departure/arrival times (04:00→07:30), 4) Fallback Route Test: 'Redirect Only' badge working, amber warning messages displayed, estimated fare range shown, 5) Navigation Bar: All nav links working, Trains/Buses links redirect to homepage with correct tabs, 6) Sort Functionality: Train sort (Departure, Duration, Price) and Bus sort (Price, Departure, Duration) buttons working, 7) Form Validation: Empty field validation and same origin/destination validation working with alerts. Complete end-to-end functionality verified."
 
 - agent: "main"
   message: "Train & Bus Search Frontend Implementation Complete. Added 4-tab search bar (Flights/Trains/Buses/Hotels), created TrainCard and BusCard components with booking partner buttons, implemented results pages with sorting and filters. Navigation bar updated. All screenshot tests passing. Ready for comprehensive frontend testing."
