@@ -44,6 +44,9 @@ interface TrainOffer {
   frequency: string | null
   stops_count: number
   intermediate_stops: string[]
+  // VARIANT-LEVEL: This card is for ONE class
+  selected_class?: string | null  // "SL", "3A", "2A", etc.
+  selected_class_display?: string | null  // "Sleeper", "AC 3-Tier", etc.
   available_classes: Array<{ class: string; avg_fare: number }>
   has_pantry: boolean
 }
@@ -82,6 +85,10 @@ export default function TrainCard({ offer }: TrainCardProps) {
 
   // Sort booking partners by priority
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
+  
+  // Get the class for this card
+  const cardClass = offer.selected_class_display || offer.selected_class || 
+                    (offer.available_classes?.[0]?.class) || ''
 
   return (
     <div className="relative bg-white border rounded-lg shadow-sm hover:shadow-md transition">
@@ -95,22 +102,31 @@ export default function TrainCard({ offer }: TrainCardProps) {
       )}
 
       <div className="p-4">
-        {/* Train Info Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Train className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="font-semibold text-gray-900">
-              {offer.train_name}
-              {!offer.is_fallback && (
-                <span className="ml-2 text-sm font-normal text-gray-500">#{offer.train_number}</span>
+        {/* Train Info Header - WITH CLASS BADGE */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Train className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">
+                {offer.train_name}
+                {!offer.is_fallback && (
+                  <span className="ml-2 text-sm font-normal text-gray-500">#{offer.train_number}</span>
+                )}
+              </p>
+              {offer.train_type && (
+                <p className="text-sm text-gray-500">{offer.train_type}</p>
               )}
-            </p>
-            {offer.train_type && (
-              <p className="text-sm text-gray-500">{offer.train_type}</p>
-            )}
+            </div>
           </div>
+          
+          {/* CLASS BADGE - Prominent for variant-level */}
+          {cardClass && !offer.is_fallback && (
+            <span className="px-3 py-1 text-sm font-semibold bg-blue-100 text-blue-700 rounded-full">
+              {cardClass}
+            </span>
+          )}
         </div>
 
         {/* Route & Time */}
@@ -153,7 +169,7 @@ export default function TrainCard({ offer }: TrainCardProps) {
           </div>
         )}
 
-        {/* Price & Classes */}
+        {/* Price - THIS IS THE PRICE FOR THIS CLASS ONLY */}
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-baseline gap-2">
@@ -165,6 +181,7 @@ export default function TrainCard({ offer }: TrainCardProps) {
             <p className="text-xs text-gray-400">{offer.price_label}</p>
           </div>
           
+          {/* Amenities */}
           {!offer.is_fallback && offer.has_pantry && (
             <div className="flex items-center gap-1 text-gray-500">
               <Utensils className="h-4 w-4" />
@@ -172,23 +189,6 @@ export default function TrainCard({ offer }: TrainCardProps) {
             </div>
           )}
         </div>
-
-        {/* Available Classes */}
-        {!offer.is_fallback && offer.available_classes.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs text-gray-500 mb-2">Available Classes:</p>
-            <div className="flex flex-wrap gap-2">
-              {offer.available_classes.map(cls => (
-                <span
-                  key={cls.class}
-                  className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
-                >
-                  {cls.class}: ₹{cls.avg_fare.toLocaleString()}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Expand Details Button */}
         {!offer.is_fallback && (
@@ -226,7 +226,7 @@ export default function TrainCard({ offer }: TrainCardProps) {
 
         {/* Booking Partners */}
         <div className="border-t pt-4">
-          <p className="text-xs text-gray-500 mb-2">Book on:</p>
+          <p className="text-xs text-gray-500 mb-2">Check availability:</p>
           <div className="flex flex-wrap gap-2">
             {sortedPartners.map(partner => (
               <button
