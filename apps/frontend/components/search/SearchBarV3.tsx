@@ -387,6 +387,74 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     window.location.href = `/hotels/results?${params}`
   }
 
+  const handleTrainSearch = () => {
+    if (!trainOrigin || !trainDestination) {
+      alert('Please enter origin and destination')
+      return
+    }
+    
+    if (trainOrigin.toLowerCase() === trainDestination.toLowerCase()) {
+      alert('Origin and destination cannot be the same')
+      return
+    }
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const searchDate = new Date(trainDate)
+    
+    if (searchDate < today) {
+      alert('Date cannot be in the past')
+      return
+    }
+    
+    const params = new URLSearchParams({
+      origin: trainOrigin,
+      destination: trainDestination,
+      departure_date: trainDate,
+      passengers: trainPassengers.toString(),
+    })
+    
+    if (trainClass) {
+      params.append('train_class', trainClass)
+    }
+    
+    window.location.href = `/trains/results?${params}`
+  }
+
+  const handleBusSearch = () => {
+    if (!busOrigin || !busDestination) {
+      alert('Please enter origin and destination')
+      return
+    }
+    
+    if (busOrigin.toLowerCase() === busDestination.toLowerCase()) {
+      alert('Origin and destination cannot be the same')
+      return
+    }
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const searchDate = new Date(busDate)
+    
+    if (searchDate < today) {
+      alert('Date cannot be in the past')
+      return
+    }
+    
+    const params = new URLSearchParams({
+      origin: busOrigin,
+      destination: busDestination,
+      departure_date: busDate,
+      passengers: busPassengers.toString(),
+    })
+    
+    if (busAcOnly) {
+      params.append('ac_only', 'true')
+    }
+    
+    window.location.href = `/buses/results?${params}`
+  }
+
   const handleMultiCitySegmentUpdate = (id: string, field: keyof FlightSegment, value: string) => {
     setMultiCitySegments(prev =>
       prev.map(seg =>
