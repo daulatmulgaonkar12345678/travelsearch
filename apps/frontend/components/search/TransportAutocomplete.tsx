@@ -369,11 +369,16 @@ export default function TransportAutocomplete({
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto">
           <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
             <span className="text-xs text-gray-600 font-medium">
-              Select a city
+              {mode === 'bus' ? 'Select a bus stop or city' : 'Select a city'}
             </span>
           </div>
           {suggestions.map((location, index) => {
             const warning = getModeWarning(location)
+            // For bus mode, check if this is a bus stop from API
+            const isBusStop = mode === 'bus' && (location as any)._type === 'bus_stop'
+            const busOperator = (location as any)._operator
+            const isSearchSurface = (location as any)._isSearchSurface
+            
             return (
               <button
                 key={location.city_id}
@@ -389,30 +394,48 @@ export default function TransportAutocomplete({
                 }`}
               >
                 <div className="flex items-center gap-3">
+                  {/* Icon/Badge - Different for bus stops vs cities */}
                   <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-                    warning ? 'bg-gray-200' : `bg-${color}-100`
+                    warning ? 'bg-gray-200' : 
+                    isBusStop && isSearchSurface ? 'bg-green-100' :
+                    isBusStop ? 'bg-orange-100' :
+                    `bg-${color}-100`
                   }`}>
-                    <span className={`font-bold text-sm ${warning ? 'text-gray-500' : `text-${color}-600`}`}>
-                      {getCodeDisplay(location)}
-                    </span>
+                    {isBusStop ? (
+                      <span className={`text-lg ${isSearchSurface ? 'text-green-600' : 'text-orange-600'}`}>
+                        🚌
+                      </span>
+                    ) : (
+                      <span className={`font-bold text-sm ${warning ? 'text-gray-500' : `text-${color}-600`}`}>
+                        {getCodeDisplay(location)}
+                      </span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">
+                    <div className="font-medium text-gray-900 truncate flex items-center gap-2">
                       {location.label}
+                      {isSearchSurface && isBusStop && (
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
+                          Depot
+                        </span>
+                      )}
                     </div>
                     {warning ? (
                       <div className="text-sm text-amber-600">{warning}</div>
                     ) : (
                       <div className="text-sm text-gray-500">
-                        {mode === 'train' && location.rail_codes.length > 0 && (
+                        {mode === 'bus' && isBusStop ? (
+                          <span>
+                            {location.city}, {location.state}
+                            {busOperator && <span className="ml-2 text-gray-400">• {busOperator}</span>}
+                          </span>
+                        ) : mode === 'bus' ? (
+                          <span>{location.state} - All stops</span>
+                        ) : mode === 'train' && location.rail_codes.length > 0 ? (
                           <span>Stations: {location.rail_codes.slice(0, 3).join(', ')}</span>
-                        )}
-                        {mode === 'bus' && location.bus_codes.length > 0 && (
-                          <span>Stands: {location.bus_codes.slice(0, 2).join(', ')}</span>
-                        )}
-                        {mode === 'flight' && location.flight_codes.length > 0 && (
+                        ) : mode === 'flight' && location.flight_codes.length > 0 ? (
                           <span>Airport: {location.flight_codes.join(', ')}</span>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </div>
