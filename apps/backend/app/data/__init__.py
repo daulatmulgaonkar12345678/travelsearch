@@ -1,1 +1,1 @@
-# Data module - static route and station data
+"""MSRTC Places Data Module"""
