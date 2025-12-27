@@ -167,9 +167,10 @@ export default function TransportAutocomplete({
     try {
       // For BUS mode: Use backend autocomplete API with state bias
       if (mode === 'bus') {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+        // Use API base URL from environment or relative path
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
         const response = await fetch(
-          `${backendUrl}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
+          `${apiBase}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
         )
         
         if (response.ok) {
