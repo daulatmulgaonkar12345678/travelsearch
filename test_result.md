@@ -73,8 +73,9 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Train & Bus Search UI testing completed successfully - all requirements verified"
-  - "All major frontend and backend features tested and working"
+  - "MSRTC Scraper Implementation testing completed successfully - all 5 API test suites passed"
+  - "Tab Order UI Fix verified - tabs correctly ordered as [Flights, Buses, Trains, Hotels]"
+  - "All major backend and frontend features tested and working"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
