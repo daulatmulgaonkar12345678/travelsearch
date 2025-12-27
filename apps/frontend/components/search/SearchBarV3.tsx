@@ -439,12 +439,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleTrainSearch = () => {
-    if (!trainOrigin || !trainDestination) {
-      alert('Please enter origin and destination')
+    // Validate selections from dropdown
+    if (!trainOriginLocation || !trainDestinationLocation) {
+      alert('Please select origin and destination from the dropdown')
       return
     }
     
-    if (trainOrigin.toLowerCase() === trainDestination.toLowerCase()) {
+    if (trainOriginLocation.city_id === trainDestinationLocation.city_id) {
       alert('Origin and destination cannot be the same')
       return
     }
@@ -458,9 +459,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       return
     }
     
+    // Use city names for backend search (it will normalize them)
     const params = new URLSearchParams({
-      origin: trainOrigin,
-      destination: trainDestination,
+      origin: trainOriginLocation.city,
+      destination: trainDestinationLocation.city,
       departure_date: trainDate,
       passengers: trainPassengers.toString(),
     })
@@ -473,12 +475,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleBusSearch = () => {
-    if (!busOrigin || !busDestination) {
-      alert('Please enter origin and destination')
+    // Validate selections from dropdown
+    if (!busOriginLocation || !busDestinationLocation) {
+      alert('Please select origin and destination from the dropdown')
       return
     }
     
-    if (busOrigin.toLowerCase() === busDestination.toLowerCase()) {
+    if (busOriginLocation.city_id === busDestinationLocation.city_id) {
       alert('Origin and destination cannot be the same')
       return
     }
@@ -492,15 +495,16 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       return
     }
     
+    // Use city names for backend search
     const params = new URLSearchParams({
-      origin: busOrigin,
-      destination: busDestination,
+      origin: busOriginLocation.city,
+      destination: busDestinationLocation.city,
       departure_date: busDate,
       passengers: busPassengers.toString(),
     })
     
-    if (busAcOnly) {
-      params.append('ac_only', 'true')
+    if (busType) {
+      params.append('bus_type', busType)
     }
     
     window.location.href = `/buses/results?${params}`
