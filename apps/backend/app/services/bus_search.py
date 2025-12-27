@@ -426,6 +426,10 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     - Each route × each bus type = separate card
     - If Mumbai→Pune has [ordinary, ac_seater, ac_sleeper, volvo] → returns 4 cards
     - Never returns 1 card for a valid route with multiple options
+    
+    PRIORITY ORDER:
+    1. Check MSRTC (Maharashtra State) routes first
+    2. Fall back to generic bus routes
     """
     search_id = str(uuid.uuid4())
     
@@ -435,7 +439,58 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     
     logger.info(f"🚌 Bus search: {origin} → {destination} on {request.departure_date}")
     
-    # Try to find route data
+    # PRIORITY 1: Check MSRTC routes first (Maharashtra State)
+    try:
+        from app.scrapers.msrtc_service import search_msrtc_buses
+        from app.models.transport import BusSearchRequest as MSRTCRequest
+        
+        # Convert to MSRTC request format
+        msrtc_request = MSRTCRequest(
+            origin=request.origin,
+            destination=request.destination,
+            departure_date=request.departure_date,
+            passengers=request.passengers or 1
+        )
+        
+        msrtc_response = await search_msrtc_buses(msrtc_request)
+        
+        # If MSRTC has results, return them
+        if msrtc_response.offers and not msrtc_response.is_fallback:
+            logger.info(f"✅ Found {len(msrtc_response.offers)} MSRTC bus variants for {origin} → {destination}")
+            
+            # Apply filters to MSRTC results
+            filtered_offers = msrtc_response.offers
+            
+            if request.ac_only:
+                filtered_offers = [o for o in filtered_offers if o.is_ac]
+            
+            if request.sleeper_only:
+                filtered_offers = [o for o in filtered_offers if o.is_sleeper]
+            
+            if request.bus_type:
+                filtered_offers = [
+                    o for o in filtered_offers
+                    if request.bus_type.lower() in o.bus_type_label.lower() or
+                       request.bus_type.lower().replace("_", " ") in o.bus_type_label.lower()
+                ]
+            
+            # Return MSRTC results with original search_id
+            return BusSearchResponse(
+                offers=filtered_offers,
+                search_id=search_id,
+                cached=False,
+                timestamp=datetime.utcnow(),
+                origin_city=msrtc_response.origin,
+                destination_city=msrtc_response.destination,
+                distance_km=None,  # MSRTC provides this in individual offers
+                is_fallback=False,
+                fallback_message=None,
+            )
+    
+    except Exception as e:
+        logger.warning(f"MSRTC search failed for {origin} → {destination}: {e}")
+    
+    # PRIORITY 2: Fall back to generic bus routes
     route = get_bus_route(origin, destination)
     
     if route:
