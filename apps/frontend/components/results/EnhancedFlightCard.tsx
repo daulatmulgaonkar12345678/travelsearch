@@ -233,15 +233,31 @@ export default function EnhancedFlightCard({
           </div>
 
           <div className="text-center text-xs text-gray-500">
-            {formatDuration(offer.total_duration_minutes)} ·{' '}
-            {offer.stops === 0
-              ? 'Non-stop'
-              : `${offer.stops} stop(s)`}
+            <div>{formatDuration(offer.total_duration_minutes)}</div>
+            {offer.stops === 0 ? (
+              <span>Non-stop</span>
+            ) : (
+              <button
+                onClick={() => setShowStopDetails(prev => !prev)}
+                className="inline-flex items-center gap-0.5 hover:text-blue-600 transition-colors cursor-pointer"
+                aria-expanded={showStopDetails}
+                aria-label={`${formatStopsText(offer.stops)}, click for details`}
+              >
+                <span>{formatStopsText(offer.stops)}</span>
+                <ChevronDown 
+                  size={12} 
+                  className={`transition-transform duration-200 ${showStopDetails ? 'rotate-180' : ''}`}
+                />
+              </button>
+            )}
           </div>
 
           <div className="text-right">
             <div className="font-bold">
               {formatTime(lastSegment.arrival_time)}
+              {isOvernight && (
+                <span className="text-xs text-gray-400 ml-1">(+1)</span>
+              )}
             </div>
             <div className="text-xs text-gray-500">
               {lastSegment.arrival_airport}
