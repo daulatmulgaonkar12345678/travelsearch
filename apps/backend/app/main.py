@@ -179,6 +179,10 @@ app.include_router(bus_router.router, prefix="/api", tags=["buses"])
 from app.routers import msrtc as msrtc_router
 app.include_router(msrtc_router.router, prefix="/api", tags=["msrtc"])
 
+# Bus Autocomplete (cascading search with state bias)
+from app.routers import bus_autocomplete
+app.include_router(bus_autocomplete.router, prefix="/api", tags=["bus-autocomplete"])
+
 # ============================================================
 # Local Run
 # ============================================================
