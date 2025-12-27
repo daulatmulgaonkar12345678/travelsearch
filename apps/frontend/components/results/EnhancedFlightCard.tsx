@@ -217,7 +217,7 @@ export default function EnhancedFlightCard({
             <Plane className="h-5 w-5 text-gray-600" />
           </div>
           <div className="font-semibold text-sm truncate">
-            {firstSegment.carrier_name}
+            {getAirlineName(firstSegment.carrier_code, firstSegment.carrier_name)}
           </div>
         </div>
 
