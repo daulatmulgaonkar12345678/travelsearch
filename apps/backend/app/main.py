@@ -175,6 +175,10 @@ from app.routers import bus as bus_router
 app.include_router(train_router.router, prefix="/api", tags=["trains"])
 app.include_router(bus_router.router, prefix="/api", tags=["buses"])
 
+# MSRTC Maharashtra State Bus Services
+from app.routers import msrtc as msrtc_router
+app.include_router(msrtc_router.router, prefix="/api", tags=["msrtc"])
+
 # ============================================================
 # Local Run
 # ============================================================
