@@ -174,7 +174,7 @@ export default function BusCard({ offer }: BusCardProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-baseline gap-2">
-              <PriceDisplay amount={offer.avg_price} currency={offer.currency} className="text-2xl font-bold text-green-600" />
+              <PriceDisplay price={offer.avg_price} currency={offer.currency} className="text-2xl font-bold text-green-600" showTrustLabel={false} />
               <span className="text-sm text-gray-500">/ seat</span>
             </div>
             <p className="text-xs text-gray-400">{offer.price_label}</p>
