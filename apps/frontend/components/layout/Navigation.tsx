@@ -2,13 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Plane, Hotel } from 'lucide-react'
+import { Plane, Hotel, Train, Bus } from 'lucide-react'
 
 export default function Navigation() {
   const pathname = usePathname()
   
   const navItems = [
     { href: '/', label: 'Flights', icon: Plane },
+    { href: '/trains', label: 'Trains', icon: Train },
+    { href: '/buses', label: 'Buses', icon: Bus },
     { href: '/hotels', label: 'Hotels', icon: Hotel },
   ]
   
@@ -32,7 +34,7 @@ export default function Navigation() {
                   key={item.href}
                   href={item.href}
                   className={`
-                    flex items-center space-x-2 px-3 md:px-4 py-2 rounded-lg
+                    flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-lg
                     transition-all duration-200 font-medium text-sm md:text-base
                     ${isActive 
                       ? 'bg-blue-100 text-blue-700' 
@@ -41,7 +43,7 @@ export default function Navigation() {
                   `}
                 >
                   <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               )
             })}
