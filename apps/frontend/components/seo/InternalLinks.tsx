@@ -233,8 +233,8 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
  */
 function HotelDestinationCard({ destination }: { destination: HotelDestinationData }) {
   // Image path: /images/hotels/{city}.webp
-  // Set hasImage to true when WebP images are added to public/images/hotels/
-  const hasImage = false
+  // Images are now available in public/images/hotels/
+  const hasImage = true
   const imageSrc = `/images/hotels/${destination.slug}.webp`
   
   return (
