@@ -909,10 +909,24 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     data-testid="bus-date"
                     value={busDate}
                     min={getTodayDate()}
-                    onChange={(e) => setBusDate(e.target.value)}
+                    onChange={(e) => handleBusDateChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bus Type</label>
+                <select
+                  data-testid="bus-type"
+                  value={busType}
+                  onChange={(e) => setBusType(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">All Types</option>
+                  <option value="non_ac">Non-AC</option>
+                  <option value="ac_seater">AC Seater</option>
+                  <option value="ac_sleeper">AC Sleeper</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
@@ -929,18 +943,6 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     ))}
                   </select>
                 </div>
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 w-full">
-                  <input
-                    type="checkbox"
-                    data-testid="bus-ac-only"
-                    checked={busAcOnly}
-                    onChange={(e) => setBusAcOnly(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">AC buses only</span>
-                </label>
               </div>
             </div>
             
