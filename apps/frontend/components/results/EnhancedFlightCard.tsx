@@ -69,6 +69,45 @@ const BADGE_CONFIG = {
   },
 } as const
 
+// Get full airline name from carrier code or name
+function getAirlineName(carrierCode: string, carrierName?: string): string {
+  // If we already have a full name (more than 2-3 chars), use it
+  if (carrierName && carrierName.length > 3) {
+    return carrierName
+  }
+  // Look up from our mapping
+  return AIRLINE_NAMES[carrierCode] || carrierName || carrierCode
+}
+
+// Check if arrival is on a different day than departure
+function isOvernightFlight(departureTime: string, arrivalTime: string): boolean {
+  const depDate = new Date(departureTime).toDateString()
+  const arrDate = new Date(arrivalTime).toDateString()
+  return depDate !== arrDate
+}
+
+// Format stops text correctly (singular/plural)
+function formatStopsText(stops: number): string {
+  if (stops === 0) return 'Non-stop'
+  if (stops === 1) return '1 stop'
+  return `${stops} stops`
+}
+
+// Calculate layover info between segments
+function getLayoverInfo(segments: Segment[]): Array<{ airport: string; city?: string; duration: number }> {
+  if (segments.length <= 1) return []
+  
+  return segments.slice(0, -1).map((seg, idx) => {
+    const nextSeg = segments[idx + 1]
+    const layoverMs = new Date(nextSeg.departure_time).getTime() - new Date(seg.arrival_time).getTime()
+    const layoverMinutes = Math.round(layoverMs / 60000)
+    return {
+      airport: seg.arrival_airport,
+      duration: layoverMinutes,
+    }
+  })
+}
+
 export default function EnhancedFlightCard({
   offer,
   badge,
@@ -78,9 +117,12 @@ export default function EnhancedFlightCard({
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
+  const [showStopDetails, setShowStopDetails] = useState(false)
 
   const firstSegment = offer.segments[0]
   const lastSegment = offer.segments[offer.segments.length - 1]
+  const layovers = getLayoverInfo(offer.segments)
+  const isOvernight = isOvernightFlight(firstSegment.departure_time, lastSegment.arrival_time)
 
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString('en-US', {
