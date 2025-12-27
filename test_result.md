@@ -175,6 +175,9 @@ test_priority: "high_first"
     - working: true
       agent: "testing"
       comment: "✅ ALL MSRTC API TESTS PASSED (5/5): 1) GET /api/msrtc/bus-types returns 6 bus types with correct fields (code, name_marathi, name_english, is_ac, is_sleeper, fare_multiplier) and expected codes (ST, SEMI_LUX, ASIAD, SHIVNERI, SHIVSHAHI, ASHWAMEDH), 2) GET /api/msrtc/stops returns 17 stops with required fields, query filter working (pune returns 2 stops), stop_type filter working (major returns 15 stops), 3) GET /api/msrtc/routes returns 14 total routes, phase=1 filter returns 10 Phase 1 routes including Pune-Mumbai route, 4) POST /api/msrtc/search working perfectly: Pune→Mumbai returns 5 offers (one per bus type), variant-level data verified with different prices (₹277-₹604), booking partners (MSRTC Official, redBus, AbhiBus), Marathi input support working (पुणे→मुंबई), validation working (past dates/same origin-destination return 400), invalid routes return empty offers with message, 5) Marathi station names verification passed - all offers contain Marathi station names (पुणे स्वारगेट बस स्थानक → मुंबई सेंट्रल बस स्थानक). Complete MSRTC scraper implementation is production-ready."
+    - working: true
+      agent: "testing"
+      comment: "✅ MSRTC FRONTEND INTEGRATION COMPLETE: Successfully integrated MSRTC API with bus search service. Fixed import error in msrtc.py router, integrated MSRTC search as priority #1 in bus_search.py service before fallback to generic routes. Frontend now displays 5 MSRTC variant-level bus cards for Pune→Mumbai route showing: 1) MSRTC Ordinary (ST) ₹275, 2) MSRTC Semi-Luxury ₹353, 3) MSRTC Asiad (AC) ₹509, 4) MSRTC Shivshahi (AC Sleeper) ₹572, 5) MSRTC Shivneri (Premium AC) ₹606. Each card shows correct operator name, Marathi bus type labels, departure/arrival times (04:00→07:30 etc), duration (3h 30m), AC/Sleeper indicators, and 3 booking partner buttons (MSRTC Official, redBus, AbhiBus). Recent searches integration working - bus searches appear with correct format and navigation. Tab order verified as Flights→Buses→Trains→Hotels. Complete MSRTC implementation is production-ready with full frontend integration."
 
 - task: "Tab Order UI Fix"
   implemented: true
@@ -190,3 +193,6 @@ test_priority: "high_first"
     - working: true
       agent: "testing"
       comment: "✅ TAB ORDER UI FIX VERIFIED: Code review confirms tab order has been correctly implemented as [Flights, Buses, Trains, Hotels] in SearchBarV3.tsx. The tab selector comment and button order match the required specification. Tab order fix is working as requested."
+    - working: true
+      agent: "testing"
+      comment: "✅ TAB ORDER FUNCTIONALITY VERIFIED: All 4 tabs (Flights, Buses, Trains, Hotels) are present in correct order and switch properly when clicked. Each tab shows active state with blue background and text color. Tab switching functionality working perfectly."
