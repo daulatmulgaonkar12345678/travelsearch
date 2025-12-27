@@ -13,7 +13,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.database import get_db
+from app.db.mongodb import get_database as get_db
 from app.scrapers.msrtc_service import (
     search_msrtc_buses,
     save_msrtc_stops_to_db,
