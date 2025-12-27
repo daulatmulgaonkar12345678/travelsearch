@@ -6,14 +6,47 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Briefcase,
+  UtensilsCrossed,
+  Backpack,
+  MapPin,
+  Clock,
 } from 'lucide-react'
-import { FlightOffer } from './ResultCard'
+import { FlightOffer, Segment } from './ResultCard'
 import { FLIGHT_VENDORS } from '@/lib/vendors'
 import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
 import { formatDuration } from '@/lib/formatters'
 import PriceDisplay from '@/components/ui/PriceDisplay'
 import RedirectScreen from '@/components/common/RedirectScreen'
 import { BookingRedirectMicrocopy } from '@/components/trust/Microcopy'
+
+// Common airline codes to full names mapping
+const AIRLINE_NAMES: Record<string, string> = {
+  'AI': 'Air India',
+  '6E': 'IndiGo',
+  'UK': 'Vistara',
+  'SG': 'SpiceJet',
+  'G8': 'Go First',
+  'I5': 'AirAsia India',
+  'QP': 'Akasa Air',
+  'IX': 'Air India Express',
+  '9W': 'Jet Airways',
+  'S5': 'Star Air',
+  'AA': 'American Airlines',
+  'UA': 'United Airlines',
+  'DL': 'Delta Air Lines',
+  'BA': 'British Airways',
+  'LH': 'Lufthansa',
+  'EK': 'Emirates',
+  'QR': 'Qatar Airways',
+  'SQ': 'Singapore Airlines',
+  'CX': 'Cathay Pacific',
+  'TG': 'Thai Airways',
+  'MH': 'Malaysia Airlines',
+  'EY': 'Etihad Airways',
+  'AF': 'Air France',
+  'KL': 'KLM',
+}
 
 interface EnhancedFlightCardProps {
   offer: FlightOffer
