@@ -550,7 +550,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
 
   return (
     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-      {/* Tab Selector */}
+      {/* Tab Selector - Order: Flights → Buses → Trains → Hotels */}
       <div className="flex border-b border-gray-200 overflow-x-auto">
         <button
           data-testid="flights-tab"
@@ -565,18 +565,6 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           <span>Flights</span>
         </button>
         <button
-          data-testid="trains-tab"
-          onClick={() => setSearchType('trains')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
-            searchType === 'trains'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-          }`}
-        >
-          <Train className="h-5 w-5" />
-          <span>Trains</span>
-        </button>
-        <button
           data-testid="buses-tab"
           onClick={() => setSearchType('buses')}
           className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
@@ -587,6 +575,18 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         >
           <Bus className="h-5 w-5" />
           <span>Buses</span>
+        </button>
+        <button
+          data-testid="trains-tab"
+          onClick={() => setSearchType('trains')}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+            searchType === 'trains'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <Train className="h-5 w-5" />
+          <span>Trains</span>
         </button>
         <button
           data-testid="hotels-tab"
