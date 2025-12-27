@@ -11,7 +11,6 @@ import {
   Utensils,
   Info,
 } from 'lucide-react'
-import PriceDisplay from '@/components/ui/PriceDisplay'
 
 interface TrainOffer {
   offer_id: string
