@@ -112,14 +112,23 @@ BUS_ROUTES: Dict[str, BusRoute] = {
         destination_stop="Swargate Bus Stand",
         distance_km=150,
         operators=[
-            {"name": "MSRTC", "type": "government", "bus_types": ["ordinary", "shivneri", "ashwamedh"]},
+            {"name": "MSRTC", "type": "government", "bus_types": ["ordinary", "semi_deluxe", "volvo"]},
             {"name": "Neeta Travels", "type": "private", "bus_types": ["ac_seater", "ac_sleeper"]},
+            {"name": "VRL Travels", "type": "private", "bus_types": ["volvo", "multi_axle"]},
         ],
         frequency="Every 10 minutes",
         first_departure="04:00",
         last_departure="00:00",
         avg_duration_minutes=210,  # 3.5 hours
-        fares={"ordinary": 220, "shivneri": 450, "ac_seater": 500, "ac_sleeper": 700}
+        fares={
+            "ordinary": 220,
+            "semi_deluxe": 320,
+            "ac_seater": 500,
+            "non_ac_sleeper": 450,
+            "ac_sleeper": 700,
+            "volvo": 550,
+            "multi_axle": 850
+        }
     ),
     
     "MUM-GOA": BusRoute(
@@ -132,13 +141,19 @@ BUS_ROUTES: Dict[str, BusRoute] = {
         operators=[
             {"name": "Neeta Travels", "type": "private", "bus_types": ["ac_sleeper", "volvo"]},
             {"name": "Paulo Travels", "type": "private", "bus_types": ["ac_sleeper", "multi_axle"]},
-            {"name": "KSRTC", "type": "government", "bus_types": ["ac_seater", "sleeper"]},
+            {"name": "KSRTC", "type": "government", "bus_types": ["ac_seater", "non_ac_sleeper"]},
         ],
         frequency="Multiple departures (evening)",
         first_departure="17:00",
         last_departure="23:00",
         avg_duration_minutes=720,  # 12 hours (overnight)
-        fares={"ac_seater": 1100, "ac_sleeper": 1500, "volvo": 1800, "multi_axle": 2000}
+        fares={
+            "ac_seater": 1100,
+            "non_ac_sleeper": 900,
+            "ac_sleeper": 1500,
+            "volvo": 1800,
+            "multi_axle": 2200
+        }
     ),
     
     "PUN-GOA": BusRoute(
@@ -149,14 +164,19 @@ BUS_ROUTES: Dict[str, BusRoute] = {
         destination_stop="Panaji Bus Stand",
         distance_km=450,
         operators=[
-            {"name": "MSRTC", "type": "government", "bus_types": ["ordinary", "shivneri"]},
+            {"name": "MSRTC", "type": "government", "bus_types": ["ordinary", "semi_deluxe"]},
             {"name": "VRL Travels", "type": "private", "bus_types": ["ac_sleeper", "volvo"]},
         ],
         frequency="Multiple services daily",
         first_departure="06:00",
         last_departure="23:00",
         avg_duration_minutes=540,  # 9 hours
-        fares={"ordinary": 650, "shivneri": 900, "ac_sleeper": 1100, "volvo": 1400}
+        fares={
+            "ordinary": 650,
+            "semi_deluxe": 850,
+            "ac_sleeper": 1100,
+            "volvo": 1400
+        }
     ),
     
     # ========================================
