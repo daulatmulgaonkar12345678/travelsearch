@@ -93,3 +93,30 @@ test_priority: "high_first"
   message: "✅ POPULAR FLIGHT ROUTES UX FLOW TESTING COMPLETE: All test cases passed successfully. Homepage displays Popular Flight Routes section with 6 route cards featuring images and 'Search Flights →' links. Route pages (delhi-to-mumbai, mumbai-to-goa, bangalore-to-delhi) load correctly with pre-filled search bars showing correct origin/destination codes. Date defaults to tomorrow dynamically, minimum date set to today, passenger selection works (1-9 adults), search navigation to results page successful with correct URL parameters (origin=DEL, destination=BOM, trip_type=oneway, adults=2, departure_date). Results page loads and shows flight search in progress. Full UX flow from homepage → route page → results page working perfectly."
 - agent: "testing"
   message: "🔍 FLIGHT CARD IMPROVEMENTS TESTING STATUS: Frontend application rebuilt and working correctly. TravelSearch app loads properly with navigation, search forms, and route pages. However, unable to obtain flight results for testing card improvements due to Amadeus API date validation errors ('Date/Time is in the past'). Backend logs show repeated 400 errors from Amadeus API. Code review of EnhancedFlightCard.tsx confirms all requested improvements are implemented: 1) Airline name mapping (AIRLINE_NAMES object), 2) Overnight indicator with (+1), 3) Correct stop text formatting (formatStopsText function), 4) Expandable stop details with chevron and layover info. Implementation appears complete but requires live flight data to verify functionality."
+
+## Train & Bus Search Implementation (Priority 1 - Backend)
+
+- task: "Train Search API"
+  implemented: true
+  working: pending
+  file: "/app/apps/backend/app/services/train_search.py, /app/apps/backend/app/routers/train.py"
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented train search with static Indian Railways data. Features: 1) GET /api/search/trains returns real offers for seeded routes or fallback redirect, 2) Never returns empty results, 3) Booking partners: IRCTC → ixigo → Paytm (user-approved order), 4) Distance-based fare calculation, 5) GET /api/trains/routes lists all available routes. 12 popular routes seeded. Curl testing passed."
+
+- task: "Bus Search API"
+  implemented: true
+  working: pending
+  file: "/app/apps/backend/app/services/bus_search.py, /app/apps/backend/app/routers/bus.py"
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented bus search with static RTC/private operator data. Features: 1) GET /api/search/buses returns offers for seeded routes or fallback redirect, 2) Never returns empty results, 3) Booking partners: redBus → AbhiBus → Paytm (user-approved order), 4) Multiple bus types with avg fares (Ordinary, AC, Sleeper, Volvo), 5) GET /api/buses/routes lists all available routes. 12 popular routes seeded. Curl testing passed."
+
+- agent: "main"
+  message: "Train & Bus Search Backend Implementation Complete. Created: 1) TrainSearchRequest/Response, BusSearchRequest/Response models in transport.py, 2) train_search.py and bus_search.py services with schedule conversion, fallback generation, and city normalization, 3) /api/search/trains and /api/search/buses routers with date validation, 4) /api/trains/routes and /api/buses/routes for route discovery. All endpoints curl tested. Ready for comprehensive backend testing."
