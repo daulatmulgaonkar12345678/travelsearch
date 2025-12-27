@@ -6,19 +6,19 @@
  * - Lazy loading for performance (LCP-friendly)
  * - Semantic HTML (section, h2, article)
  * - Proper alt text for accessibility/SEO
- * - Graceful fallback if images missing
+ * - Smart date handling (tomorrow by default)
  * - Limited to 6-8 items for performance
  * 
- * Image Storage:
- * - Images stored in /public/images/destinations/ and /public/images/routes/
- * - Naming convention: {city-slug}.webp (e.g., mumbai.webp, delhi-to-mumbai.webp)
- * - Recommended size: 400x300px for cards
+ * UX PRINCIPLE:
+ * User clicks route → SEO page with pre-filled search bar → adjust date → search
  * 
- * SEO Notes:
- * - Alt text includes route/destination name
- * - Internal links boost crawlability
- * - Schema markup can be added later for richer results
+ * Image Storage:
+ * - Images stored in /public/images/flights/ and /public/images/hotels/
+ * - Naming convention: {route-slug}.webp, {city}.webp
+ * - Recommended size: 400x300px for cards
  */
+
+'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
