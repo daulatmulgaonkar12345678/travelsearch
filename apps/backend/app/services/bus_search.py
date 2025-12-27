@@ -1,16 +1,19 @@
-"""Bus Search Service
+"""Bus Search Service - Variant-Level Results
 
-Handles bus search logic using static route data.
-Always returns results OR a fallback redirect card - never empty.
+ARCHITECTURE PRINCIPLE:
+- One route ≠ one result
+- One route × multiple bus types = multiple results
+- Each bus type variant = separate card (like flights)
 
-Data Source: State RTC published schedules, industry standards
-Fare Strategy: Distance-based average fares (clearly labeled)
+Data Source: State RTC published schedules and industry standards
+Fare Strategy: Distance-based average fares with realistic variations
 """
 
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
+import random
 
 from app.models.transport import (
     BusOffer,
@@ -57,6 +60,92 @@ BUS_BOOKING_PARTNERS = [
 ]
 
 # ============================================================
+# BUS TYPE CONFIGURATIONS
+# ============================================================
+BUS_TYPE_CONFIGS = {
+    "ordinary": {
+        "enum": BusType.ORDINARY,
+        "label": "Non-AC Seater",
+        "is_ac": False,
+        "is_sleeper": False,
+        "has_wifi": False,
+        "has_charging": False,
+        "fare_key": "ordinary",
+        "departure_offset": 0,  # minutes from base time
+    },
+    "semi_deluxe": {
+        "enum": BusType.SEMI_DELUXE,
+        "label": "Semi Deluxe",
+        "is_ac": False,
+        "is_sleeper": False,
+        "has_wifi": False,
+        "has_charging": False,
+        "fare_key": "semi_deluxe",
+        "departure_offset": 30,
+    },
+    "deluxe": {
+        "enum": BusType.DELUXE,
+        "label": "Deluxe",
+        "is_ac": False,
+        "is_sleeper": False,
+        "has_wifi": False,
+        "has_charging": True,
+        "fare_key": "deluxe",
+        "departure_offset": 60,
+    },
+    "ac_seater": {
+        "enum": BusType.AC_SEATER,
+        "label": "AC Seater",
+        "is_ac": True,
+        "is_sleeper": False,
+        "has_wifi": False,
+        "has_charging": True,
+        "fare_key": "ac_seater",
+        "departure_offset": 90,
+    },
+    "non_ac_sleeper": {
+        "enum": BusType.NON_AC_SLEEPER,
+        "label": "Non-AC Sleeper",
+        "is_ac": False,
+        "is_sleeper": True,
+        "has_wifi": False,
+        "has_charging": False,
+        "fare_key": "non_ac_sleeper",
+        "departure_offset": 120,
+    },
+    "ac_sleeper": {
+        "enum": BusType.AC_SLEEPER,
+        "label": "AC Sleeper",
+        "is_ac": True,
+        "is_sleeper": True,
+        "has_wifi": True,
+        "has_charging": True,
+        "fare_key": "ac_sleeper",
+        "departure_offset": 150,
+    },
+    "volvo": {
+        "enum": BusType.VOLVO,
+        "label": "Volvo / Premium AC",
+        "is_ac": True,
+        "is_sleeper": False,
+        "has_wifi": True,
+        "has_charging": True,
+        "fare_key": "volvo",
+        "departure_offset": 180,
+    },
+    "multi_axle": {
+        "enum": BusType.MULTI_AXLE,
+        "label": "Multi-Axle AC",
+        "is_ac": True,
+        "is_sleeper": True,
+        "has_wifi": True,
+        "has_charging": True,
+        "fare_key": "multi_axle",
+        "departure_offset": 210,
+    },
+}
+
+# ============================================================
 # CITY MAPPINGS
 # ============================================================
 CITY_NORMALIZE = {
@@ -95,7 +184,6 @@ CITY_NORMALIZE = {
     "cochin": "Kochi",
 }
 
-# City code mappings
 CITY_TO_CODE = {
     "delhi": "DEL",
     "mumbai": "MUM",
@@ -125,96 +213,80 @@ def get_city_code(city: str) -> str:
     return CITY_TO_CODE.get(city_lower, city.upper()[:3])
 
 
-def bus_type_to_enum(bus_type_str: str) -> BusType:
-    """Convert string bus type to enum"""
-    mapping = {
-        "ordinary": BusType.ORDINARY,
-        "semi_deluxe": BusType.SEMI_DELUXE,
-        "deluxe": BusType.DELUXE,
-        "ac_seater": BusType.AC_SEATER,
-        "ac_sleeper": BusType.AC_SLEEPER,
-        "non_ac_sleeper": BusType.NON_AC_SLEEPER,
-        "volvo": BusType.VOLVO,
-        "multi_axle": BusType.MULTI_AXLE,
-        "shivneri": BusType.VOLVO,  # MSRTC premium
-        "airavat": BusType.VOLVO,   # KSRTC premium
-        "ashwamedh": BusType.DELUXE,
-        "rajahamsa": BusType.DELUXE,
-        "garuda": BusType.VOLVO,    # TSRTC premium
-        "corona": BusType.VOLVO,
-        "flybus": BusType.VOLVO,
-    }
-    return mapping.get(bus_type_str.lower(), BusType.ORDINARY)
+def add_fare_variation(base_fare: int, operator_type: str) -> int:
+    """Add slight realistic variation to fares"""
+    # Base variation ±5%
+    variation = random.uniform(-0.05, 0.05)
+    
+    # Operator type adjustments
+    if operator_type == "government":
+        variation -= 0.03  # RTC slightly cheaper
+    elif operator_type == "private":
+        variation += 0.02  # Private slightly more
+    
+    return int(base_fare * (1 + variation))
 
 
-def get_bus_type_label(bus_type: BusType) -> str:
-    """Get human-readable bus type label"""
-    labels = {
-        BusType.ORDINARY: "Ordinary",
-        BusType.SEMI_DELUXE: "Semi Deluxe",
-        BusType.DELUXE: "Deluxe",
-        BusType.AC_SEATER: "AC Seater",
-        BusType.AC_SLEEPER: "AC Sleeper",
-        BusType.NON_AC_SLEEPER: "Non-AC Sleeper",
-        BusType.VOLVO: "Volvo / Premium AC",
-        BusType.MULTI_AXLE: "Multi-Axle AC",
-    }
-    return labels.get(bus_type, "Standard")
-
-
-def route_to_offers(
+def route_to_type_offers(
     route: BusRoute,
     departure_date: str,
     search_id: str,
 ) -> List[BusOffer]:
-    """Convert a BusRoute to multiple BusOffers (one per bus type)"""
+    """
+    VARIANT-LEVEL EXPANSION:
+    Convert ONE bus route into MULTIPLE offers - one per bus type.
     
+    Example: Mumbai→Pune with fares for [ordinary, ac_seater, ac_sleeper, volvo]
+    becomes 4 separate cards with different prices and departure times.
+    """
     offers = []
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
     
-    # Create offers for each fare type
-    for bus_type_str, fare in route.fares.items():
-        bus_type = bus_type_to_enum(bus_type_str)
+    # Parse base departure time
+    first_dep_hour, first_dep_min = map(int, route.first_departure.split(":"))
+    base_departure = dep_date.replace(hour=first_dep_hour, minute=first_dep_min)
+    
+    # Build booking partner URLs
+    origin_slug = route.origin_city.lower().replace(" ", "-")
+    dest_slug = route.destination_city.lower().replace(" ", "-")
+    
+    booking_partners = []
+    for partner in BUS_BOOKING_PARTNERS:
+        url = partner["url_template"].format(
+            origin=origin_slug,
+            destination=dest_slug,
+        )
+        booking_partners.append({
+            "name": partner["name"],
+            "url": url,
+            "priority": partner["priority"],
+            "is_official": partner.get("is_official", False),
+        })
+    
+    # CREATE ONE CARD PER BUS TYPE
+    for bus_type_key, base_fare in route.fares.items():
+        config = BUS_TYPE_CONFIGS.get(bus_type_key)
+        if not config:
+            continue
         
-        # Parse first departure time
-        first_dep_hour, first_dep_min = map(int, route.first_departure.split(":"))
-        departure_dt = dep_date.replace(hour=first_dep_hour, minute=first_dep_min)
+        # Add fare variation so prices differ
+        fare_with_variation = add_fare_variation(base_fare, "private")
         
-        # Calculate arrival
+        # Stagger departure times for different types
+        departure_dt = base_departure + timedelta(minutes=config["departure_offset"])
         arrival_dt = departure_dt + timedelta(minutes=route.avg_duration_minutes)
         
-        # Determine if AC/sleeper based on bus type
-        is_ac = bus_type in [BusType.AC_SEATER, BusType.AC_SLEEPER, BusType.VOLVO, BusType.MULTI_AXLE]
-        is_sleeper = bus_type in [BusType.AC_SLEEPER, BusType.NON_AC_SLEEPER]
-        
-        # Find primary operator for this bus type
+        # Find operator for this bus type
         operator_name = "Multiple Operators"
         operator_type = "private"
         for op in route.operators:
-            if bus_type_str in op.get("bus_types", []):
+            if bus_type_key in op.get("bus_types", []):
                 operator_name = op["name"]
                 operator_type = op["type"]
                 break
         
-        # Build booking partner URLs
-        booking_partners = []
-        origin_slug = route.origin_city.lower().replace(" ", "-")
-        dest_slug = route.destination_city.lower().replace(" ", "-")
-        
-        for partner in BUS_BOOKING_PARTNERS:
-            url = partner["url_template"].format(
-                origin=origin_slug,
-                destination=dest_slug,
-            )
-            booking_partners.append({
-                "name": partner["name"],
-                "url": url,
-                "priority": partner["priority"],
-                "is_official": partner.get("is_official", False),
-            })
-        
         offer = BusOffer(
-            offer_id=f"{search_id}-{route.route_id}-{bus_type_str}",
+            offer_id=f"{search_id}-{route.route_id}-{bus_type_key}",
             mode=TransportMode.BUS,
             provider="static_data",
             
@@ -226,16 +298,16 @@ def route_to_offers(
             to_city=route.destination_city,
             to_station_name=route.destination_stop,
             
-            # Timing
+            # Timing - EACH TYPE HAS DIFFERENT DEPARTURE
             departure_time=departure_dt,
             arrival_time=arrival_dt,
             duration_minutes=route.avg_duration_minutes,
             
-            # Pricing
-            avg_price=float(fare),
+            # Pricing - THIS TYPE ONLY
+            avg_price=float(fare_with_variation),
             currency="INR",
-            price_label="Average Fare",
-            price_disclaimer="Average fare shown for reference. Actual price varies by operator and availability. Book on official partner sites.",
+            price_label=f"Avg Fare • {config['label']}",
+            price_disclaimer=f"Average {config['label']} fare. Actual price varies by operator.",
             
             # Distance
             distance_km=float(route.distance_km),
@@ -244,18 +316,18 @@ def route_to_offers(
             booking_partners=booking_partners,
             is_fallback=False,
             
-            # Bus specific
+            # Bus specific - THIS CARD IS FOR ONE TYPE ONLY
             operator_name=operator_name,
             operator_type=operator_type,
-            bus_type=bus_type,
-            bus_type_label=get_bus_type_label(bus_type),
-            is_ac=is_ac,
-            is_sleeper=is_sleeper,
-            has_charging_point=is_ac,  # Assume AC buses have charging
-            has_wifi=bus_type in [BusType.VOLVO, BusType.MULTI_AXLE],
+            bus_type=config["enum"],
+            bus_type_label=config["label"],
+            is_ac=config["is_ac"],
+            is_sleeper=config["is_sleeper"],
+            has_charging_point=config["has_charging"],
+            has_wifi=config["has_wifi"],
             frequency=route.frequency,
             departure_window=f"{route.first_departure} - {route.last_departure}",
-            stops_count=0,  # Not tracked in static data
+            stops_count=0,
             intermediate_stops=[],
         )
         
@@ -264,34 +336,28 @@ def route_to_offers(
     return offers
 
 
-def create_fallback_offer(
+def create_fallback_offers(
     origin: str,
     destination: str,
     departure_date: str,
     search_id: str,
     distance_km: Optional[int] = None,
-) -> BusOffer:
-    """Create a fallback redirect offer when no route data exists"""
+) -> List[BusOffer]:
+    """Create fallback redirect offers for unknown routes"""
     
     origin_city = normalize_city(origin)
     dest_city = normalize_city(destination)
     
-    # Estimate distance if not provided
     if not distance_km:
-        distance_km = get_distance(origin, destination) or 300  # Default estimate
-    
-    # Calculate estimated fares
-    estimated_ordinary = calculate_average_fare(distance_km, "ordinary")
-    estimated_ac = calculate_average_fare(distance_km, "ac_seater")
-    estimated_sleeper = calculate_average_fare(distance_km, "ac_sleeper")
+        distance_km = get_distance(origin, destination) or 300
     
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
     
     # Build booking partner URLs
-    booking_partners = []
     origin_slug = origin_city.lower().replace(" ", "-")
     dest_slug = dest_city.lower().replace(" ", "-")
     
+    booking_partners = []
     for partner in BUS_BOOKING_PARTNERS:
         url = partner["url_template"].format(
             origin=origin_slug,
@@ -305,12 +371,16 @@ def create_fallback_offer(
             "description": partner["description"],
         })
     
-    return BusOffer(
+    # Estimated fares for display
+    estimated_ordinary = calculate_average_fare(distance_km, "ordinary")
+    estimated_ac = calculate_average_fare(distance_km, "ac_seater")
+    estimated_sleeper = calculate_average_fare(distance_km, "ac_sleeper")
+    
+    fallback = BusOffer(
         offer_id=f"{search_id}-fallback",
         mode=TransportMode.BUS,
         provider="redirect",
         
-        # Route
         from_station=get_city_code(origin),
         from_city=origin_city,
         from_station_name=f"{origin_city} Bus Stand",
@@ -318,25 +388,19 @@ def create_fallback_offer(
         to_city=dest_city,
         to_station_name=f"{dest_city} Bus Stand",
         
-        # Timing (placeholder)
         departure_time=dep_date.replace(hour=0, minute=0),
         arrival_time=dep_date.replace(hour=0, minute=0),
         duration_minutes=0,
         
-        # Pricing (estimated range)
         avg_price=float(estimated_ordinary),
         currency="INR",
         price_label="Estimated Fare Range",
-        price_disclaimer=f"Route not in our database. Estimated fares: Ordinary ₹{estimated_ordinary}, AC ₹{estimated_ac}, Sleeper ₹{estimated_sleeper}. Check booking partners for exact prices.",
+        price_disclaimer=f"Route not in database. Estimated: Non-AC ₹{estimated_ordinary}, AC ₹{estimated_ac}, Sleeper ₹{estimated_sleeper}. Check partners.",
         
-        # Distance
         distance_km=float(distance_km),
-        
-        # Booking
         booking_partners=booking_partners,
         is_fallback=True,
         
-        # Bus specific (unknown for fallback)
         operator_name="Multiple Operators",
         operator_type="private",
         bus_type=BusType.ORDINARY,
@@ -350,16 +414,18 @@ def create_fallback_offer(
         stops_count=0,
         intermediate_stops=[],
     )
+    
+    return [fallback]
 
 
 async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     """
     Search for buses between two cities.
     
-    Returns:
-        - Real offers if route exists in database
-        - Fallback redirect offer if route not found
-        - Never returns empty results
+    VARIANT-LEVEL RESULTS:
+    - Each route × each bus type = separate card
+    - If Mumbai→Pune has [ordinary, ac_seater, ac_sleeper, volvo] → returns 4 cards
+    - Never returns 1 card for a valid route with multiple options
     """
     search_id = str(uuid.uuid4())
     
@@ -373,27 +439,31 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     route = get_bus_route(origin, destination)
     
     if route:
-        # Convert route to offers
-        offers = route_to_offers(route, request.departure_date, search_id)
+        # EXPAND route into multiple bus type variants
+        all_offers = route_to_type_offers(route, request.departure_date, search_id)
         
         # Apply optional filters
         if request.ac_only:
-            offers = [o for o in offers if o.is_ac]
+            all_offers = [o for o in all_offers if o.is_ac]
         
         if request.sleeper_only:
-            offers = [o for o in offers if o.is_sleeper]
+            all_offers = [o for o in all_offers if o.is_sleeper]
         
         if request.bus_type:
-            target_type = bus_type_to_enum(request.bus_type)
-            offers = [o for o in offers if o.bus_type == target_type]
+            # Map request bus_type to our configs
+            all_offers = [
+                o for o in all_offers
+                if request.bus_type.lower() in o.bus_type_label.lower() or
+                   request.bus_type.lower().replace("_", " ") in o.bus_type_label.lower()
+            ]
         
-        # Sort by price (lowest first)
-        offers.sort(key=lambda o: o.avg_price)
+        # Sort by price (cheapest first for buses)
+        all_offers.sort(key=lambda o: o.avg_price)
         
-        logger.info(f"✅ Found {len(offers)} bus options for {origin} → {destination}")
+        logger.info(f"✅ Found {len(all_offers)} bus type variants for {origin} → {destination}")
         
         return BusSearchResponse(
-            offers=offers,
+            offers=all_offers,
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
@@ -409,7 +479,7 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
         logger.info(f"⚠️ No route data for {origin} → {destination}, returning fallback")
         
         distance = get_distance(origin, destination)
-        fallback_offer = create_fallback_offer(
+        fallback_offers = create_fallback_offers(
             origin=origin,
             destination=destination,
             departure_date=request.departure_date,
@@ -418,7 +488,7 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
         )
         
         return BusSearchResponse(
-            offers=[fallback_offer],
+            offers=fallback_offers,
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
