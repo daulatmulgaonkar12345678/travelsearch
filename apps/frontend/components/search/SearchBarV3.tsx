@@ -963,7 +963,12 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
 
         <button
           data-testid="search-button"
-          onClick={searchType === 'flights' ? handleFlightSearch : handleHotelSearch}
+          onClick={
+            searchType === 'flights' ? handleFlightSearch :
+            searchType === 'trains' ? handleTrainSearch :
+            searchType === 'buses' ? handleBusSearch :
+            handleHotelSearch
+          }
           disabled={searchType === 'flights' && (!originValid || !destinationValid)}
           className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg ${
             searchType === 'flights' && (!originValid || !destinationValid)
@@ -971,7 +976,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
           }`}
         >
-          Search {searchType === 'flights' ? 'Flights' : 'Hotels'}
+          Search {searchType === 'flights' ? 'Flights' : searchType === 'trains' ? 'Trains' : searchType === 'buses' ? 'Buses' : 'Hotels'}
         </button>
         
         {/* Search Button Microcopy */}
