@@ -117,14 +117,14 @@ async def get_available_routes():
     
     Useful for suggesting routes or showing coverage.
     """
-    from app.data.train_routes import TRAIN_ROUTES, STATION_TO_CITY
+    from app.data.train_routes import TRAIN_ROUTES
+    from app.services.train_search import get_city_name
     
     routes = []
     for route_key in TRAIN_ROUTES.keys():
         parts = route_key.split("-")
         if len(parts) == 2:
             origin, dest = parts
-            from app.services.train_search import get_city_name
             routes.append({
                 "route_key": route_key,
                 "origin_code": origin,
