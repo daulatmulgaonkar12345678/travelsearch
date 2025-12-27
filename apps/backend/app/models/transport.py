@@ -65,7 +65,10 @@ class TrainClass(str, Enum):
 
 
 class TrainOffer(BaseTransportOffer):
-    """Train offer with Indian Railways specific fields"""
+    """Train offer with Indian Railways specific fields
+    
+    VARIANT-LEVEL: Each card represents ONE train + ONE class combination.
+    """
     mode: TransportMode = TransportMode.TRAIN
     
     # Train info
@@ -81,7 +84,11 @@ class TrainOffer(BaseTransportOffer):
     stops_count: int = 0
     intermediate_stops: List[str] = Field(default_factory=list)  # Station codes
     
-    # Classes available with average fares
+    # THIS CARD'S CLASS (variant-level)
+    selected_class: Optional[str] = None  # The class this card represents (SL, 3A, 2A, etc.)
+    selected_class_display: Optional[str] = None  # Human readable ("Sleeper", "AC 3-Tier")
+    
+    # All classes available (for reference, but this card is for selected_class only)
     available_classes: List[dict] = Field(default_factory=list)  # [{class: "SL", avg_fare: 450}]
     
     # Pantry/Food
