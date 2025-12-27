@@ -110,18 +110,33 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   })
   const [showRoomModal, setShowRoomModal] = useState(false)
 
-  // Trains & Buses state
-  const [trainOrigin, setTrainOrigin] = useState('')
-  const [trainDestination, setTrainDestination] = useState('')
+  // Trains & Buses state - with validated locations
+  const [trainOriginText, setTrainOriginText] = useState('')
+  const [trainOriginLocation, setTrainOriginLocation] = useState<TransportLocation | null>(null)
+  const [trainDestinationText, setTrainDestinationText] = useState('')
+  const [trainDestinationLocation, setTrainDestinationLocation] = useState<TransportLocation | null>(null)
   const [trainDate, setTrainDate] = useState(getTomorrowDate())
   const [trainPassengers, setTrainPassengers] = useState(1)
   const [trainClass, setTrainClass] = useState<string>('')
   
-  const [busOrigin, setBusOrigin] = useState('')
-  const [busDestination, setBusDestination] = useState('')
+  const [busOriginText, setBusOriginText] = useState('')
+  const [busOriginLocation, setBusOriginLocation] = useState<TransportLocation | null>(null)
+  const [busDestinationText, setBusDestinationText] = useState('')
+  const [busDestinationLocation, setBusDestinationLocation] = useState<TransportLocation | null>(null)
   const [busDate, setBusDate] = useState(getTomorrowDate())
   const [busPassengers, setBusPassengers] = useState(1)
-  const [busAcOnly, setBusAcOnly] = useState(false)
+  const [busType, setBusType] = useState<string>('')  // '', 'ac_seater', 'ac_sleeper', 'non_ac'
+
+  // Validation flags for trains and buses
+  const trainOriginValid = trainOriginLocation !== null
+  const trainDestinationValid = trainDestinationLocation !== null
+  const trainSearchEnabled = trainOriginValid && trainDestinationValid && 
+    trainOriginLocation?.city_id !== trainDestinationLocation?.city_id
+  
+  const busOriginValid = busOriginLocation !== null
+  const busDestinationValid = busDestinationLocation !== null
+  const busSearchEnabled = busOriginValid && busDestinationValid &&
+    busOriginLocation?.city_id !== busDestinationLocation?.city_id
 
   // Synchronize dates between flights and hotels
   useEffect(() => {
