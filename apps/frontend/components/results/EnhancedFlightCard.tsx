@@ -285,6 +285,61 @@ export default function EnhancedFlightCard({
         </div>
       </div>
 
+      {/* EXPANDABLE STOP DETAILS */}
+      {showStopDetails && offer.stops > 0 && (
+        <div 
+          className="border-t border-gray-100 bg-gray-50 px-4 py-3 animate-in slide-in-from-top-2 duration-200"
+        >
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Stop Details */}
+            <div className="flex-1">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                <MapPin size={12} />
+                <span>Stop Details</span>
+              </div>
+              <div className="space-y-1.5">
+                {layovers.map((layover, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-600">
+                      Stop in: <span className="font-medium">{layover.airport}</span>
+                    </span>
+                    <span className="text-gray-400">·</span>
+                    <span className="flex items-center gap-1 text-gray-500">
+                      <Clock size={11} />
+                      Layover: {formatDuration(layover.duration)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Amenities (only if data exists) */}
+            {(offer.cabin_class || offer.baggage_allowance) && (
+              <div className="flex-1 sm:border-l sm:border-gray-200 sm:pl-4">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-2">
+                  <Briefcase size={12} />
+                  <span>Flight Details</span>
+                </div>
+                <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                  {offer.cabin_class && (
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase size={13} className="text-gray-400" />
+                      {offer.cabin_class}
+                    </span>
+                  )}
+                  {offer.baggage_allowance && (
+                    <span className="flex items-center gap-1.5">
+                      <Backpack size={13} className="text-gray-400" />
+                      {offer.baggage_allowance}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* VENDORS */}
       {showVendors && (
         <div className="border-t p-4 space-y-2">
