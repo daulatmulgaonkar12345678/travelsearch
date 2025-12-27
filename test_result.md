@@ -126,5 +126,21 @@ test_priority: "high_first"
 
 - agent: "main"
   message: "Train & Bus Search Backend Implementation Complete. Created: 1) TrainSearchRequest/Response, BusSearchRequest/Response models in transport.py, 2) train_search.py and bus_search.py services with schedule conversion, fallback generation, and city normalization, 3) /api/search/trains and /api/search/buses routers with date validation, 4) /api/trains/routes and /api/buses/routes for route discovery. All endpoints curl tested. Ready for comprehensive backend testing."
+
+## Train & Bus Search Frontend Implementation
+
+- task: "Train & Bus UI Integration"
+  implemented: true
+  working: pending
+  file: "/app/apps/frontend/components/search/SearchBarV3.tsx, /app/apps/frontend/components/results/TrainCard.tsx, /app/apps/frontend/components/results/BusCard.tsx"
+  priority: "high"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Frontend implementation complete. Added: 1) Trains and Buses tabs to SearchBarV3 with forms, 2) TrainCard.tsx and BusCard.tsx result components, 3) /trains/results and /buses/results pages, 4) Navigation updated with all 4 transport modes. Screenshot testing shows all components working. Price display fixed. Fallback cards working for unknown routes."
+
+- agent: "main"
+  message: "Train & Bus Search Frontend Implementation Complete. Added 4-tab search bar (Flights/Trains/Buses/Hotels), created TrainCard and BusCard components with booking partner buttons, implemented results pages with sorting and filters. Navigation bar updated. All screenshot tests passing. Ready for comprehensive frontend testing."
 - agent: "testing"
   message: "✅ TRAIN & BUS SEARCH TESTING COMPLETE: All 10 backend tests passed successfully. Train Search API: Popular routes (delhi→mumbai, bangalore→chennai, delhi→jaipur) return real offers with correct booking partner priority (IRCTC first), unknown routes return fallback redirects, date/input validation working, train class filters functional, routes endpoint operational. Bus Search API: Popular routes (mumbai→pune, delhi→jaipur, bangalore→chennai) return real offers with correct booking partner priority (redBus first), unknown routes return fallback redirects, AC filters working, date validation functional, routes endpoint operational. Both APIs never return empty results, handle fallback scenarios correctly, and maintain proper response structure. Ready for production."
