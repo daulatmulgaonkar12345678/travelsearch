@@ -1010,23 +1010,63 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           </div>
         )}
 
-        <button
-          data-testid="search-button"
-          onClick={
-            searchType === 'flights' ? handleFlightSearch :
-            searchType === 'trains' ? handleTrainSearch :
-            searchType === 'buses' ? handleBusSearch :
-            handleHotelSearch
+        {/* Search Button with validation */}
+        {(() => {
+          // Determine button state based on mode
+          const isDisabled = 
+            (searchType === 'flights' && (!originValid || !destinationValid)) ||
+            (searchType === 'trains' && !trainSearchEnabled) ||
+            (searchType === 'buses' && !busSearchEnabled)
+          
+          const getDisabledReason = () => {
+            if (searchType === 'trains') {
+              if (!trainOriginValid && !trainDestinationValid) return 'Select origin and destination cities'
+              if (!trainOriginValid) return 'Select origin city from the list'
+              if (!trainDestinationValid) return 'Select destination city from the list'
+              if (trainOriginLocation?.city_id === trainDestinationLocation?.city_id) return 'Origin and destination cannot be the same'
+            }
+            if (searchType === 'buses') {
+              if (!busOriginValid && !busDestinationValid) return 'Select origin and destination cities'
+              if (!busOriginValid) return 'Select origin city from the list'
+              if (!busDestinationValid) return 'Select destination city from the list'
+              if (busOriginLocation?.city_id === busDestinationLocation?.city_id) return 'Origin and destination cannot be the same'
+            }
+            if (searchType === 'flights') {
+              if (!originValid || !destinationValid) return 'Select valid airports from the list'
+            }
+            return null
           }
-          disabled={searchType === 'flights' && (!originValid || !destinationValid)}
-          className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg ${
-            searchType === 'flights' && (!originValid || !destinationValid)
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
-          }`}
-        >
-          Search {searchType === 'flights' ? 'Flights' : searchType === 'trains' ? 'Trains' : searchType === 'buses' ? 'Buses' : 'Hotels'}
-        </button>
+          
+          const disabledReason = getDisabledReason()
+          
+          return (
+            <div className="relative">
+              <button
+                data-testid="search-button"
+                onClick={
+                  searchType === 'flights' ? handleFlightSearch :
+                  searchType === 'trains' ? handleTrainSearch :
+                  searchType === 'buses' ? handleBusSearch :
+                  handleHotelSearch
+                }
+                disabled={isDisabled}
+                className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg ${
+                  isDisabled
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : searchType === 'buses' 
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white hover:shadow-xl'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
+                }`}
+                title={disabledReason || undefined}
+              >
+                Search {searchType === 'flights' ? 'Flights' : searchType === 'trains' ? 'Trains' : searchType === 'buses' ? 'Buses' : 'Hotels'}
+              </button>
+              {isDisabled && disabledReason && (
+                <p className="text-center text-xs text-gray-500 mt-2">{disabledReason}</p>
+              )}
+            </div>
+          )
+        })()}
         
         {/* Search Button Microcopy */}
         <SearchButtonMicrocopy />
