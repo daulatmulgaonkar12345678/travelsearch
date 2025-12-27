@@ -138,16 +138,32 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const busSearchEnabled = busOriginValid && busDestinationValid &&
     busOriginLocation?.city_id !== busDestinationLocation?.city_id
 
-  // Synchronize dates between flights and hotels
+  // Synchronize dates between all modes
   useEffect(() => {
+    // When switching modes, sync dates (but not from/to - those are mode-specific)
     if (searchType === 'flights') {
-      // When switching to flights, sync hotel dates to flight dates
       setCheckIn(departureDate)
       setCheckOut(returnDate)
     } else if (searchType === 'hotels') {
-      // When switching to hotels, sync flight dates to hotel dates
       setDepartureDate(checkIn)
       setReturnDate(checkOut)
+    } else if (searchType === 'trains') {
+      // Sync train date with departure
+      if (trainDate !== departureDate) {
+        setTrainDate(departureDate)
+      }
+    } else if (searchType === 'buses') {
+      // Sync bus date with departure
+      if (busDate !== departureDate) {
+        setBusDate(departureDate)
+      }
+    }
+    
+    // Reset mode-specific filters when switching
+    if (searchType === 'trains') {
+      setTrainClass('')
+    } else if (searchType === 'buses') {
+      setBusType('')
     }
   }, [searchType])  // Only run when searchType changes
 
@@ -155,6 +171,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const handleDepartureDateChange = (date: string) => {
     setDepartureDate(date)
     setCheckIn(date)  // Sync to hotel check-in
+    setTrainDate(date)  // Sync to train date
+    setBusDate(date)  // Sync to bus date
   }
 
   const handleReturnDateChange = (date: string) => {
@@ -166,11 +184,28 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const handleCheckInChange = (date: string) => {
     setCheckIn(date)
     setDepartureDate(date)  // Sync to flight departure
+    setTrainDate(date)
+    setBusDate(date)
   }
 
   const handleCheckOutChange = (date: string) => {
     setCheckOut(date)
     setReturnDate(date)  // Sync to flight return
+  }
+
+  // Sync dates when user changes train/bus dates
+  const handleTrainDateChange = (date: string) => {
+    setTrainDate(date)
+    setDepartureDate(date)
+    setCheckIn(date)
+    setBusDate(date)
+  }
+
+  const handleBusDateChange = (date: string) => {
+    setBusDate(date)
+    setDepartureDate(date)
+    setCheckIn(date)
+    setTrainDate(date)
   }
 
   useEffect(() => {
