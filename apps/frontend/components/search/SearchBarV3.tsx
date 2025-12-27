@@ -729,6 +729,180 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               </button>
             </div>
           </div>
+        ) : searchType === 'trains' ? (
+          /* Train Search Form */
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
+                <div className="relative">
+                  <Train className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    data-testid="train-origin"
+                    value={trainOrigin}
+                    onChange={(e) => setTrainOrigin(e.target.value)}
+                    placeholder="City or station (e.g., Delhi, NDLS)"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
+                <div className="relative">
+                  <Train className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    data-testid="train-destination"
+                    value={trainDestination}
+                    onChange={(e) => setTrainDestination(e.target.value)}
+                    placeholder="City or station (e.g., Mumbai, CSMT)"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    data-testid="train-date"
+                    value={trainDate}
+                    min={getTodayDate()}
+                    onChange={(e) => setTrainDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Class (Optional)</label>
+                <select
+                  data-testid="train-class"
+                  value={trainClass}
+                  onChange={(e) => setTrainClass(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">All Classes</option>
+                  <option value="SL">Sleeper (SL)</option>
+                  <option value="3A">AC 3-Tier (3A)</option>
+                  <option value="2A">AC 2-Tier (2A)</option>
+                  <option value="1A">AC First (1A)</option>
+                  <option value="CC">Chair Car (CC)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <select
+                    data-testid="train-passengers"
+                    value={trainPassengers}
+                    onChange={(e) => setTrainPassengers(Number(e.target.value))}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map(n => (
+                      <option key={n} value={n}>{n} Passenger{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
+                <strong>Note:</strong> Fares shown are average/estimated. We&apos;ll redirect you to IRCTC, ixigo, or Paytm for live availability & booking.
+              </p>
+            </div>
+          </div>
+        ) : searchType === 'buses' ? (
+          /* Bus Search Form */
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">From</label>
+                <div className="relative">
+                  <Bus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    data-testid="bus-origin"
+                    value={busOrigin}
+                    onChange={(e) => setBusOrigin(e.target.value)}
+                    placeholder="City (e.g., Mumbai, Pune)"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">To</label>
+                <div className="relative">
+                  <Bus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    data-testid="bus-destination"
+                    value={busDestination}
+                    onChange={(e) => setBusDestination(e.target.value)}
+                    placeholder="City (e.g., Goa, Bangalore)"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    data-testid="bus-date"
+                    value={busDate}
+                    min={getTodayDate()}
+                    onChange={(e) => setBusDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <select
+                    data-testid="bus-passengers"
+                    value={busPassengers}
+                    onChange={(e) => setBusPassengers(Number(e.target.value))}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map(n => (
+                      <option key={n} value={n}>{n} Passenger{n > 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 w-full">
+                  <input
+                    type="checkbox"
+                    data-testid="bus-ac-only"
+                    checked={busAcOnly}
+                    onChange={(e) => setBusAcOnly(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">AC buses only</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
+                <strong>Note:</strong> Fares shown are average/estimated. We&apos;ll redirect you to redBus, AbhiBus, or Paytm for live availability & booking.
+              </p>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             <CityAutocomplete
