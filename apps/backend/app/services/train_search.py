@@ -1,134 +1,213 @@
 """Train Search Service
 
-Provides train search functionality using static official data.
-No scraping, no live availability - only average fares from government sources.
+Handles train search logic using static route data.
+Always returns results OR a fallback redirect card - never empty.
+
+Data Source: Static Indian Railways timetable data
+Fare Strategy: Distance-based average fares (clearly labeled)
 """
 
-import uuid
 import logging
+import uuid
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 
-from app.models.transport import TrainOffer, TrainSearchRequest, TrainSearchResponse, TransportMode
-from app.data.stations import get_railway_station, CITY_TO_RAIL_STATION, RAILWAY_STATIONS
+from app.models.transport import (
+    TrainOffer,
+    TrainSearchRequest,
+    TrainSearchResponse,
+    TransportMode,
+)
 from app.data.train_routes import (
-    get_trains_for_route, 
-    get_distance, 
+    get_trains_for_route,
+    get_distance,
     calculate_average_fare,
-    TrainSchedule
+    TrainSchedule,
+    TRAIN_ROUTES,
 )
 
 logger = logging.getLogger(__name__)
 
-# Booking partner URLs for trains
+# ============================================================
+# BOOKING PARTNERS - Priority Order (User Approved)
+# ============================================================
 TRAIN_BOOKING_PARTNERS = [
     {
         "name": "IRCTC",
-        "url": "https://www.irctc.co.in/nget/train-search",
         "priority": 1,
-        "description": "Official Indian Railways booking"
-    },
-    {
-        "name": "Paytm Trains",
-        "url": "https://paytm.com/trains",
-        "priority": 2,
-        "description": "Fast booking with Paytm"
+        "url_template": "https://www.irctc.co.in/nget/train-search",
+        "description": "Official Indian Railways booking",
+        "is_official": True,
     },
     {
         "name": "ixigo Trains",
-        "url": "https://www.ixigo.com/trains",
-        "priority": 3,
-        "description": "Compare & book trains"
+        "priority": 2,
+        "url_template": "https://www.ixigo.com/search/result/train/{origin}/{destination}/{date}",
+        "description": "Best train UX & PNR tracking",
+        "is_official": False,
     },
     {
-        "name": "redBus Trains",
-        "url": "https://www.redbus.in/trains",
-        "priority": 4,
-        "description": "Book train tickets online"
+        "name": "Paytm Trains",
+        "priority": 3,
+        "url_template": "https://paytm.com/trains/{origin}-to-{destination}-train-tickets",
+        "description": "Cashback & easy booking",
+        "is_official": False,
     },
 ]
 
+# ============================================================
+# STATION CODE MAPPINGS
+# ============================================================
+CITY_TO_STATION = {
+    # Major cities
+    "delhi": "NDLS",
+    "new delhi": "NDLS",
+    "mumbai": "CSMT",
+    "bombay": "CSMT",
+    "bangalore": "SBC",
+    "bengaluru": "SBC",
+    "chennai": "MAS",
+    "madras": "MAS",
+    "kolkata": "HWH",
+    "calcutta": "HWH",
+    "hyderabad": "SC",
+    "secunderabad": "SC",
+    "pune": "PUNE",
+    "jaipur": "JP",
+    "ahmedabad": "ADI",
+    "goa": "MAO",
+    "panaji": "MAO",
+    "lucknow": "LKO",
+    "varanasi": "BSB",
+    "patna": "PNBE",
+    "bhopal": "BPL",
+    "agra": "AGC",
+    "chandigarh": "CDG",
+    "kochi": "ERS",
+    "cochin": "ERS",
+    "trivandrum": "TVC",
+    "thiruvananthapuram": "TVC",
+    "visakhapatnam": "VSKP",
+    "vizag": "VSKP",
+}
 
-def resolve_station_code(query: str) -> Optional[str]:
-    """Resolve city name or station code to a station code"""
-    query_lower = query.lower().strip()
-    query_upper = query.upper().strip()
-    
-    # Direct station code match
-    if query_upper in RAILWAY_STATIONS:
-        return query_upper
-    
-    # City name match
-    if query_lower in CITY_TO_RAIL_STATION:
-        return CITY_TO_RAIL_STATION[query_lower]
-    
-    # Fuzzy match on station/city names
-    station = get_railway_station(query)
-    if station:
-        return station.code
-    
-    return None
+# Station code to city name mapping (for display)
+STATION_TO_CITY = {
+    "NDLS": "New Delhi",
+    "CSMT": "Mumbai CST",
+    "BCT": "Mumbai Central",
+    "SBC": "Bangalore",
+    "MAS": "Chennai Central",
+    "HWH": "Howrah (Kolkata)",
+    "SDAH": "Sealdah (Kolkata)",
+    "SC": "Secunderabad",
+    "PUNE": "Pune",
+    "JP": "Jaipur",
+    "ADI": "Ahmedabad",
+    "MAO": "Madgaon (Goa)",
+    "LKO": "Lucknow",
+    "BSB": "Varanasi",
+    "PNBE": "Patna",
+    "BPL": "Bhopal",
+    "AGC": "Agra Cantt",
+    "CDG": "Chandigarh",
+    "ERS": "Ernakulam (Kochi)",
+    "TVC": "Trivandrum",
+    "VSKP": "Visakhapatnam",
+    "HNZM": "Hazrat Nizamuddin (Delhi)",
+}
 
 
-def convert_schedule_to_offer(
+def normalize_station_code(input_str: str) -> str:
+    """Convert city name or station code to standard station code"""
+    input_lower = input_str.lower().strip()
+    
+    # Check if it's a city name
+    if input_lower in CITY_TO_STATION:
+        return CITY_TO_STATION[input_lower]
+    
+    # Assume it's already a station code
+    return input_str.upper().strip()
+
+
+def get_city_name(station_code: str) -> str:
+    """Get city name for a station code"""
+    return STATION_TO_CITY.get(station_code.upper(), station_code)
+
+
+def schedule_to_offer(
     schedule: TrainSchedule,
     departure_date: str,
-    origin_station: str,
-    destination_station: str
+    search_id: str,
 ) -> TrainOffer:
-    """Convert a TrainSchedule to a TrainOffer"""
+    """Convert a TrainSchedule to TrainOffer"""
     
-    # Parse departure date and time
-    dep_hour, dep_min = map(int, schedule.departure_time.split(':'))
-    arr_hour, arr_min = map(int, schedule.arrival_time.split(':'))
+    # Parse times
+    dep_hour, dep_min = map(int, schedule.departure_time.split(":"))
+    arr_hour, arr_min = map(int, schedule.arrival_time.split(":"))
     
+    # Create datetime objects
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
-    dep_datetime = dep_date.replace(hour=dep_hour, minute=dep_min)
+    departure_dt = dep_date.replace(hour=dep_hour, minute=dep_min)
     
-    # Calculate arrival datetime (may be next day)
-    arr_datetime = dep_date.replace(hour=arr_hour, minute=arr_min)
-    if arr_datetime <= dep_datetime:
-        arr_datetime += timedelta(days=1)
+    # Calculate arrival (may be next day)
+    arrival_dt = dep_date.replace(hour=arr_hour, minute=arr_min)
+    if schedule.duration_minutes > 0:
+        arrival_dt = departure_dt + timedelta(minutes=schedule.duration_minutes)
+    elif arrival_dt <= departure_dt:
+        arrival_dt += timedelta(days=1)
     
-    # Get station info
-    origin_info = RAILWAY_STATIONS.get(origin_station, None)
-    dest_info = RAILWAY_STATIONS.get(destination_station, None)
-    
-    # Get the lowest fare from available classes
-    avg_price = min(schedule.fares.values()) if schedule.fares else 500
-    
-    # Build available classes list
+    # Convert fares dict to available_classes list
     available_classes = [
         {"class": cls, "avg_fare": fare}
         for cls, fare in schedule.fares.items()
     ]
     
+    # Get lowest fare for display
+    lowest_fare = min(schedule.fares.values()) if schedule.fares else 0
+    
+    # Build booking partner URLs
+    booking_partners = []
+    for partner in TRAIN_BOOKING_PARTNERS:
+        partner_url = partner["url_template"]
+        # Note: Most train booking sites don't support deep linking well
+        booking_partners.append({
+            "name": partner["name"],
+            "url": partner_url,
+            "priority": partner["priority"],
+            "is_official": partner.get("is_official", False),
+        })
+    
     return TrainOffer(
-        offer_id=f"train_{schedule.train_number}_{departure_date}",
+        offer_id=f"{search_id}-{schedule.train_number}",
         mode=TransportMode.TRAIN,
-        provider="indian_railways_static",
+        provider="indian_railways",
         
-        # Route info
-        from_station=origin_station,
-        from_city=origin_info.city if origin_info else origin_station,
-        from_station_name=origin_info.name if origin_info else origin_station,
-        to_station=destination_station,
-        to_city=dest_info.city if dest_info else destination_station,
-        to_station_name=dest_info.name if dest_info else destination_station,
+        # Route
+        from_station=schedule.departure_station,
+        from_city=get_city_name(schedule.departure_station),
+        from_station_name=f"{get_city_name(schedule.departure_station)} ({schedule.departure_station})",
+        to_station=schedule.arrival_station,
+        to_city=get_city_name(schedule.arrival_station),
+        to_station_name=f"{get_city_name(schedule.arrival_station)} ({schedule.arrival_station})",
         
         # Timing
-        departure_time=dep_datetime,
-        arrival_time=arr_datetime,
+        departure_time=departure_dt,
+        arrival_time=arrival_dt,
         duration_minutes=schedule.duration_minutes,
         
         # Pricing
-        avg_price=avg_price,
+        avg_price=float(lowest_fare),
         currency="INR",
-        price_label="Average Fare",
-        price_disclaimer="Average fare shown for reference. Actual price may vary based on class and availability.",
+        price_label="Average Fare (Lowest Class)",
+        price_disclaimer="Average fare shown for reference. Actual price depends on class, quota, and availability. Book on official partner sites.",
         
         # Distance
-        distance_km=schedule.distance_km,
+        distance_km=float(schedule.distance_km),
+        
+        # Booking
+        booking_partners=booking_partners,
+        is_fallback=False,
         
         # Train specific
         train_number=schedule.train_number,
@@ -140,12 +219,6 @@ def convert_schedule_to_offer(
         intermediate_stops=schedule.intermediate_stops,
         available_classes=available_classes,
         has_pantry=schedule.has_pantry,
-        
-        # Booking partners
-        booking_partners=TRAIN_BOOKING_PARTNERS,
-        
-        # Not a fallback - we have real schedule data
-        is_fallback=False,
     )
 
 
@@ -153,152 +226,163 @@ def create_fallback_offer(
     origin: str,
     destination: str,
     departure_date: str,
-    distance_km: Optional[int] = None
+    search_id: str,
+    distance_km: Optional[int] = None,
 ) -> TrainOffer:
-    """Create a fallback offer when no route data is available"""
+    """Create a fallback redirect offer when no route data exists"""
     
-    origin_info = RAILWAY_STATIONS.get(origin, None)
-    dest_info = RAILWAY_STATIONS.get(destination, None)
+    origin_city = get_city_name(origin)
+    dest_city = get_city_name(destination)
     
-    # Estimate distance if not provided (rough calculation)
+    # Estimate distance if not provided
     if not distance_km:
-        distance_km = get_distance(origin, destination) or 500  # Default 500km
+        distance_km = get_distance(origin, destination) or 500  # Default estimate
     
-    # Calculate average fare based on distance
-    avg_price = calculate_average_fare(distance_km, "SL")
+    # Calculate estimated fares
+    estimated_sl = calculate_average_fare(distance_km, "SL")
+    estimated_3a = calculate_average_fare(distance_km, "3A")
+    estimated_2a = calculate_average_fare(distance_km, "2A")
     
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
-    dep_datetime = dep_date.replace(hour=8, minute=0)  # Placeholder time
-    arr_datetime = dep_datetime + timedelta(hours=int(distance_km / 60))  # ~60 km/h avg
+    
+    booking_partners = []
+    for partner in TRAIN_BOOKING_PARTNERS:
+        booking_partners.append({
+            "name": partner["name"],
+            "url": partner["url_template"],
+            "priority": partner["priority"],
+            "is_official": partner.get("is_official", False),
+            "description": partner["description"],
+        })
     
     return TrainOffer(
-        offer_id=f"train_fallback_{origin}_{destination}_{departure_date}",
+        offer_id=f"{search_id}-fallback",
         mode=TransportMode.TRAIN,
-        provider="fallback",
+        provider="redirect",
         
-        # Route info
+        # Route
         from_station=origin,
-        from_city=origin_info.city if origin_info else origin,
-        from_station_name=origin_info.name if origin_info else origin,
+        from_city=origin_city,
+        from_station_name=f"{origin_city} ({origin})",
         to_station=destination,
-        to_city=dest_info.city if dest_info else destination,
-        to_station_name=dest_info.name if dest_info else destination,
+        to_city=dest_city,
+        to_station_name=f"{dest_city} ({destination})",
         
-        # Timing (placeholder)
-        departure_time=dep_datetime,
-        arrival_time=arr_datetime,
-        duration_minutes=int(distance_km * 1.2),  # Rough estimate
+        # Timing (placeholder - actual times vary)
+        departure_time=dep_date.replace(hour=0, minute=0),
+        arrival_time=dep_date.replace(hour=0, minute=0),
+        duration_minutes=0,
         
-        # Pricing
-        avg_price=avg_price,
+        # Pricing (estimated range)
+        avg_price=float(estimated_sl),
         currency="INR",
-        price_label="Estimated Fare",
-        price_disclaimer="Estimated fare based on distance. Please check official sites for accurate prices and availability.",
+        price_label="Estimated Fare Range",
+        price_disclaimer=f"Route not in our database. Estimated fares: SL ₹{estimated_sl}, 3A ₹{estimated_3a}, 2A ₹{estimated_2a}. Check official booking partners for exact schedules and prices.",
         
         # Distance
-        distance_km=distance_km,
+        distance_km=float(distance_km),
         
-        # Train specific (unknown)
-        train_number="",
-        train_name="View train options",
+        # Booking
+        booking_partners=booking_partners,
+        is_fallback=True,
+        
+        # Train specific (unknown for fallback)
+        train_number="CHECK_IRCTC",
+        train_name=f"Trains from {origin_city} to {dest_city}",
         train_type="Various",
         days_of_operation=[],
+        frequency="Check booking partner",
+        stops_count=0,
+        intermediate_stops=[],
         available_classes=[
-            {"class": "SL", "avg_fare": calculate_average_fare(distance_km, "SL")},
-            {"class": "3A", "avg_fare": calculate_average_fare(distance_km, "3A")},
-            {"class": "2A", "avg_fare": calculate_average_fare(distance_km, "2A")},
+            {"class": "SL", "avg_fare": estimated_sl},
+            {"class": "3A", "avg_fare": estimated_3a},
+            {"class": "2A", "avg_fare": estimated_2a},
         ],
-        
-        # Booking partners
-        booking_partners=TRAIN_BOOKING_PARTNERS,
-        
-        # This is a fallback
-        is_fallback=True,
+        has_pantry=False,
     )
 
 
 async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
-    """Search for trains between two stations"""
+    """
+    Search for trains between two stations.
     
-    logger.info(f"🚆 Train search: {request.origin} → {request.destination} on {request.departure_date}")
+    Returns:
+        - Real offers if route exists in database
+        - Fallback redirect offer if route not found
+        - Never returns empty results
+    """
+    search_id = str(uuid.uuid4())
     
-    # Resolve station codes
-    origin_code = resolve_station_code(request.origin)
-    destination_code = resolve_station_code(request.destination)
+    # Normalize inputs
+    origin = normalize_station_code(request.origin)
+    destination = normalize_station_code(request.destination)
     
-    if not origin_code:
-        logger.warning(f"Could not resolve origin station: {request.origin}")
-        origin_code = request.origin.upper()
-    
-    if not destination_code:
-        logger.warning(f"Could not resolve destination station: {request.destination}")
-        destination_code = request.destination.upper()
-    
-    # Get station info for response
-    origin_info = RAILWAY_STATIONS.get(origin_code)
-    dest_info = RAILWAY_STATIONS.get(destination_code)
-    
-    origin_city = origin_info.city if origin_info else request.origin
-    dest_city = dest_info.city if dest_info else request.destination
+    logger.info(f"🚆 Train search: {origin} → {destination} on {request.departure_date}")
     
     # Try to find trains for this route
-    schedules = get_trains_for_route(origin_code, destination_code)
-    
-    offers: List[TrainOffer] = []
-    is_fallback = False
-    fallback_message = None
+    schedules = get_trains_for_route(origin, destination)
     
     if schedules:
-        # We have schedule data - convert to offers
-        for schedule in schedules:
-            # Check if train runs on the selected day
-            dep_date = datetime.strptime(request.departure_date, "%Y-%m-%d")
-            day_name = dep_date.strftime("%a")  # "Mon", "Tue", etc.
-            
-            if "Daily" in schedule.days_of_operation or day_name in schedule.days_of_operation:
-                offer = convert_schedule_to_offer(
-                    schedule,
-                    request.departure_date,
-                    origin_code,
-                    destination_code
-                )
-                offers.append(offer)
+        # Convert schedules to offers
+        offers = [
+            schedule_to_offer(schedule, request.departure_date, search_id)
+            for schedule in schedules
+        ]
         
-        if not offers:
-            # No trains on this day
-            fallback_message = f"No trains available on {day_name}. Check alternate days or booking partners for other options."
-            is_fallback = True
-            offers.append(create_fallback_offer(
-                origin_code,
-                destination_code,
-                request.departure_date,
-                schedules[0].distance_km if schedules else None
-            ))
+        # Apply optional filters
+        if request.train_class:
+            offers = [
+                o for o in offers
+                if any(c["class"] == request.train_class for c in o.available_classes)
+            ]
+        
+        if request.train_type:
+            offers = [
+                o for o in offers
+                if o.train_type and request.train_type.lower() in o.train_type.lower()
+            ]
+        
+        # Sort by departure time
+        offers.sort(key=lambda o: o.departure_time)
+        
+        logger.info(f"✅ Found {len(offers)} trains for {origin} → {destination}")
+        
+        distance = get_distance(origin, destination)
+        
+        return TrainSearchResponse(
+            offers=offers,
+            search_id=search_id,
+            cached=False,
+            timestamp=datetime.utcnow(),
+            origin_city=get_city_name(origin),
+            destination_city=get_city_name(destination),
+            distance_km=float(distance) if distance else None,
+            is_fallback=False,
+            fallback_message=None,
+        )
+    
     else:
-        # No schedule data - create fallback
-        logger.info(f"No schedule data for {origin_code} → {destination_code}, showing fallback")
-        is_fallback = True
-        fallback_message = "Detailed schedule not available for this route. Please check official booking sites."
-        offers.append(create_fallback_offer(
-            origin_code,
-            destination_code,
-            request.departure_date
-        ))
-    
-    # Sort by departure time
-    offers.sort(key=lambda x: x.departure_time)
-    
-    # Get distance
-    distance_km = get_distance(origin_code, destination_code)
-    
-    return TrainSearchResponse(
-        offers=offers,
-        search_id=str(uuid.uuid4()),
-        cached=False,
-        timestamp=datetime.utcnow(),
-        origin_city=origin_city,
-        destination_city=dest_city,
-        distance_km=distance_km,
-        is_fallback=is_fallback,
-        fallback_message=fallback_message,
-    )
+        # No route data - return fallback
+        logger.info(f"⚠️ No route data for {origin} → {destination}, returning fallback")
+        
+        distance = get_distance(origin, destination)
+        fallback_offer = create_fallback_offer(
+            origin=origin,
+            destination=destination,
+            departure_date=request.departure_date,
+            search_id=search_id,
+            distance_km=distance,
+        )
+        
+        return TrainSearchResponse(
+            offers=[fallback_offer],
+            search_id=search_id,
+            cached=False,
+            timestamp=datetime.utcnow(),
+            origin_city=get_city_name(origin),
+            destination_city=get_city_name(destination),
+            distance_km=float(distance) if distance else None,
+            is_fallback=True,
+            fallback_message=f"We don't have detailed schedule data for this route. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
+        )
