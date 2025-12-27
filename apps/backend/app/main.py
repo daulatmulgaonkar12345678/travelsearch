@@ -183,6 +183,10 @@ app.include_router(msrtc_router.router, prefix="/api", tags=["msrtc"])
 from app.routers import bus_autocomplete
 app.include_router(bus_autocomplete.router, prefix="/api", tags=["bus-autocomplete"])
 
+# Route Stops - Likely Stops on Route feature
+from app.routers import route_stops
+app.include_router(route_stops.router, prefix="/api", tags=["routes"])
+
 # ============================================================
 # Local Run
 # ============================================================
