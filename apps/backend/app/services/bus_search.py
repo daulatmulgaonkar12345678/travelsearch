@@ -426,5 +426,5 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
             destination_city=destination,
             distance_km=float(distance) if distance else None,
             is_fallback=True,
-            fallback_message=f"We don't have detailed schedule data for this route. Please check our booking partners (redBus, AbhiBus, Paytm) for current buses, timings, and prices.",
+            fallback_message="We don't have detailed schedule data for this route. Please check our booking partners (redBus, AbhiBus, Paytm) for current buses, timings, and prices.",
         )

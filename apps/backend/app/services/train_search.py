@@ -384,5 +384,5 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
             destination_city=get_city_name(destination),
             distance_km=float(distance) if distance else None,
             is_fallback=True,
-            fallback_message=f"We don't have detailed schedule data for this route. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
+            fallback_message="We don't have detailed schedule data for this route. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
         )
