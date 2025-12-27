@@ -7,20 +7,15 @@
  * - Helpful, unique content (150-300 words)
  * - Embedded search bar with pre-filled route (UX improvement)
  * - Internal links to related routes
- * - CTA button to live search results
  * 
  * UX PRINCIPLE: User clicks route → everything auto-filled → adjust date → search
  */
 
-'use client'
-
-import { useState, useEffect } from 'react'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Calendar, Users, Search, ArrowRight } from 'lucide-react'
 import Navigation from '@/components/layout/Navigation'
 import Footer from '@/components/layout/Footer'
+import RouteSearchBar from './RouteSearchBar'
 
 export interface RoutePageProps {
   originCity: string
@@ -61,147 +56,6 @@ export function generateRouteMetadata(props: RoutePageProps): Metadata {
   }
 }
 
-/**
- * Get tomorrow's date in YYYY-MM-DD format (default search date)
- */
-function getTomorrowDate(): string {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  return date.toISOString().split('T')[0]
-}
-
-/**
- * Format date for display (Jan 15, 2025)
- */
-function formatDisplayDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric',
-    year: 'numeric'
-  })
-}
-
-/**
- * Embedded mini search bar for route pages
- * Pre-filled with route, user can adjust date and search
- */
-function RouteSearchBar({
-  originCode,
-  originCity,
-  destinationCode,
-  destinationCity,
-}: {
-  originCode: string
-  originCity: string
-  destinationCode: string
-  destinationCity: string
-}) {
-  const router = useRouter()
-  const [departureDate, setDepartureDate] = useState(getTomorrowDate())
-  const [adults, setAdults] = useState(1)
-  const [isSearching, setIsSearching] = useState(false)
-
-  // Get minimum date (today)
-  const minDate = new Date().toISOString().split('T')[0]
-
-  const handleSearch = () => {
-    setIsSearching(true)
-    
-    const searchParams = new URLSearchParams({
-      origin: originCode,
-      destination: destinationCode,
-      departure_date: departureDate,
-      trip_type: 'oneway',
-      adults: String(adults),
-      cabin_class: 'economy',
-    })
-    
-    router.push(`/flights/results?${searchParams.toString()}`)
-  }
-
-  return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-      {/* Route display (read-only) */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 bg-gray-50 rounded-xl p-4">
-          <p className="text-xs text-gray-500 mb-1">From</p>
-          <p className="font-semibold text-gray-900">{originCity}</p>
-          <p className="text-sm text-gray-500">{originCode}</p>
-        </div>
-        
-        <div className="flex-shrink-0">
-          <ArrowRight className="w-5 h-5 text-gray-400" />
-        </div>
-        
-        <div className="flex-1 bg-gray-50 rounded-xl p-4">
-          <p className="text-xs text-gray-500 mb-1">To</p>
-          <p className="font-semibold text-gray-900">{destinationCity}</p>
-          <p className="text-sm text-gray-500">{destinationCode}</p>
-        </div>
-      </div>
-
-      {/* Editable fields */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {/* Date picker */}
-        <div className="relative">
-          <label className="block text-xs text-gray-500 mb-1">Departure Date</label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="date"
-              value={departureDate}
-              min={minDate}
-              onChange={(e) => setDepartureDate(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        {/* Passengers */}
-        <div className="relative">
-          <label className="block text-xs text-gray-500 mb-1">Passengers</label>
-          <div className="relative">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select
-              value={adults}
-              onChange={(e) => setAdults(Number(e.target.value))}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
-            >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                <option key={n} value={n}>{n} {n === 1 ? 'Adult' : 'Adults'}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Search button */}
-      <button
-        onClick={handleSearch}
-        disabled={isSearching}
-        className="w-full py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:bg-blue-400"
-      >
-        {isSearching ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Searching...
-          </>
-        ) : (
-          <>
-            <Search className="w-5 h-5" />
-            Search Flights
-          </>
-        )}
-      </button>
-      
-      <p className="text-xs text-gray-500 text-center mt-3">
-        Prices shown are sourced from our travel partners
-      </p>
-    </div>
-  )
-}
-
 export default function RoutePageTemplate({
   originCity,
   originCode,
@@ -210,12 +64,6 @@ export default function RoutePageTemplate({
   content,
   relatedRoutes,
 }: RoutePageProps) {
-  const [mounted, setMounted] = useState(false)
-  
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
@@ -234,17 +82,15 @@ export default function RoutePageTemplate({
               </p>
             </div>
 
-            {/* Embedded Search Bar - Only render after mount to avoid hydration issues */}
-            {mounted && (
-              <div className="max-w-xl mx-auto">
-                <RouteSearchBar
-                  originCode={originCode}
-                  originCity={originCity}
-                  destinationCode={destinationCode}
-                  destinationCity={destinationCity}
-                />
-              </div>
-            )}
+            {/* Embedded Search Bar - Client Component */}
+            <div className="max-w-xl mx-auto">
+              <RouteSearchBar
+                originCode={originCode}
+                originCity={originCity}
+                destinationCode={destinationCode}
+                destinationCity={destinationCity}
+              />
+            </div>
           </div>
         </div>
       </section>
