@@ -473,7 +473,7 @@ def create_state_network_offers(
             
             # Bus specific
             operator_name="Multiple Operators",
-            operator_type="mixed",
+            operator_type="private",  # Mixed operators treated as private for model compatibility
             bus_type=bt["enum"],
             bus_type_label=bt["label"],
             is_ac=bt["is_ac"],
