@@ -14,51 +14,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, X, Plane, Train, Bus, Hotel } from 'lucide-react'
 import {
   getRecentSearches,
-  clearRecentSearches,
   removeRecentSearch,
   formatSearchDate,
   buildSearchUrl,
   type RecentSearch,
   type TransportMode,
 } from '@/lib/unifiedRecentSearchStore'
-
-/**
- * Animation variants
- */
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.25,
-      ease: [0.16, 1, 0.3, 1]
-    }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: {
-      duration: 0.2,
-      ease: 'easeOut'
-    }
-  }
-}
 
 /**
  * Mode configuration for icons and colors
@@ -120,12 +84,13 @@ export default function RecentSearches({ activeService = 'flights' }: RecentSear
 
   useEffect(() => {
     setMounted(true)
-    setAllSearches(getRecentSearches())
+    const searches = getRecentSearches()
+    setAllSearches(searches || [])
   }, [])
 
   // Filter searches by active service
   const activeMode = SERVICE_TO_MODE[activeService] || 'flight'
-  const searches = allSearches.filter(search => search.mode === activeMode)
+  const searches = (allSearches || []).filter(search => search.mode === activeMode)
 
   const handleSearchClick = (search: RecentSearch) => {
     const url = buildSearchUrl(search)
@@ -135,12 +100,12 @@ export default function RecentSearches({ activeService = 'flights' }: RecentSear
   const handleRemoveSearch = (e: React.MouseEvent, search: RecentSearch) => {
     e.stopPropagation()
     const updated = removeRecentSearch(search)
-    setAllSearches(updated)
+    setAllSearches(updated || [])
   }
 
   const handleClearAll = () => {
     // Only clear searches for the current mode
-    const remaining = allSearches.filter(search => search.mode !== activeMode)
+    const remaining = (allSearches || []).filter(search => search.mode !== activeMode)
     // Update localStorage with remaining searches
     if (typeof window !== 'undefined') {
       localStorage.setItem('recent_searches', JSON.stringify(remaining))
@@ -154,7 +119,7 @@ export default function RecentSearches({ activeService = 'flights' }: RecentSear
   }
 
   // Empty state for this service
-  if (searches.length === 0) {
+  if (!searches || searches.length === 0) {
     const serviceLabels: Record<string, string> = {
       flights: 'flight',
       trains: 'train',
@@ -163,25 +128,16 @@ export default function RecentSearches({ activeService = 'flights' }: RecentSear
     }
     
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-        className="text-center py-4"
-      >
+      <div className="text-center py-4 animate-fade-in">
         <p className="text-sm text-gray-500">
           Your recent {serviceLabels[activeService] || 'travel'} searches will appear here.
         </p>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -196,79 +152,69 @@ export default function RecentSearches({ activeService = 'flights' }: RecentSear
         </button>
       </div>
       
-      {/* Search chips */}
-      <motion.div 
-        className="flex flex-wrap gap-2"
-        variants={containerVariants}
-      >
-        <AnimatePresence mode="popLayout">
-          {searches.map((search) => {
-            const config = MODE_CONFIG[search.mode] || MODE_CONFIG.flight
-            const Icon = config.icon
-            
-            return (
-              <motion.button
-                key={`${search.mode}-${search.origin}-${search.destination}-${search.departureDate}-${search.timestamp}`}
-                layout
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleSearchClick(search)}
-                className={`
-                  group relative flex items-center gap-2 px-3 py-2
-                  bg-white border border-gray-200 rounded-lg
-                  ${config.hoverBorder} ${config.hoverBg}
-                  transition-colors duration-200
-                  shadow-sm hover:shadow
-                `}
-              >
-                {/* Transport icon */}
-                <Icon className={`w-3.5 h-3.5 text-gray-400 group-hover:${config.color} transition-colors`} />
-                
-                {/* Route */}
-                <span className="text-sm font-medium text-gray-900">
-                  {search.origin}
-                  <span className="text-gray-400 mx-1">→</span>
-                  {search.destination}
-                </span>
-                
-                {/* Date */}
-                <span className="text-xs text-gray-500 border-l border-gray-200 pl-2">
-                  {formatSearchDate(search.departureDate)}
-                  {search.returnDate && (search.mode === 'flight' || search.mode === 'hotel') && (
-                    <> - {formatSearchDate(search.returnDate)}</>
-                  )}
-                </span>
-                
-                {/* Price (display only - for reference) */}
-                {search.displayPrice && (
-                  <span className="text-xs font-medium text-green-600 border-l border-gray-200 pl-2">
-                    {search.displayCurrency === 'INR' ? '₹' : '$'}
-                    {search.displayPrice.toLocaleString()}
-                  </span>
+      {/* Search chips - simplified without framer-motion */}
+      <div className="flex flex-wrap gap-2">
+        {searches.map((search, index) => {
+          const config = MODE_CONFIG[search.mode] || MODE_CONFIG.flight
+          const Icon = config.icon
+          
+          return (
+            <button
+              key={`${search.mode}-${search.origin}-${search.destination}-${search.departureDate}-${search.timestamp}`}
+              onClick={() => handleSearchClick(search)}
+              className={`
+                group relative flex items-center gap-2 px-3 py-2
+                bg-white border border-gray-200 rounded-lg
+                ${config.hoverBorder} ${config.hoverBg}
+                transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+                shadow-sm hover:shadow
+                animate-card-in opacity-0
+              `}
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {/* Transport icon */}
+              <Icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              
+              {/* Route */}
+              <span className="text-sm font-medium text-gray-900">
+                {search.origin}
+                <span className="text-gray-400 mx-1">→</span>
+                {search.destination}
+              </span>
+              
+              {/* Date */}
+              <span className="text-xs text-gray-500 border-l border-gray-200 pl-2">
+                {formatSearchDate(search.departureDate)}
+                {search.returnDate && (search.mode === 'flight' || search.mode === 'hotel') && (
+                  <> - {formatSearchDate(search.returnDate)}</>
                 )}
-                
-                {/* Remove button */}
-                <button
-                  onClick={(e) => handleRemoveSearch(e, search)}
-                  className="
-                    ml-1 p-0.5 rounded-full
-                    opacity-0 group-hover:opacity-100
-                    text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                    transition-all duration-200
-                  "
-                  aria-label="Remove search"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </motion.button>
-            )
-          })}
-        </AnimatePresence>
-      </motion.div>
-    </motion.div>
+              </span>
+              
+              {/* Price (display only - for reference) */}
+              {search.displayPrice && (
+                <span className="text-xs font-medium text-green-600 border-l border-gray-200 pl-2">
+                  {search.displayCurrency === 'INR' ? '₹' : '$'}
+                  {search.displayPrice.toLocaleString()}
+                </span>
+              )}
+              
+              {/* Remove button */}
+              <button
+                onClick={(e) => handleRemoveSearch(e, search)}
+                className="
+                  ml-1 p-0.5 rounded-full
+                  opacity-0 group-hover:opacity-100
+                  text-gray-400 hover:text-gray-600 hover:bg-gray-100
+                  transition-all duration-200
+                "
+                aria-label="Remove search"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
