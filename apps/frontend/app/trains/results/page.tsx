@@ -132,10 +132,29 @@ function TrainResultsContent() {
         
         if (!response.ok) {
           const errorData = await response.json()
+          // Handle structured error response
+          if (errorData.detail && typeof errorData.detail === 'object') {
+            throw new Error(errorData.detail.message || 'Failed to search trains')
+          }
           throw new Error(errorData.detail || 'Failed to search trains')
         }
         
-        const data: TrainSearchResponse = await response.json()
+        const rawData = await response.json()
+        
+        // Map the API response to our expected interface
+        // Backend returns { status, route: { origin_city, ... }, offers, ... }
+        const data: TrainSearchResponse = {
+          offers: rawData.offers || [],
+          search_id: rawData.search_id,
+          cached: rawData.cached || false,
+          timestamp: rawData.timestamp,
+          origin_city: rawData.route?.origin_city || origin,
+          destination_city: rawData.route?.destination_city || destination,
+          distance_km: rawData.route?.distance_km || null,
+          is_fallback: rawData.is_fallback || false,
+          fallback_message: rawData.fallback_message || null,
+        }
+        
         setResults(data)
         
         // Save to recent searches
