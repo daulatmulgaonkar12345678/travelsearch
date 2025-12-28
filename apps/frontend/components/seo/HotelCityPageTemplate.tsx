@@ -77,8 +77,10 @@ export default function HotelCityPageTemplate({
   relatedCities,
   nearbyFlightRoutes = [],
 }: HotelCityPageProps) {
-  const { checkIn, checkOut } = getDefaultDates()
-  const searchUrl = `/hotels/results?city=${cityCode}&checkIn=${checkIn}&checkOut=${checkOut}&adults=2`
+  // UX PRINCIPLE: Prefill, don't auto-search
+  // Instead of navigating directly to results (which caused "Missing parameters" errors),
+  // navigate to homepage with prefill param so user can select dates
+  const prefillUrl = `/?tab=hotels&prefill_city=${encodeURIComponent(cityName)}`
 
   return (
     <div className="min-h-screen bg-white">
