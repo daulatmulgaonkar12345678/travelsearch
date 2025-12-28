@@ -95,7 +95,7 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
                     (offer.available_classes?.[0]?.class) || ''
 
   return (
-    <div className="relative bg-white border rounded-lg shadow-sm hover:shadow-md transition">
+    <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
       {/* Fallback Badge */}
       {offer.is_fallback && (
         <div className="absolute top-3 right-3">
