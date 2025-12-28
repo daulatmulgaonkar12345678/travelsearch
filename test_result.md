@@ -12,15 +12,18 @@ run_ui: true
 
 - task: "Likely Stops on Route - Enhanced Corridor Detection"
   implemented: true
-  working: pending
+  working: true
   file: "/app/apps/backend/app/services/corridor_resolver.py, /app/apps/backend/app/routers/route_stops.py, /app/apps/frontend/components/results/LikelyStops.tsx"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented enhanced 'Likely Stops on Route' feature with MAJOR/MINOR stop separation. Features: 1) Created highway_corridors.json with 8 major Maharashtra corridors, 2) Each corridor has stops ordered by km from start, 3) Stops classified as MAJOR (main ST stands) or MINOR (smaller stops like Kashil), 4) New corridor_resolver.py service extracts route segments, 5) Updated API endpoints: GET /api/routes/stops returns major_stops and minor_stops arrays, 6) Frontend LikelyStops component shows MAJOR stops by default with expandable MINOR stops, 7) Validation: Mumbai→Ratnagiri shows Kashil in minor_stops, Pune→Kolhapur does NOT show Kashil."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL LIKELY STOPS API TESTS PASSED (7/7): 1) Mumbai→Ratnagiri CRITICAL VALIDATION: Kashil correctly found in minor_stops with 5 major stops (Panvel, Alibag, Mhad, Chiplun, Ratnagiri) and 10 minor stops including Kashil, Sangmeshwar, Devrukh. Corridor: Mumbai-Goa Konkan Highway (NH66), 2) Pune→Kolhapur CRITICAL VALIDATION: Kashil correctly NOT found anywhere with 3 major stops (Satara, Karad, Sangli) and 6 minor stops (Katraj, Shirwal, Umbraj, Islampur, Jaysingpur, Ichalkaranji). Corridor: Pune-Kolhapur Highway (NH48), 3) Mumbai→Nashik corridor working with 6 total stops, 4) City ID based queries working (city_id=8 for Pune, city_id=11 for Kolhapur), 5) Invalid parameters correctly rejected with 400, 6) GET /api/routes/summary returns proper via_text format 'Satara → Karad → Sangli' with has_minor_stops=true and minor_count=6, 7) GET /api/routes/corridors returns 8 corridors with proper major_stops_count and minor_stops_count. All API endpoints functional with proper MAJOR/MINOR separation and disclaimer notes."
   test_requirements:
     - "Test GET /api/routes/stops?from_city=mumbai&to_city=ratnagiri - should return Kashil in minor_stops"
     - "Test GET /api/routes/stops?from_city=pune&to_city=kolhapur - should NOT return Kashil"
