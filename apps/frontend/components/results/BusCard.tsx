@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Bus,
   ChevronDown,
@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
+import RedirectTransition from '@/components/loading/RedirectTransition'
 
 interface BusOffer {
   offer_id: string
