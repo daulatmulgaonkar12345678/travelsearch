@@ -88,7 +88,11 @@ function FeatureCards({ activeService }: { activeService: ServiceType }) {
   )
 }
 
-export default function Home() {
+/**
+ * Home Page Content - uses useSearchParams
+ * Must be wrapped in Suspense at the page level
+ */
+function HomeContent() {
   const searchParams = useSearchParams()
   
   // Get active service from URL - single source of truth
@@ -140,5 +144,24 @@ export default function Home() {
 
       <Footer />
     </div>
+  )
+}
+
+/**
+ * Loading fallback for Suspense
+ */
+function HomeLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+    </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   )
 }
