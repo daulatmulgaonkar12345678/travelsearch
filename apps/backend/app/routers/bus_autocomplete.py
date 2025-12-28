@@ -511,6 +511,14 @@ async def bus_autocomplete(
             if r.get("is_search_surface") is not None:
                 formatted["is_search_surface"] = r["is_search_surface"]
             
+            # Tourist destination fields
+            if r.get("is_tourist"):
+                formatted["is_tourist"] = r["is_tourist"]
+            if r.get("destination_type"):
+                formatted["destination_type"] = r["destination_type"]
+            if r.get("description"):
+                formatted["description"] = r["description"]
+            
             formatted_results.append(formatted)
         
         source = "mh_stops" if mh_stops else ("mh_cities" if mh_cities else "other_states")
