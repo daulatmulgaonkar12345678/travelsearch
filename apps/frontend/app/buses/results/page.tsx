@@ -556,17 +556,12 @@ function BusResultsContent() {
               </div>
             )}
             
-            {/* 6️⃣ Visual Trust Indicators - Summary Stats */}
+            {/* Summary Stats - Duration-focused, no distance */}
             {filteredOffers.filter(o => !o.is_fallback).length > 0 && (
               <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600">
                 <span className="flex items-center gap-1.5">
                   🚌 {filteredOffers.filter(o => !o.is_fallback).length} bus{filteredOffers.filter(o => !o.is_fallback).length !== 1 ? 'es' : ''} found
                 </span>
-                {results.distance_km && (
-                  <span className="flex items-center gap-1.5">
-                    📏 Approx. {results.distance_km} km
-                  </span>
-                )}
                 {filteredOffers.filter(o => !o.is_fallback).length > 0 && (
                   <span className="flex items-center gap-1.5">
                     💰 From ₹{Math.min(...filteredOffers.filter(o => !o.is_fallback).map(o => Math.round(o.avg_price))).toLocaleString('en-IN')}
