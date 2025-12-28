@@ -160,6 +160,98 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
   },
 ]
 
+// Popular train routes data (static for now)
+export const POPULAR_TRAIN_ROUTES = [
+  { 
+    slug: 'mumbai-delhi', 
+    label: 'Mumbai → Delhi',
+    origin: 'MUMBAI_ALL',
+    destination: 'NDLS',
+    description: 'One of India\'s busiest rail corridors'
+  },
+  { 
+    slug: 'delhi-jaipur', 
+    label: 'Delhi → Jaipur',
+    origin: 'NDLS',
+    destination: 'JP',
+    description: 'Popular tourist route to the Pink City'
+  },
+  { 
+    slug: 'bangalore-chennai', 
+    label: 'Bangalore → Chennai',
+    origin: 'SBC',
+    destination: 'MAS',
+    description: 'Connect two South Indian metro cities'
+  },
+  { 
+    slug: 'mumbai-pune', 
+    label: 'Mumbai → Pune',
+    origin: 'MUMBAI_ALL',
+    destination: 'PUNE',
+    description: 'Frequent trains on this short route'
+  },
+  { 
+    slug: 'kolkata-delhi', 
+    label: 'Kolkata → Delhi',
+    origin: 'HWH',
+    destination: 'NDLS',
+    description: 'Major East-North corridor'
+  },
+  { 
+    slug: 'hyderabad-bangalore', 
+    label: 'Hyderabad → Bangalore',
+    origin: 'SC',
+    destination: 'SBC',
+    description: 'Connect Deccan and South India'
+  },
+]
+
+// Popular bus routes data (static for now)
+export const POPULAR_BUS_ROUTES = [
+  { 
+    slug: 'pune-mumbai', 
+    label: 'Pune → Mumbai',
+    origin: 'Pune',
+    destination: 'Mumbai',
+    description: 'Most frequent bus route in Maharashtra'
+  },
+  { 
+    slug: 'bangalore-chennai', 
+    label: 'Bangalore → Chennai',
+    origin: 'Bangalore',
+    destination: 'Chennai',
+    description: 'Overnight buses available'
+  },
+  { 
+    slug: 'delhi-jaipur', 
+    label: 'Delhi → Jaipur',
+    origin: 'Delhi',
+    destination: 'Jaipur',
+    description: 'Popular weekend getaway route'
+  },
+  { 
+    slug: 'hyderabad-bangalore', 
+    label: 'Hyderabad → Bangalore',
+    origin: 'Hyderabad',
+    destination: 'Bangalore',
+    description: 'Multiple operators, sleeper and seater'
+  },
+  { 
+    slug: 'mumbai-goa', 
+    label: 'Mumbai → Goa',
+    origin: 'Mumbai',
+    destination: 'Goa',
+    description: 'Beach getaway overnight buses'
+  },
+  { 
+    slug: 'chennai-bangalore', 
+    label: 'Chennai → Bangalore',
+    origin: 'Chennai',
+    destination: 'Bangalore',
+    description: 'Frequent services both ways'
+  },
+]
+
 // ============================================================================
 // COMPONENTS
 // ============================================================================
