@@ -1079,7 +1079,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         {/* Search Button with validation */}
         {(() => {
           // Determine button state based on mode
-          const hotelValid = city && city.trim().length >= 2
+          // HOTEL: Must have structured city selection (not just text)
+          const hotelValid = selectedHotelCity !== null
           
           const isDisabled = 
             (searchType === 'flights' && (!originValid || !destinationValid)) ||
@@ -1104,7 +1105,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               if (!originValid || !destinationValid) return 'Select valid airports from the list'
             }
             if (searchType === 'hotels') {
-              if (!hotelValid) return 'Enter a city or hotel name'
+              if (!hotelValid) return 'Select a city from the dropdown'
             }
             return null
           }
