@@ -254,6 +254,89 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     setMounted(true)
   }, [])
 
+  /**
+   * PREFILL LOGIC
+   * 
+   * UX Principle: Prefill, don't auto-search. Let users confirm intent.
+   * 
+   * Reads prefill params from URL and populates the appropriate search form:
+   * - Hotels: ?prefill_city=Mumbai → prefills hotel city field
+   * - Trains: ?prefill_origin=MUMBAI_ALL&prefill_dest=PUNE → prefills train fields
+   * - Buses: ?prefill_origin=Pune&prefill_dest=Mumbai → prefills bus fields
+   * 
+   * After prefilling, user must select dates and click Search to execute.
+   */
+  useEffect(() => {
+    if (!mounted || prefillProcessed) return
+
+    const prefillCity = searchParams.get('prefill_city')
+    const prefillOrigin = searchParams.get('prefill_origin')
+    const prefillDest = searchParams.get('prefill_dest')
+
+    // Hotel prefill
+    if (searchType === 'hotels' && prefillCity) {
+      // Create a HotelCity object to prefill the autocomplete
+      setSelectedHotelCity({
+        city: prefillCity,
+        state: '',
+        country: 'India',
+      })
+      setPrefillProcessed(true)
+      
+      // Clear prefill params from URL to avoid re-processing
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('prefill_city')
+      router.replace(`/?${params.toString()}`, { scroll: false })
+    }
+    
+    // Train prefill
+    if (searchType === 'trains' && prefillOrigin && prefillDest) {
+      // Set train origin/destination from prefill params
+      // These are station codes like MUMBAI_ALL or PUNE
+      setTrainOrigin({
+        value: prefillOrigin,
+        label: prefillOrigin.replace('_ALL', ' (All Stations)'),
+        type: prefillOrigin.includes('_ALL') ? 'city_all' : 'station'
+      })
+      setTrainDestination({
+        value: prefillDest,
+        label: prefillDest.replace('_ALL', ' (All Stations)'),
+        type: prefillDest.includes('_ALL') ? 'city_all' : 'station'
+      })
+      setPrefillProcessed(true)
+      
+      // Clear prefill params from URL
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('prefill_origin')
+      params.delete('prefill_dest')
+      router.replace(`/?${params.toString()}`, { scroll: false })
+    }
+    
+    // Bus prefill
+    if (searchType === 'buses' && prefillOrigin && prefillDest) {
+      // Set bus origin/destination from prefill params
+      setBusOriginText(prefillOrigin)
+      setBusOriginPlace({
+        place_id: `prefill_${prefillOrigin.toLowerCase()}`,
+        name: prefillOrigin,
+        type: 'city'
+      })
+      setBusDestinationText(prefillDest)
+      setBusDestinationPlace({
+        place_id: `prefill_${prefillDest.toLowerCase()}`,
+        name: prefillDest,
+        type: 'city'
+      })
+      setPrefillProcessed(true)
+      
+      // Clear prefill params from URL
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('prefill_origin')
+      params.delete('prefill_dest')
+      router.replace(`/?${params.toString()}`, { scroll: false })
+    }
+  }, [mounted, prefillProcessed, searchType, searchParams, router])
+
   const totalPassengers = passengers.adults + passengers.children.length + passengers.infants
   const totalGuests = hotelRooms.rooms.reduce((sum, room) => sum + room.adults + room.children.length, 0)
 
