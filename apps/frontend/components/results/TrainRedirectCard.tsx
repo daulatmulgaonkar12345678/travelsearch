@@ -179,13 +179,12 @@ export default function TrainRedirectCard({
             <a
               key={partner.name}
               href={partner.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
+              onClick={(e) => handlePartnerClick(partner, e)}
+              className={`flex items-center justify-between p-4 rounded-lg border transition-all cursor-pointer ${
                 index === 0 
                   ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 hover:border-blue-300' 
                   : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
-              }`}
+              } ${redirecting === partner.name ? 'opacity-70' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -198,7 +197,7 @@ export default function TrainRedirectCard({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className={`font-medium ${index === 0 ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {partner.name}
+                      {redirecting === partner.name ? 'Redirecting...' : partner.name}
                     </span>
                     {partner.is_official && (
                       <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded">
