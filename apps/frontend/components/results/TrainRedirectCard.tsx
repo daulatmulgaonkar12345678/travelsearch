@@ -59,6 +59,10 @@ export default function TrainRedirectCard({
   bookingPartners,
   departureDate,
 }: TrainRedirectCardProps) {
+  const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [showRedirectTransition, setShowRedirectTransition] = useState(false)
+  const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
+  
   // Sort partners by priority
   const sortedPartners = [...bookingPartners].sort((a, b) => a.priority - b.priority)
   
