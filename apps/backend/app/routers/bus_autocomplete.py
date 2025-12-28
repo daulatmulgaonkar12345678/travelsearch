@@ -414,6 +414,7 @@ async def bus_autocomplete(
                 "id": r["id"],
                 "type": r["type"],
                 "label": r["label"],
+                "label_en": r.get("label_en", r["label"]),  # CRITICAL: Include English name
                 "city": r["city"],
                 "state": r["state"],
             }
