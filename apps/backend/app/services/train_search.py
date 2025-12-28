@@ -1,13 +1,21 @@
-"""Train Search Service - Variant-Level Results
+"""Train Search Service - STATION-FIRST ARCHITECTURE
 
-ARCHITECTURE PRINCIPLE:
-- One route ≠ one result
-- One train × multiple classes = multiple results
-- Each class variant = separate card (like flights)
-- Backend is smart, frontend is dumb: ALL input resolution happens here
+🔴 ARCHITECTURE RULE (NON-NEGOTIABLE):
+- Train search inputs must resolve to STATIONS only
+- City names are NEVER valid inputs
+- Only two valid input types:
+  1. Station codes (e.g., CSMT, PUNE, NDLS)
+  2. City ALL tokens (e.g., MUMBAI_ALL, PUNE_ALL)
 
-Data Source: Static Indian Railways timetable data
-Fare Strategy: Distance-based average fares with slight variations
+Frontend MUST submit:
+  ✅ Station codes: "CSMT", "PUNE"
+  ✅ ALL tokens: "MUMBAI_ALL", "PUNE_ALL"
+  ❌ NEVER: "Mumbai", "Pune" (raw city names)
+
+Backend MUST:
+  - Accept ONLY station codes or _ALL tokens
+  - Resolve _ALL tokens to station arrays internally
+  - REJECT raw city names explicitly
 """
 
 import logging
@@ -31,40 +39,139 @@ from app.data.train_routes import (
     TRAIN_ROUTES,
 )
 from app.services.rail_connectivity import (
-    resolve_to_station_codes,
-    search_stations_cities,
-    get_city_info,
-    get_station_info,
     _load_data,
     _cities,
     _stations,
-    _aliases,
     _station_to_city,
 )
 
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# RESOLUTION ERROR MODELS
+# STATION-FIRST RESOLUTION
 # ============================================================
 
 @dataclass
-class ResolutionResult:
-    """Result of resolving user input to station codes"""
+class StationResolutionResult:
+    """Result of station-first resolution"""
     success: bool
-    input_type: str  # "city", "station", "alias", "unknown"
+    input_type: str  # "station", "city_all", "invalid_city", "unknown"
     station_codes: List[str]
-    city_name: Optional[str]  # Resolved city name for display
-    city_id: Optional[str]  # City ID if resolved to city
+    display_name: str  # For response (e.g., "Mumbai (All Stations)" or "CSMT")
     error_message: Optional[str] = None
-    suggestions: List[Dict[str, Any]] = None
+
+
+def resolve_station_input(user_input: str) -> StationResolutionResult:
+    """
+    STATION-FIRST RESOLUTION (STRICT CONTRACT)
     
-    def __post_init__(self):
-        if self.suggestions is None:
-            self.suggestions = []
+    Valid inputs:
+      ✅ Station codes: CSMT, PUNE, NDLS, etc.
+      ✅ ALL tokens: MUMBAI_ALL, PUNE_ALL, DELHI_ALL, etc.
+    
+    Invalid inputs:
+      ❌ Raw city names: Mumbai, Pune, Delhi, etc.
+      ❌ Free text: anything not matching above
+    
+    Returns:
+      - success=True with station_codes for valid inputs
+      - success=False with error_message for invalid inputs
+    """
+    _load_data()
+    
+    if not user_input or not user_input.strip():
+        return StationResolutionResult(
+            success=False,
+            input_type="unknown",
+            station_codes=[],
+            display_name="",
+            error_message="Location cannot be empty"
+        )
+    
+    user_input = user_input.strip()
+    input_upper = user_input.upper()
+    
+    # ============================================================
+    # CASE 1: _ALL Token (e.g., MUMBAI_ALL, PUNE_ALL)
+    # ============================================================
+    if input_upper.endswith("_ALL"):
+        city_id = input_upper.replace("_ALL", "").lower()
+        
+        if city_id in _cities:
+            city = _cities[city_id]
+            return StationResolutionResult(
+                success=True,
+                input_type="city_all",
+                station_codes=city.station_codes,
+                display_name=f"{city.city_name} (All Stations)"
+            )
+        else:
+            return StationResolutionResult(
+                success=False,
+                input_type="unknown",
+                station_codes=[],
+                display_name="",
+                error_message=f"Unknown city: {city_id}. Use valid city_ALL token."
+            )
+    
+    # ============================================================
+    # CASE 2: Direct Station Code (e.g., CSMT, PUNE, NDLS)
+    # ============================================================
+    if input_upper in _stations:
+        station = _stations[input_upper]
+        return StationResolutionResult(
+            success=True,
+            input_type="station",
+            station_codes=[input_upper],
+            display_name=f"{station.station_name} ({input_upper})"
+        )
+    
+    # ============================================================
+    # CASE 3: Raw City Name (REJECT)
+    # ============================================================
+    input_lower = user_input.lower()
+    
+    # Check if input matches a city name
+    for city_id, city in _cities.items():
+        if input_lower == city.city_name.lower() or input_lower == city_id:
+            # This is a raw city name - REJECT IT
+            return StationResolutionResult(
+                success=False,
+                input_type="invalid_city",
+                station_codes=[],
+                display_name="",
+                error_message=f"City names are not allowed. Please select a station or '{city.city_name} (All Stations)' from the dropdown."
+            )
+    
+    # ============================================================
+    # CASE 4: Unknown Input
+    # ============================================================
+    return StationResolutionResult(
+        success=False,
+        input_type="unknown",
+        station_codes=[],
+        display_name="",
+        error_message=f"'{user_input}' is not a valid station code. Please select from the dropdown."
+    )
+
+
+def get_city_name_for_station(station_code: str) -> str:
+    """Get city name for a station code"""
+    _load_data()
+    
+    if station_code in _station_to_city:
+        city_id = _station_to_city[station_code]
+        if city_id in _cities:
+            return _cities[city_id].city_name
+    
+    if station_code in _stations:
+        return _stations[station_code].city
+    
+    return station_code
+
 
 # ============================================================
-# BOOKING PARTNERS - Priority Order (User Approved)
+# BOOKING PARTNERS
 # ============================================================
 TRAIN_BOOKING_PARTNERS = [
     {
@@ -104,264 +211,19 @@ CLASS_DISPLAY_NAMES = {
     "EC": "Executive Chair",
 }
 
-# ============================================================
-# DEFENSIVE INPUT RESOLUTION
-# ============================================================
-
-def validate_and_resolve_input(user_input: str) -> ResolutionResult:
-    """
-    Defensively resolve ANY user input to valid station codes.
-    
-    This is the SINGLE source of truth for input resolution.
-    Backend owns this - never trust frontend input.
-    
-    Handles:
-    - City names: "Pune", "Mumbai", "Delhi"
-    - Aliases: "Bombay", "Calcutta", "Madras", "Poona"
-    - Station codes: "CSMT", "PUNE", "NDLS"
-    - Station names: "Shivaji Nagar", "Anand Vihar"
-    
-    Returns:
-    - ResolutionResult with success=True and station_codes if valid
-    - ResolutionResult with success=False, error_message, and suggestions if invalid
-    """
-    _load_data()  # Ensure data is loaded
-    
-    if not user_input or not user_input.strip():
-        return ResolutionResult(
-            success=False,
-            input_type="unknown",
-            station_codes=[],
-            city_name=None,
-            city_id=None,
-            error_message="Location cannot be empty",
-            suggestions=[]
-        )
-    
-    user_input = user_input.strip()
-    input_lower = user_input.lower()
-    
-    # 1. Try resolution via rail_connectivity service
-    input_type, station_codes = resolve_to_station_codes(user_input)
-    
-    if input_type != "unknown" and station_codes:
-        # Successfully resolved - determine city name
-        city_name = None
-        city_id = None
-        
-        if input_type == "city":
-            # Find the city
-            for cid, city in _cities.items():
-                if input_lower == city.city_name.lower() or input_lower == cid:
-                    city_name = city.city_name
-                    city_id = cid
-                    break
-            
-            # Check aliases for city resolution
-            if not city_name and input_lower in _aliases:
-                alias_info = _aliases[input_lower]
-                if alias_info.get("resolves_to_city"):
-                    resolved_city_id = alias_info["resolves_to_city"]
-                    if resolved_city_id in _cities:
-                        city_name = _cities[resolved_city_id].city_name
-                        city_id = resolved_city_id
-        
-        elif input_type == "station":
-            # Single station - get its city
-            station_code = station_codes[0]
-            if station_code in _station_to_city:
-                city_id = _station_to_city[station_code]
-                if city_id in _cities:
-                    city_name = _cities[city_id].city_name
-            elif station_code in _stations:
-                city_name = _stations[station_code].city
-        
-        # Fallback city name derivation
-        if not city_name and station_codes:
-            first_station = station_codes[0]
-            if first_station in _stations:
-                city_name = _stations[first_station].city
-            else:
-                city_name = user_input.title()
-        
-        return ResolutionResult(
-            success=True,
-            input_type=input_type,
-            station_codes=station_codes,
-            city_name=city_name,
-            city_id=city_id
-        )
-    
-    # 2. Input not found - generate suggestions
-    suggestions = _generate_suggestions(user_input)
-    
-    return ResolutionResult(
-        success=False,
-        input_type="unknown",
-        station_codes=[],
-        city_name=None,
-        city_id=None,
-        error_message=f"'{user_input}' is not a recognized city, station, or alias",
-        suggestions=suggestions
-    )
-
-
-def _generate_suggestions(user_input: str) -> List[Dict[str, Any]]:
-    """Generate helpful suggestions for invalid input using fuzzy matching"""
-    _load_data()
-    
-    suggestions = []
-    input_lower = user_input.lower().strip()
-    
-    # First check search results but only keep high-quality matches (score > 50)
-    search_results = search_stations_cities(user_input, limit=10)
-    high_quality = [r for r in search_results if r.score > 50]
-    
-    for result in high_quality[:3]:
-        suggestions.append({
-            "type": result.result_type.value,
-            "display_name": result.display_name,
-            "subtitle": result.subtitle,
-            "station_codes": result.station_codes,
-        })
-    
-    # If not enough high-quality matches, use fuzzy city matching
-    if len(suggestions) < 3:
-        scored_cities = []
-        
-        for city_id, city in _cities.items():
-            city_lower = city.city_name.lower()
-            
-            # Calculate similarity score
-            score = 0
-            
-            # Exact prefix match (high priority) - e.g., "pun" matches "pune"
-            if city_lower.startswith(input_lower):
-                score += 100
-            elif input_lower.startswith(city_lower):
-                score += 80
-            
-            # First N characters match - handles typos like "punex" -> "pune"
-            match_len = min(len(input_lower), len(city_lower))
-            chars_match = 0
-            for i in range(match_len):
-                if i < len(input_lower) and i < len(city_lower) and input_lower[i] == city_lower[i]:
-                    chars_match += 1
-                else:
-                    break
-            
-            if chars_match >= 2:
-                score += chars_match * 15  # Higher weight for character match
-            
-            # Contains substring
-            if input_lower in city_lower or city_lower in input_lower:
-                score += 50
-            
-            # Character overlap (common characters)
-            common_chars = len(set(input_lower) & set(city_lower))
-            score += common_chars * 3
-            
-            # Boost by population rank (more popular cities first)
-            if city.is_metro:
-                score += 10
-            score -= city.population_rank // 5
-            
-            if score > 10:  # Only include meaningful matches
-                scored_cities.append((score, city))
-        
-        # Sort by score descending
-        scored_cities.sort(key=lambda x: x[0], reverse=True)
-        
-        # Add top cities that aren't already in suggestions
-        existing_display_names = {s["display_name"] for s in suggestions}
-        for score, city in scored_cities[:5]:
-            display_name = city.city_name
-            if display_name not in existing_display_names:
-                suggestions.append({
-                    "type": "city",
-                    "display_name": city.city_name,
-                    "subtitle": f"{city.state} • {len(city.station_codes)} stations",
-                    "station_codes": city.station_codes,
-                })
-                existing_display_names.add(display_name)
-            
-            if len(suggestions) >= 5:
-                break
-    
-    # If still no suggestions, show top metro cities
-    if not suggestions:
-        metro_cities = sorted(
-            [c for c in _cities.values() if c.is_metro],
-            key=lambda c: c.population_rank
-        )[:5]
-        for city in metro_cities:
-            suggestions.append({
-                "type": "city",
-                "display_name": city.city_name,
-                "subtitle": f"{city.state} • {len(city.station_codes)} stations",
-                "station_codes": city.station_codes,
-            })
-    
-    return suggestions[:5]
-
-
-def get_city_name_for_display(station_codes: List[str], resolved_city_name: Optional[str]) -> str:
-    """Get display-friendly city name from station codes"""
-    if resolved_city_name:
-        return resolved_city_name
-    
-    if not station_codes:
-        return "Unknown"
-    
-    _load_data()
-    
-    # Try to get city from first station
-    first_station = station_codes[0]
-    
-    if first_station in _station_to_city:
-        city_id = _station_to_city[first_station]
-        if city_id in _cities:
-            return _cities[city_id].city_name
-    
-    if first_station in _stations:
-        return _stations[first_station].city
-    
-    return first_station
-
-
-# ============================================================
-# LEGACY COMPATIBILITY (for existing code that uses these)
-# ============================================================
-
-def get_city_name(station_code: str) -> str:
-    """Get city name for a station code - uses new resolution system"""
-    _load_data()
-    
-    if station_code in _station_to_city:
-        city_id = _station_to_city[station_code]
-        if city_id in _cities:
-            return _cities[city_id].city_name
-    
-    if station_code in _stations:
-        return _stations[station_code].city
-    
-    return station_code
-
 
 def add_fare_variation(base_fare: int, train_type: str) -> int:
     """Add slight realistic variation to fares based on train type"""
-    # Base variation ±3%
     variation = random.uniform(-0.03, 0.03)
     
-    # Train type adjustments
     if train_type and "Rajdhani" in train_type:
-        variation += 0.05  # Premium trains cost more
+        variation += 0.05
     elif train_type and "Shatabdi" in train_type:
         variation += 0.07
     elif train_type and "Duronto" in train_type:
         variation += 0.04
     elif train_type and ("Passenger" in train_type or "Local" in train_type):
-        variation -= 0.05  # Slow trains cost less
+        variation -= 0.05
     
     return int(base_fare * (1 + variation))
 
@@ -371,29 +233,21 @@ def schedule_to_class_offers(
     departure_date: str,
     search_id: str,
 ) -> List[TrainOffer]:
-    """
-    VARIANT-LEVEL EXPANSION:
-    Convert ONE train schedule into MULTIPLE offers - one per class.
-    
-    Example: Mumbai Rajdhani with classes [SL, 3A, 2A, 1A] becomes 4 separate cards.
-    """
+    """Convert ONE train schedule into MULTIPLE offers - one per class."""
     offers = []
     
-    # Parse times
     dep_hour, dep_min = map(int, schedule.departure_time.split(":"))
     arr_hour, arr_min = map(int, schedule.arrival_time.split(":"))
     
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
     departure_dt = dep_date.replace(hour=dep_hour, minute=dep_min)
     
-    # Calculate arrival (may be next day)
     arrival_dt = dep_date.replace(hour=arr_hour, minute=arr_min)
     if schedule.duration_minutes > 0:
         arrival_dt = departure_dt + timedelta(minutes=schedule.duration_minutes)
     elif arrival_dt <= departure_dt:
         arrival_dt += timedelta(days=1)
     
-    # Build booking partner URLs
     booking_partners = []
     for partner in TRAIN_BOOKING_PARTNERS:
         booking_partners.append({
@@ -403,11 +257,8 @@ def schedule_to_class_offers(
             "is_official": partner.get("is_official", False),
         })
     
-    # CREATE ONE CARD PER CLASS
     for travel_class, base_fare in schedule.fares.items():
-        # Add variation so fares differ slightly
         fare_with_variation = add_fare_variation(base_fare, schedule.train_type)
-        
         class_display = CLASS_DISPLAY_NAMES.get(travel_class, travel_class)
         
         offer = TrainOffer(
@@ -415,33 +266,26 @@ def schedule_to_class_offers(
             mode=TransportMode.TRAIN,
             provider="indian_railways",
             
-            # Route
             from_station=schedule.departure_station,
-            from_city=get_city_name(schedule.departure_station),
-            from_station_name=f"{get_city_name(schedule.departure_station)} ({schedule.departure_station})",
+            from_city=get_city_name_for_station(schedule.departure_station),
+            from_station_name=f"{get_city_name_for_station(schedule.departure_station)} ({schedule.departure_station})",
             to_station=schedule.arrival_station,
-            to_city=get_city_name(schedule.arrival_station),
-            to_station_name=f"{get_city_name(schedule.arrival_station)} ({schedule.arrival_station})",
+            to_city=get_city_name_for_station(schedule.arrival_station),
+            to_station_name=f"{get_city_name_for_station(schedule.arrival_station)} ({schedule.arrival_station})",
             
-            # Timing
             departure_time=departure_dt,
             arrival_time=arrival_dt,
             duration_minutes=schedule.duration_minutes,
             
-            # Pricing - THIS CLASS ONLY
             avg_price=float(fare_with_variation),
             currency="INR",
             price_label=f"Avg Fare • {class_display}",
             price_disclaimer=f"Average {class_display} fare. Actual price depends on quota and availability.",
             
-            # Distance
             distance_km=float(schedule.distance_km),
-            
-            # Booking
             booking_partners=booking_partners,
             is_fallback=False,
             
-            # Train specific
             train_number=schedule.train_number,
             train_name=schedule.train_name,
             train_type=schedule.train_type,
@@ -450,7 +294,6 @@ def schedule_to_class_offers(
             stops_count=schedule.stops_count,
             intermediate_stops=schedule.intermediate_stops,
             
-            # THIS CARD IS FOR ONE CLASS ONLY
             available_classes=[{"class": travel_class, "avg_fare": fare_with_variation}],
             selected_class=travel_class,
             selected_class_display=class_display,
@@ -467,14 +310,11 @@ def create_fallback_offers(
     destination: str,
     departure_date: str,
     search_id: str,
+    origin_display: str,
+    dest_display: str,
     distance_km: Optional[int] = None,
-    origin_city_override: Optional[str] = None,
-    dest_city_override: Optional[str] = None,
 ) -> List[TrainOffer]:
-    """Create fallback redirect offers for unknown routes - one per common class"""
-    
-    origin_city = origin_city_override or get_city_name(origin)
-    dest_city = dest_city_override or get_city_name(destination)
+    """Create fallback redirect offers for routes not in database."""
     
     if not distance_km:
         distance_km = get_distance(origin, destination) or 500
@@ -492,7 +332,6 @@ def create_fallback_offers(
         for partner in TRAIN_BOOKING_PARTNERS
     ]
     
-    # Create one fallback card (single redirect, not multiple)
     estimated_sl = calculate_average_fare(distance_km, "SL")
     estimated_3a = calculate_average_fare(distance_km, "3A")
     estimated_2a = calculate_average_fare(distance_km, "2A")
@@ -503,11 +342,11 @@ def create_fallback_offers(
         provider="redirect",
         
         from_station=origin,
-        from_city=origin_city,
-        from_station_name=f"{origin_city} ({origin})",
+        from_city=origin_display,
+        from_station_name=origin_display,
         to_station=destination,
-        to_city=dest_city,
-        to_station_name=f"{dest_city} ({destination})",
+        to_city=dest_display,
+        to_station_name=dest_display,
         
         departure_time=dep_date.replace(hour=0, minute=0),
         arrival_time=dep_date.replace(hour=0, minute=0),
@@ -523,7 +362,7 @@ def create_fallback_offers(
         is_fallback=True,
         
         train_number="CHECK_IRCTC",
-        train_name=f"Trains from {origin_city} to {dest_city}",
+        train_name=f"Trains from {origin_display} to {dest_display}",
         train_type="Various",
         days_of_operation=[],
         frequency="Check booking partner",
@@ -542,61 +381,75 @@ def create_fallback_offers(
     return [fallback]
 
 
+# ============================================================
+# CUSTOM EXCEPTION
+# ============================================================
+
+class TrainSearchError(Exception):
+    """Custom exception for train search validation errors"""
+    def __init__(
+        self, 
+        error_type: str, 
+        message: str, 
+        invalid_input: str = None
+    ):
+        self.error_type = error_type
+        self.message = message
+        self.invalid_input = invalid_input
+        super().__init__(message)
+
+
+# ============================================================
+# MAIN SEARCH FUNCTION
+# ============================================================
+
 async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
     """
-    Search for trains between two locations.
+    Search for trains between two stations.
     
-    DEFENSIVE BACKEND:
-    - Resolves ANY input (city, alias, station code) to valid station codes
-    - Returns city-level abstraction, NOT raw station-pair explosions
-    - Gracefully handles invalid inputs with suggestions
-    
-    VARIANT-LEVEL RESULTS:
-    - Each train × each class = separate card
-    - If Mumbai Rajdhani has SL, 3A, 2A, 1A → returns 4 cards
+    🔴 STATION-FIRST CONTRACT:
+    - Only accepts station codes (CSMT, PUNE) or _ALL tokens (MUMBAI_ALL)
+    - Rejects raw city names (Mumbai, Pune)
+    - Frontend must enforce dropdown selection
     """
     search_id = str(uuid.uuid4())
     
     # ============================================================
-    # STEP 1: DEFENSIVE INPUT RESOLUTION (Backend-owned)
+    # STEP 1: STRICT INPUT VALIDATION
     # ============================================================
-    origin_result = validate_and_resolve_input(request.origin)
-    dest_result = validate_and_resolve_input(request.destination)
+    origin_result = resolve_station_input(request.origin)
+    dest_result = resolve_station_input(request.destination)
     
-    # Check for resolution failures
     if not origin_result.success:
         raise TrainSearchError(
             error_type="INVALID_ORIGIN",
             message=origin_result.error_message,
-            suggestions=origin_result.suggestions,
             invalid_input=request.origin
         )
     
     if not dest_result.success:
         raise TrainSearchError(
-            error_type="INVALID_DESTINATION", 
+            error_type="INVALID_DESTINATION",
             message=dest_result.error_message,
-            suggestions=dest_result.suggestions,
             invalid_input=request.destination
         )
     
-    # Get station codes (may be multiple for city inputs)
     origin_stations = origin_result.station_codes
     dest_stations = dest_result.station_codes
+    origin_display = origin_result.display_name
+    dest_display = dest_result.display_name
     
-    # Get display names (city-level)
-    origin_city_display = origin_result.city_name or get_city_name_for_display(origin_stations, None)
-    dest_city_display = dest_result.city_name or get_city_name_for_display(dest_stations, None)
-    
-    logger.info(f"🚆 Train search: {origin_city_display} ({origin_stations}) → {dest_city_display} ({dest_stations}) on {request.departure_date}")
+    logger.info(
+        f"🚆 Train search: {origin_display} ({origin_stations}) → "
+        f"{dest_display} ({dest_stations}) on {request.departure_date}"
+    )
     
     # ============================================================
-    # STEP 2: SEARCH ALL STATION PAIRS (City expansion)
+    # STEP 2: SEARCH ALL STATION PAIRS
     # ============================================================
     all_offers = []
     searched_pairs = set()
     
-    # Search all combinations of origin and destination stations
     for origin_code in origin_stations:
         for dest_code in dest_stations:
             if origin_code == dest_code:
@@ -607,12 +460,13 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
                 continue
             searched_pairs.add(pair_key)
             
-            # Try to find trains for this station pair
             schedules = get_trains_for_route(origin_code, dest_code)
             
             if schedules:
                 for schedule in schedules:
-                    class_offers = schedule_to_class_offers(schedule, request.departure_date, search_id)
+                    class_offers = schedule_to_class_offers(
+                        schedule, request.departure_date, search_id
+                    )
                     all_offers.extend(class_offers)
     
     # ============================================================
@@ -628,9 +482,8 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
         ]
     
     # ============================================================
-    # STEP 4: DEDUPLICATE AND SORT
+    # STEP 4: DEDUPLICATE
     # ============================================================
-    # Remove duplicate train+class combinations (same train serving multiple stations in same city)
     seen_train_class = set()
     unique_offers = []
     for offer in all_offers:
@@ -640,45 +493,41 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
             unique_offers.append(offer)
     
     all_offers = unique_offers
-    
-    # Sort by departure time, then by price
     all_offers.sort(key=lambda o: (o.departure_time, o.avg_price))
     
     # ============================================================
-    # STEP 5: BUILD RESPONSE (City-level abstraction)
+    # STEP 5: BUILD RESPONSE
     # ============================================================
-    # Calculate representative distance (from primary stations)
     primary_origin = origin_stations[0]
     primary_dest = dest_stations[0]
     distance = get_distance(primary_origin, primary_dest)
     
     if all_offers:
-        logger.info(f"✅ Found {len(all_offers)} train+class variants for {origin_city_display} → {dest_city_display}")
+        logger.info(f"✅ Found {len(all_offers)} train+class variants")
         
         return TrainSearchResponse(
             offers=all_offers,
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
-            origin_city=origin_city_display,
-            destination_city=dest_city_display,
+            origin_city=origin_display,
+            destination_city=dest_display,
             distance_km=float(distance) if distance else None,
             is_fallback=False,
             fallback_message=None,
         )
     
     else:
-        # No route data - return fallback with booking partner links
-        logger.info(f"⚠️ No route data for {origin_city_display} → {dest_city_display}, returning fallback")
+        logger.info(f"⚠️ No route data, returning fallback")
         
         fallback_offers = create_fallback_offers(
             origin=primary_origin,
             destination=primary_dest,
             departure_date=request.departure_date,
             search_id=search_id,
+            origin_display=origin_display,
+            dest_display=dest_display,
             distance_km=distance,
-            origin_city_override=origin_city_display,
-            dest_city_override=dest_city_display,
         )
         
         return TrainSearchResponse(
@@ -686,29 +535,9 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
-            origin_city=origin_city_display,
-            destination_city=dest_city_display,
+            origin_city=origin_display,
+            destination_city=dest_display,
             distance_km=float(distance) if distance else None,
             is_fallback=True,
-            fallback_message=f"We don't have detailed schedule data for {origin_city_display} to {dest_city_display}. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
+            fallback_message=f"Route not in database. Check booking partners for {origin_display} to {dest_display}.",
         )
-
-
-# ============================================================
-# CUSTOM EXCEPTION FOR SEARCH ERRORS
-# ============================================================
-
-class TrainSearchError(Exception):
-    """Custom exception for train search validation errors"""
-    def __init__(
-        self, 
-        error_type: str, 
-        message: str, 
-        suggestions: List[Dict[str, Any]] = None,
-        invalid_input: str = None
-    ):
-        self.error_type = error_type
-        self.message = message
-        self.suggestions = suggestions or []
-        self.invalid_input = invalid_input
-        super().__init__(message)
