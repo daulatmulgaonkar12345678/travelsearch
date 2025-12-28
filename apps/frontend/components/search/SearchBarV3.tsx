@@ -1054,10 +1054,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               if (trainOriginLocation?.city_id === trainDestinationLocation?.city_id) return 'Origin and destination cannot be the same'
             }
             if (searchType === 'buses') {
-              if (!busOriginValid && !busDestinationValid) return 'Select origin and destination cities'
-              if (!busOriginValid) return 'Select origin city from the list'
-              if (!busDestinationValid) return 'Select destination city from the list'
-              if (busOriginLocation?.city_id === busDestinationLocation?.city_id) return 'Origin and destination cannot be the same'
+              if (!busOriginValid && !busDestinationValid) return 'Select origin and destination from dropdown'
+              if (!busOriginValid) return 'Select origin city from dropdown'
+              if (!busDestinationValid) return 'Select destination city from dropdown'
+              if (busSamePlace) return 'Origin and destination cannot be the same'
             }
             if (searchType === 'flights') {
               if (!originValid || !destinationValid) return 'Select valid airports from the list'
