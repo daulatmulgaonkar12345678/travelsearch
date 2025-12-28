@@ -346,5 +346,6 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
         </div>
       </div>
     </div>
+    </>
   )
 }
