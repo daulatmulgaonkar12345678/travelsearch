@@ -187,6 +187,10 @@ app.include_router(bus_autocomplete.router, prefix="/api", tags=["bus-autocomple
 from app.routers import route_stops
 app.include_router(route_stops.router, prefix="/api", tags=["routes"])
 
+# Feeder Routes - Tourist Destination Connectivity
+from app.routers import feeder_routes
+app.include_router(feeder_routes.router, prefix="/api", tags=["feeder-routes"])
+
 # ============================================================
 # Local Run
 # ============================================================
