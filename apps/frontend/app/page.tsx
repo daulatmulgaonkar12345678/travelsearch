@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SearchBarV3 from '@/components/search/SearchBarV3'
 import Navigation from '@/components/layout/Navigation'
@@ -7,7 +8,7 @@ import Footer from '@/components/layout/Footer'
 import TrustStrip from '@/components/trust/TrustStrip'
 import RecentSearches from '@/components/features/RecentSearches'
 import { PopularFlightRoutes, PopularHotelDestinations, PopularTrainRoutes, PopularBusRoutes } from '@/components/seo/InternalLinks'
-import { Hotel, Shield, TrendingDown, Train, Bus, Plane } from 'lucide-react'
+import { Hotel, Shield, TrendingDown, Train, Bus, Plane, Loader2 } from 'lucide-react'
 
 type ServiceType = 'flights' | 'trains' | 'buses' | 'hotels'
 
