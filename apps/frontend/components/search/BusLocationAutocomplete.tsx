@@ -277,7 +277,7 @@ export default function BusLocationAutocomplete({
           onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-colors ${
+          className={`w-full pl-10 pr-10 py-3 border rounded-xl search-input-animated focus:ring-2 focus:border-transparent transition-colors ${
             isValid 
               ? 'border-orange-500 focus:ring-orange-500 bg-orange-50' 
               : 'border-gray-300 focus:ring-blue-500'
