@@ -480,17 +480,27 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleBusSearch = () => {
-    // Validate selections from dropdown
-    if (!busOriginLocation || !busDestinationLocation) {
+    /**
+     * STRICT VALIDATION - ID-Based Only
+     * 
+     * CRITICAL: We NEVER resolve from text.
+     * Both origin and destination MUST have been selected from dropdown.
+     * This prevents destination from being overwritten with origin.
+     */
+    
+    // Guard: Must have valid place selections
+    if (!busOriginPlace || !busDestinationPlace) {
       alert('Please select origin and destination from the dropdown')
       return
     }
     
-    if (busOriginLocation.city_id === busDestinationLocation.city_id) {
+    // Guard: Cannot be same place
+    if (busOriginPlace.place_id === busDestinationPlace.place_id) {
       alert('Origin and destination cannot be the same')
       return
     }
     
+    // Guard: Date validation
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const searchDate = new Date(busDate)
@@ -500,10 +510,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       return
     }
     
-    // Use city names for backend search
+    // Build search params using CITY NAMES from validated places
+    // The backend will normalize these, but we've validated they're different
     const params = new URLSearchParams({
-      origin: busOriginLocation.city,
-      destination: busDestinationLocation.city,
+      origin: busOriginPlace.name,
+      destination: busDestinationPlace.name,
       departure_date: busDate,
       passengers: busPassengers.toString(),
     })
