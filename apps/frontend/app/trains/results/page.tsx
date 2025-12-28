@@ -422,7 +422,7 @@ function TrainResultsContent() {
           </div>
         )}
         
-        {/* Sort Controls */}
+        {/* Sort Controls - Only for actual train results, not redirects */}
         {!loading && !error && results && !results.is_fallback && filteredOffers.length > 1 && (
           <div className="flex items-center gap-4 mb-6">
             <span className="text-sm text-gray-600">Sort by:</span>
