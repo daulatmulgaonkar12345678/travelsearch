@@ -1,742 +1,438 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Station-First Train Search Architecture
-Tests the new STATION-FIRST train search architecture for /api/search/trains and /api/trains/autocomplete endpoints.
+Backend API Testing for Train and Bus Search with Frontend Animations Support
+Testing the APIs mentioned in the review request to ensure they work correctly.
 """
 
-import asyncio
-import httpx
+import requests
 import json
-from datetime import datetime, timedelta, date
 import sys
-import os
+from datetime import datetime, date, timedelta
+from typing import Dict, Any, List
+import time
 
-# Backend URL - using production URL from frontend config
+# Backend URL Configuration
 BACKEND_URL = "https://stationapi.preview.emergentagent.com"
+API_BASE = f"{BACKEND_URL}/api"
 
-class StationFirstTrainSearchTester:
+class BackendTester:
     def __init__(self):
-        self.backend_url = BACKEND_URL
-        self.client = httpx.AsyncClient(timeout=60.0)
+        self.session = requests.Session()
+        self.session.headers.update({
+            'Content-Type': 'application/json',
+            'User-Agent': 'Backend-Tester/1.0'
+        })
         self.test_results = []
-        self.future_date = (date.today() + timedelta(days=10)).isoformat()
+        self.failed_tests = []
         
-    async def __aenter__(self):
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.client.aclose()
-    
-    def log_result(self, test_name: str, success: bool, details: str, response_data=None):
+    def log_test(self, test_name: str, success: bool, details: str = ""):
         """Log test result"""
-        result = {
-            "test": test_name,
-            "success": success,
-            "details": details,
-            "timestamp": datetime.now().isoformat(),
-            "response_data": response_data
-        }
-        self.test_results.append(result)
-        
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}: {details}")
+        print(f"{status}: {test_name}")
+        if details:
+            print(f"   Details: {details}")
         
-        if response_data and not success:
-            print(f"   Response: {json.dumps(response_data, indent=2)}")
-    
-    # ============================================================
-    # VALID INPUTS TESTS (Must return 200 with results)
-    # ============================================================
-    
-    async def test_valid_station_codes(self):
-        """Test 1.1: Station codes - GET /api/search/trains?origin=CSMT&destination=PUNE"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "CSMT",
-                    "destination": "PUNE", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Valid Station Codes", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check required fields
-            required_fields = ["status", "route", "offers"]
-            missing_fields = [field for field in required_fields if field not in data]
-            
-            if missing_fields:
-                self.log_result(
-                    "Valid Station Codes",
-                    False,
-                    f"Missing required fields: {missing_fields}",
-                    data
-                )
-                return False
-            
-            # Check status is success
-            if data.get("status") != "success":
-                self.log_result(
-                    "Valid Station Codes",
-                    False,
-                    f"Expected status='success', got {data.get('status')}",
-                    data
-                )
-                return False
-            
-            # Check route contains CSMT and PUNE
-            route = data.get("route", {})
-            origin_city = route.get("origin_city", "")
-            dest_city = route.get("destination_city", "")
-            
-            if "CSMT" not in origin_city and "Mumbai" not in origin_city:
-                self.log_result(
-                    "Valid Station Codes",
-                    False,
-                    f"Origin city should contain CSMT or Mumbai, got: {origin_city}",
-                    data
-                )
-                return False
-            
-            if "PUNE" not in dest_city and "Pune" not in dest_city:
-                self.log_result(
-                    "Valid Station Codes",
-                    False,
-                    f"Destination city should contain PUNE or Pune, got: {dest_city}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Valid Station Codes",
-                True,
-                f"Successfully returned results for CSMT→PUNE: {origin_city} → {dest_city}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Valid Station Codes", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_valid_city_all_single(self):
-        """Test 1.2: CITY_ALL token (single) - GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "MUMBAI_ALL",
-                    "destination": "PUNE", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Valid CITY_ALL Single", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check status is success
-            if data.get("status") != "success":
-                self.log_result(
-                    "Valid CITY_ALL Single",
-                    False,
-                    f"Expected status='success', got {data.get('status')}",
-                    data
-                )
-                return False
-            
-            # Check route.origin_city contains 'Mumbai (All Stations)'
-            route = data.get("route", {})
-            origin_city = route.get("origin_city", "")
-            
-            if "Mumbai" not in origin_city and "All Stations" not in origin_city:
-                self.log_result(
-                    "Valid CITY_ALL Single",
-                    False,
-                    f"Expected origin_city to contain 'Mumbai (All Stations)', got: {origin_city}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Valid CITY_ALL Single",
-                True,
-                f"Successfully returned results for MUMBAI_ALL→PUNE: {origin_city}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Valid CITY_ALL Single", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_valid_both_city_all(self):
-        """Test 1.3: Both CITY_ALL tokens - GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE_ALL"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "MUMBAI_ALL",
-                    "destination": "PUNE_ALL", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Valid Both CITY_ALL", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check status is success
-            if data.get("status") != "success":
-                self.log_result(
-                    "Valid Both CITY_ALL",
-                    False,
-                    f"Expected status='success', got {data.get('status')}",
-                    data
-                )
-                return False
-            
-            # Check both cities show '(All Stations)'
-            route = data.get("route", {})
-            origin_city = route.get("origin_city", "")
-            dest_city = route.get("destination_city", "")
-            
-            if "All Stations" not in origin_city:
-                self.log_result(
-                    "Valid Both CITY_ALL",
-                    False,
-                    f"Expected origin_city to contain '(All Stations)', got: {origin_city}",
-                    data
-                )
-                return False
-            
-            if "All Stations" not in dest_city:
-                self.log_result(
-                    "Valid Both CITY_ALL",
-                    False,
-                    f"Expected destination_city to contain '(All Stations)', got: {dest_city}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Valid Both CITY_ALL",
-                True,
-                f"Successfully returned results for MUMBAI_ALL→PUNE_ALL: {origin_city} → {dest_city}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Valid Both CITY_ALL", False, f"Exception: {str(e)}")
-            return False
-    
-    # ============================================================
-    # INVALID INPUTS TESTS (MUST return 400, NOT 500)
-    # ============================================================
-    
-    async def test_invalid_raw_city_name(self):
-        """Test 2.1: Raw city name (Mumbai) - MUST return 400 error"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "Mumbai",
-                    "destination": "Pune", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            # MUST return 400, NOT 500
-            if response.status_code != 400:
-                self.log_result(
-                    "Invalid Raw City Name", 
-                    False, 
-                    f"Expected 400 for raw city name, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check error structure
-            if "detail" not in data:
-                self.log_result(
-                    "Invalid Raw City Name",
-                    False,
-                    "Missing 'detail' in error response",
-                    data
-                )
-                return False
-            
-            detail = data.get("detail", {})
-            error_type = detail.get("error_type", "")
-            message = detail.get("message", "")
-            
-            # Check error_type is INVALID_ORIGIN
-            if error_type != "INVALID_ORIGIN":
-                self.log_result(
-                    "Invalid Raw City Name",
-                    False,
-                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
-                    data
-                )
-                return False
-            
-            # Check message contains "City names are not allowed"
-            if "City names are not allowed" not in message:
-                self.log_result(
-                    "Invalid Raw City Name",
-                    False,
-                    f"Expected message to contain 'City names are not allowed', got: {message}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Invalid Raw City Name",
-                True,
-                f"Correctly rejected raw city name with 400 error: {error_type}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Invalid Raw City Name", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_invalid_old_alias(self):
-        """Test 2.2: Old alias (Bombay) - MUST return 400 error"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "Bombay",
-                    "destination": "PUNE", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            # MUST return 400, NOT 500
-            if response.status_code != 400:
-                self.log_result(
-                    "Invalid Old Alias", 
-                    False, 
-                    f"Expected 400 for old alias, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            detail = data.get("detail", {})
-            error_type = detail.get("error_type", "")
-            
-            # Check error_type is INVALID_ORIGIN (aliases also rejected now)
-            if error_type != "INVALID_ORIGIN":
-                self.log_result(
-                    "Invalid Old Alias",
-                    False,
-                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Invalid Old Alias",
-                True,
-                f"Correctly rejected old alias with 400 error: {error_type}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Invalid Old Alias", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_invalid_unknown_input(self):
-        """Test 2.3: Unknown input - MUST return 400 error"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/search/trains",
-                params={
-                    "origin": "Xyzzy",
-                    "destination": "PUNE", 
-                    "departure_date": self.future_date
-                }
-            )
-            
-            # MUST return 400, NOT 500
-            if response.status_code != 400:
-                self.log_result(
-                    "Invalid Unknown Input", 
-                    False, 
-                    f"Expected 400 for unknown input, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            detail = data.get("detail", {})
-            error_type = detail.get("error_type", "")
-            message = detail.get("message", "")
-            
-            # Check error_type is INVALID_ORIGIN
-            if error_type != "INVALID_ORIGIN":
-                self.log_result(
-                    "Invalid Unknown Input",
-                    False,
-                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
-                    data
-                )
-                return False
-            
-            # Check message contains "not a valid station code"
-            if "not a valid station code" not in message:
-                self.log_result(
-                    "Invalid Unknown Input",
-                    False,
-                    f"Expected message to contain 'not a valid station code', got: {message}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Invalid Unknown Input",
-                True,
-                f"Correctly rejected unknown input with 400 error: {error_type}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Invalid Unknown Input", False, f"Exception: {str(e)}")
-            return False
-    
-    # ============================================================
-    # AUTOCOMPLETE ENDPOINT TESTS (Station-First Dropdown)
-    # ============================================================
-    
-    async def test_autocomplete_city_search(self):
-        """Test 3.1: City search - GET /api/trains/autocomplete?q=Mumbai"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/trains/autocomplete",
-                params={"q": "Mumbai"}
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Autocomplete City Search", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check response structure
-            if "results" not in data:
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    "Missing 'results' in response",
-                    data
-                )
-                return False
-            
-            results = data.get("results", [])
-            
-            if not results:
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    "No results returned for Mumbai search",
-                    data
-                )
-                return False
-            
-            # First result should have value='MUMBAI_ALL'
-            first_result = results[0]
-            
-            if first_result.get("value") != "MUMBAI_ALL":
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    f"Expected first result value='MUMBAI_ALL', got: {first_result.get('value')}",
-                    data
-                )
-                return False
-            
-            # Label should contain '(All Stations) ⭐'
-            label = first_result.get("label", "")
-            if "(All Stations)" not in label or "⭐" not in label:
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    f"Expected label to contain '(All Stations) ⭐', got: {label}",
-                    data
-                )
-                return False
-            
-            # Type should be 'city_all'
-            if first_result.get("type") != "city_all":
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    f"Expected type='city_all', got: {first_result.get('type')}",
-                    data
-                )
-                return False
-            
-            # Following results should be individual stations
-            station_results = [r for r in results[1:] if r.get("type") == "station"]
-            if not station_results:
-                self.log_result(
-                    "Autocomplete City Search",
-                    False,
-                    "No individual station results found after city_all option",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Autocomplete City Search",
-                True,
-                f"Correctly returned MUMBAI_ALL first with {len(station_results)} individual stations"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Autocomplete City Search", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_autocomplete_station_code_search(self):
-        """Test 3.2: Station code search - GET /api/trains/autocomplete?q=CSMT"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/trains/autocomplete",
-                params={"q": "CSMT"}
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Autocomplete Station Code Search", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            results = data.get("results", [])
-            
-            if not results:
-                self.log_result(
-                    "Autocomplete Station Code Search",
-                    False,
-                    "No results returned for CSMT search",
-                    data
-                )
-                return False
-            
-            # First result should have value='CSMT'
-            first_result = results[0]
-            
-            if first_result.get("value") != "CSMT":
-                self.log_result(
-                    "Autocomplete Station Code Search",
-                    False,
-                    f"Expected first result value='CSMT', got: {first_result.get('value')}",
-                    data
-                )
-                return False
-            
-            # Type should be 'station'
-            if first_result.get("type") != "station":
-                self.log_result(
-                    "Autocomplete Station Code Search",
-                    False,
-                    f"Expected type='station', got: {first_result.get('type')}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Autocomplete Station Code Search",
-                True,
-                f"Correctly returned CSMT station result: {first_result.get('label')}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Autocomplete Station Code Search", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_autocomplete_pune_city_search(self):
-        """Test 3.3: City search (Pune) - GET /api/trains/autocomplete?q=Pune"""
-        try:
-            response = await self.client.get(
-                f"{self.backend_url}/api/trains/autocomplete",
-                params={"q": "Pune"}
-            )
-            
-            if response.status_code != 200:
-                self.log_result(
-                    "Autocomplete Pune City Search", 
-                    False, 
-                    f"Expected 200, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            results = data.get("results", [])
-            
-            if not results:
-                self.log_result(
-                    "Autocomplete Pune City Search",
-                    False,
-                    "No results returned for Pune search",
-                    data
-                )
-                return False
-            
-            # First result should have value='PUNE_ALL'
-            first_result = results[0]
-            
-            if first_result.get("value") != "PUNE_ALL":
-                self.log_result(
-                    "Autocomplete Pune City Search",
-                    False,
-                    f"Expected first result value='PUNE_ALL', got: {first_result.get('value')}",
-                    data
-                )
-                return False
-            
-            # Label should contain '(All Stations) ⭐'
-            label = first_result.get("label", "")
-            if "(All Stations)" not in label or "⭐" not in label:
-                self.log_result(
-                    "Autocomplete Pune City Search",
-                    False,
-                    f"Expected label to contain '(All Stations) ⭐', got: {label}",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Autocomplete Pune City Search",
-                True,
-                f"Correctly returned PUNE_ALL first: {label}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Autocomplete Pune City Search", False, f"Exception: {str(e)}")
-            return False
-    
-    async def run_all_tests(self):
-        """Run all station-first train search tests"""
-        print("🚀 Starting Station-First Train Search Architecture Tests")
-        print(f"Backend URL: {self.backend_url}")
-        print(f"Future date for testing: {self.future_date}")
-        print("=" * 80)
+        self.test_results.append({
+            'test': test_name,
+            'success': success,
+            'details': details
+        })
         
-        # Run all tests in order
-        tests = [
-            # Valid inputs (Must return 200 with results)
-            self.test_valid_station_codes,
-            self.test_valid_city_all_single,
-            self.test_valid_both_city_all,
+        if not success:
+            self.failed_tests.append(test_name)
+    
+    def test_train_search_api(self):
+        """Test Train Search API with specific parameters from review request"""
+        print("\n🚆 TESTING TRAIN SEARCH API")
+        print("=" * 50)
+        
+        # Test Case 1: Valid station codes (PUNE to CSMT)
+        test_url = f"{API_BASE}/search/trains"
+        params = {
+            'origin': 'PUNE',
+            'destination': 'CSMT', 
+            'departure_date': '2026-02-15',
+            'passengers': 1
+        }
+        
+        try:
+            response = self.session.get(test_url, params=params, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
             
-            # Invalid inputs (MUST return 400, NOT 500)
-            self.test_invalid_raw_city_name,
-            self.test_invalid_old_alias,
-            self.test_invalid_unknown_input,
-            
-            # Autocomplete endpoint (Station-First Dropdown)
-            self.test_autocomplete_city_search,
-            self.test_autocomplete_station_code_search,
-            self.test_autocomplete_pune_city_search,
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['offers', 'route']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("Train Search - Response Structure", False, 
+                                f"Missing fields: {missing_fields}")
+                else:
+                    # Check route object
+                    route = data.get('route', {})
+                    has_route_fields = all(field in route for field in 
+                                         ['origin_city', 'destination_city', 'distance_km'])
+                    
+                    # Check offers structure
+                    offers = data.get('offers', [])
+                    offers_valid = True
+                    if offers:
+                        first_offer = offers[0]
+                        required_offer_fields = ['booking_partners']
+                        offers_valid = all(field in first_offer for field in required_offer_fields)
+                        
+                        # Check booking partners
+                        if 'booking_partners' in first_offer:
+                            partners = first_offer['booking_partners']
+                            if isinstance(partners, list) and len(partners) > 0:
+                                partner = partners[0]
+                                partner_valid = all(field in partner for field in ['name', 'url', 'priority'])
+                            else:
+                                partner_valid = False
+                        else:
+                            partner_valid = False
+                    
+                    # Check is_fallback field
+                    has_fallback = 'is_fallback' in data
+                    
+                    if has_route_fields and offers_valid and partner_valid and has_fallback:
+                        self.log_test("Train Search PUNE→CSMT", True, 
+                                    f"Found {len(offers)} offers, route distance: {route.get('distance_km')}km")
+                    else:
+                        issues = []
+                        if not has_route_fields: issues.append("route fields missing")
+                        if not offers_valid: issues.append("offers structure invalid")
+                        if not partner_valid: issues.append("booking partners invalid")
+                        if not has_fallback: issues.append("is_fallback missing")
+                        self.log_test("Train Search PUNE→CSMT", False, f"Issues: {', '.join(issues)}")
+            else:
+                self.log_test("Train Search PUNE→CSMT", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Train Search PUNE→CSMT", False, f"Exception: {str(e)}")
+        
+        # Test Case 2: Test with other valid station codes
+        test_cases = [
+            ('NDLS', 'BCT', 'New Delhi to Mumbai Central'),
+            ('CSMT', 'PUNE', 'Mumbai to Pune (reverse)')
         ]
         
-        results = []
-        for test in tests:
+        for origin, dest, description in test_cases:
             try:
-                result = await test()
-                results.append(result)
+                params = {
+                    'origin': origin,
+                    'destination': dest,
+                    'departure_date': '2026-02-15',
+                    'passengers': 1
+                }
+                response = self.session.get(test_url, params=params, timeout=30)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    offers = data.get('offers', [])
+                    route = data.get('route', {})
+                    self.log_test(f"Train Search {description}", True, 
+                                f"Found {len(offers)} offers")
+                else:
+                    self.log_test(f"Train Search {description}", False, 
+                                f"HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ Test {test.__name__} crashed: {str(e)}")
-                results.append(False)
+                self.log_test(f"Train Search {description}", False, f"Exception: {str(e)}")
+    
+    def test_train_autocomplete_api(self):
+        """Test Train Autocomplete API for CITY_ALL tokens"""
+        print("\n🔍 TESTING TRAIN AUTOCOMPLETE API")
+        print("=" * 50)
         
-        # Summary
-        print("\n" + "=" * 80)
-        print("📊 STATION-FIRST TRAIN SEARCH TEST SUMMARY")
-        print("=" * 80)
+        test_url = f"{API_BASE}/trains/autocomplete"
         
-        passed = sum(results)
-        total = len(results)
+        # Test Case 1: Search for "mumbai" should return MUMBAI_ALL
+        try:
+            params = {'q': 'mumbai'}
+            response = self.session.get(test_url, params=params, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                
+                # Look for MUMBAI_ALL token
+                mumbai_all_found = False
+                city_all_first = False
+                
+                if results:
+                    first_result = results[0]
+                    if first_result.get('value') == 'MUMBAI_ALL' and first_result.get('type') == 'city_all':
+                        mumbai_all_found = True
+                        city_all_first = True
+                        if '⭐' in first_result.get('label', ''):
+                            star_found = True
+                        else:
+                            star_found = False
+                    
+                    # Check if any result has MUMBAI_ALL
+                    for result in results:
+                        if result.get('value') == 'MUMBAI_ALL':
+                            mumbai_all_found = True
+                            break
+                
+                if mumbai_all_found and city_all_first:
+                    self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", True, 
+                                f"Found MUMBAI_ALL as first result with {len(results)} total results")
+                else:
+                    issues = []
+                    if not mumbai_all_found: issues.append("MUMBAI_ALL not found")
+                    if not city_all_first: issues.append("MUMBAI_ALL not first")
+                    self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, 
+                                f"Issues: {', '.join(issues)}")
+            else:
+                self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, f"Exception: {str(e)}")
         
-        # Group results by category
-        valid_tests = self.test_results[:3]
-        invalid_tests = self.test_results[3:6]
-        autocomplete_tests = self.test_results[6:]
+        # Test Case 2: Search for specific station code
+        try:
+            params = {'q': 'CSMT'}
+            response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                
+                # Look for exact CSMT match
+                csmt_found = False
+                if results:
+                    for result in results:
+                        if result.get('value') == 'CSMT' and result.get('type') == 'station':
+                            csmt_found = True
+                            break
+                
+                if csmt_found:
+                    self.log_test("Train Autocomplete CSMT Station", True, 
+                                f"Found CSMT station in {len(results)} results")
+                else:
+                    self.log_test("Train Autocomplete CSMT Station", False, 
+                                "CSMT station not found in results")
+            else:
+                self.log_test("Train Autocomplete CSMT Station", False, 
+                            f"HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Train Autocomplete CSMT Station", False, f"Exception: {str(e)}")
+    
+    def test_bus_search_api(self):
+        """Test Bus Search API with specific parameters"""
+        print("\n🚌 TESTING BUS SEARCH API")
+        print("=" * 50)
         
-        print("\n🟢 VALID INPUTS TESTS (Must return 200 with results):")
-        for result in valid_tests:
-            status = "✅" if result["success"] else "❌"
-            print(f"  {status} {result['test']}: {result['details']}")
+        test_url = f"{API_BASE}/search/buses"
+        params = {
+            'origin': 'Pune',
+            'destination': 'Mumbai',
+            'departure_date': '2026-02-15',
+            'passengers': 1
+        }
         
-        print("\n🔴 INVALID INPUTS TESTS (MUST return 400, NOT 500):")
-        for result in invalid_tests:
-            status = "✅" if result["success"] else "❌"
-            print(f"  {status} {result['test']}: {result['details']}")
+        try:
+            response = self.session.get(test_url, params=params, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['offers', 'origin_city', 'destination_city', 'distance_km']
+                
+                # Check if we have route object or direct fields
+                if 'route' in data:
+                    route = data['route']
+                    has_route_fields = all(field in route for field in 
+                                         ['origin_city', 'destination_city', 'distance_km'])
+                else:
+                    has_route_fields = all(field in data for field in required_fields)
+                
+                # Check offers structure
+                offers = data.get('offers', [])
+                offers_valid = True
+                booking_partners_valid = True
+                
+                if offers:
+                    first_offer = offers[0]
+                    required_offer_fields = ['booking_partners']
+                    offers_valid = all(field in first_offer for field in required_offer_fields)
+                    
+                    # Check booking partners (should include redBus, AbhiBus, etc.)
+                    if 'booking_partners' in first_offer:
+                        partners = first_offer['booking_partners']
+                        if isinstance(partners, list) and len(partners) > 0:
+                            partner_names = [p.get('name', '') for p in partners]
+                            expected_partners = ['redBus', 'AbhiBus', 'Paytm']
+                            has_expected = any(expected in str(partner_names) for expected in expected_partners)
+                            booking_partners_valid = has_expected
+                        else:
+                            booking_partners_valid = False
+                    else:
+                        booking_partners_valid = False
+                
+                if has_route_fields and offers_valid and booking_partners_valid:
+                    self.log_test("Bus Search Pune→Mumbai", True, 
+                                f"Found {len(offers)} offers with valid booking partners")
+                else:
+                    issues = []
+                    if not has_route_fields: issues.append("route fields missing")
+                    if not offers_valid: issues.append("offers structure invalid")
+                    if not booking_partners_valid: issues.append("booking partners invalid")
+                    self.log_test("Bus Search Pune→Mumbai", False, f"Issues: {', '.join(issues)}")
+            else:
+                self.log_test("Bus Search Pune→Mumbai", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Bus Search Pune→Mumbai", False, f"Exception: {str(e)}")
+    
+    def test_error_handling(self):
+        """Test error handling for invalid dates and missing parameters"""
+        print("\n⚠️  TESTING ERROR HANDLING")
+        print("=" * 50)
         
-        print("\n🔍 AUTOCOMPLETE ENDPOINT TESTS (Station-First Dropdown):")
-        for result in autocomplete_tests:
-            status = "✅" if result["success"] else "❌"
-            print(f"  {status} {result['test']}: {result['details']}")
+        # Test Case 1: Past date for train search
+        try:
+            test_url = f"{API_BASE}/search/trains"
+            past_date = (date.today() - timedelta(days=1)).isoformat()
+            params = {
+                'origin': 'PUNE',
+                'destination': 'CSMT',
+                'departure_date': past_date,
+                'passengers': 1
+            }
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 400:
+                data = response.json()
+                if 'error_type' in data and 'DATE_IN_PAST' in str(data.get('error_type')):
+                    self.log_test("Train Search Past Date Error", True, 
+                                "Correctly rejected past date with 400 error")
+                else:
+                    self.log_test("Train Search Past Date Error", False, 
+                                f"Wrong error format: {data}")
+            else:
+                self.log_test("Train Search Past Date Error", False, 
+                            f"Expected 400, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Train Search Past Date Error", False, f"Exception: {str(e)}")
         
-        print(f"\n🎯 Results: {passed}/{total} tests passed")
+        # Test Case 2: Missing parameters for train search
+        try:
+            test_url = f"{API_BASE}/search/trains"
+            params = {
+                'origin': 'PUNE',
+                # Missing destination and departure_date
+                'passengers': 1
+            }
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 422:  # FastAPI validation error
+                self.log_test("Train Search Missing Params", True, 
+                            "Correctly rejected missing parameters with 422 error")
+            else:
+                self.log_test("Train Search Missing Params", False, 
+                            f"Expected 422, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Train Search Missing Params", False, f"Exception: {str(e)}")
         
-        if passed == total:
-            print("🎉 All Station-First Train Search tests passed!")
-            print("📝 Station codes (CSMT, PUNE) working correctly")
-            print("📝 CITY_ALL tokens (MUMBAI_ALL, PUNE_ALL) working correctly")
-            print("📝 Raw city names properly rejected with 400 errors")
-            print("📝 Autocomplete returns station-first dropdown format")
-            print("📝 NO 500 errors for any input - architecture is robust")
+        # Test Case 3: Past date for bus search
+        try:
+            test_url = f"{API_BASE}/search/buses"
+            past_date = (date.today() - timedelta(days=1)).isoformat()
+            params = {
+                'origin': 'Pune',
+                'destination': 'Mumbai',
+                'departure_date': past_date,
+                'passengers': 1
+            }
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 400:
+                self.log_test("Bus Search Past Date Error", True, 
+                            "Correctly rejected past date with 400 error")
+            else:
+                self.log_test("Bus Search Past Date Error", False, 
+                            f"Expected 400, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Bus Search Past Date Error", False, f"Exception: {str(e)}")
+        
+        # Test Case 4: Missing parameters for bus search
+        try:
+            test_url = f"{API_BASE}/search/buses"
+            params = {
+                'origin': 'Pune',
+                # Missing destination and departure_date
+                'passengers': 1
+            }
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 422:  # FastAPI validation error
+                self.log_test("Bus Search Missing Params", True, 
+                            "Correctly rejected missing parameters with 422 error")
+            else:
+                self.log_test("Bus Search Missing Params", False, 
+                            f"Expected 422, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Bus Search Missing Params", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all backend tests"""
+        print("🧪 BACKEND API TESTING STARTED")
+        print("=" * 60)
+        print(f"Backend URL: {BACKEND_URL}")
+        print(f"API Base: {API_BASE}")
+        print("=" * 60)
+        
+        # Run all test suites
+        self.test_train_search_api()
+        self.test_train_autocomplete_api()
+        self.test_bus_search_api()
+        self.test_error_handling()
+        
+        # Print summary
+        print("\n📊 TEST SUMMARY")
+        print("=" * 50)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([t for t in self.test_results if t['success']])
+        failed_tests = len(self.failed_tests)
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if self.failed_tests:
+            print(f"\n❌ FAILED TESTS:")
+            for test in self.failed_tests:
+                print(f"   - {test}")
         else:
-            print("⚠️  Some tests failed. Check the details above.")
-            failed_tests = [r for r in self.test_results if not r["success"]]
-            print(f"❌ Failed tests: {[t['test'] for t in failed_tests]}")
+            print(f"\n✅ ALL TESTS PASSED!")
         
-        return passed == total
-
-async def main():
-    """Main test runner"""
-    async with StationFirstTrainSearchTester() as tester:
-        success = await tester.run_all_tests()
-        sys.exit(0 if success else 1)
+        return failed_tests == 0
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    tester = BackendTester()
+    success = tester.run_all_tests()
+    sys.exit(0 if success else 1)
