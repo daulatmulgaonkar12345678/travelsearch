@@ -30,6 +30,29 @@ run_ui: true
     - "Test GET /api/search/buses?origin=Satara&destination=Karad - should NOT return 'same origin/destination' error"
     - "Verify Satara and Karad have distinct IDs to prevent frontend destination overwrite"
 
+## Current Focus: Feeder Routes for Tourist Destinations
+
+- task: "Feeder Routes API - Tourist Destination Connectivity"
+  implemented: true
+  working: true
+  file: "/app/apps/backend/app/routers/feeder_routes.py, /app/apps/backend/app/services/feeder_resolver.py, /app/apps/backend/app/data/places/states/MH/feeder_links.json"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL FEEDER ROUTES TESTS PASSED (11/11): Complete validation of tourist destination connectivity feature. 1) Pune → Mahabaleshwar: ✅ Connected via FEEDER route, destination type HILL_STATION with 2 segments (highway + feeder), 2) Mumbai → Ganpatipule: ✅ Connected via FEEDER with HIGHWAY + FEEDER segments, destination type RELIGIOUS (coastal temple), 3) Aurangabad → Ajanta: ✅ Connected via DIRECT_FEEDER, destination type HERITAGE (UNESCO site), frequency 'Frequent' (HIGH), 4) Nashik → Trimbakeshwar: ✅ Connected via DIRECT_FEEDER, destination type RELIGIOUS, 5) Mumbai → Nashik: ✅ Regular city-to-city HIGHWAY_DIRECT route with no destination_info (not tourist destination), 6) Remote Village: ✅ Correctly returns connected=false, route_type=NO_ROUTE for invalid destinations, 7) List Destinations: ✅ Retrieved 20 total destinations with correct structure (id, name_en, type, district_id), 8) Filter Hill Stations: ✅ Retrieved 5 hill stations (Mahabaleshwar, Panchgani, Lonavala, Khandala, Matheran) with type=HILL_STATION, 9) Mahabaleshwar Info: ✅ Retrieved destination details with 2 connections (Pune, Mumbai) and reachable_from data, 10) Check Shirdi Tourist: ✅ Correctly identified as tourist destination with type=RELIGIOUS, 11) Autocomplete Integration: ✅ 'mahab' query returns tourist destination with 🏔️ emoji and type=tourist_destination. All API endpoints functional: GET /api/routes/find, GET /api/routes/destinations, GET /api/routes/destination/{id}, GET /api/routes/check-tourist, GET /api/autocomplete/bus integration. Tourist destination connectivity system is production-ready."
+  test_requirements:
+    - "Test GET /api/routes/find?from_city=pune&to_city=mahabaleshwar - should return FEEDER route with HILL_STATION destination"
+    - "Test GET /api/routes/find?from_city=mumbai&to_city=ganpatipule - should return HIGHWAY + FEEDER segments for RELIGIOUS destination"
+    - "Test GET /api/routes/find?from_city=aurangabad&to_city=ajanta - should return DIRECT_FEEDER with HERITAGE type and HIGH frequency"
+    - "Test GET /api/routes/destinations - should return 20 total destinations with proper structure"
+    - "Test GET /api/routes/destinations?type=HILL_STATION - should return 5 hill stations"
+    - "Test GET /api/routes/destination/mahabaleshwar - should return destination info with reachable_from cities"
+    - "Test GET /api/routes/check-tourist?name=shirdi - should return is_tourist_destination=true with RELIGIOUS type"
+    - "Test GET /api/autocomplete/bus?q=mahab - should return tourist destination with 🏔️ emoji"
+
 ## Current Focus: Likely Stops on Route Feature
 
 - task: "Likely Stops on Route - Enhanced Corridor Detection"
