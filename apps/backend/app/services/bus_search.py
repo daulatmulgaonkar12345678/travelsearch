@@ -29,35 +29,16 @@ from app.data.bus_routes import (
     BusRoute,
     BUS_ROUTES,
 )
+from app.utils.deep_links import generate_booking_partners
 
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# BOOKING PARTNERS - Priority Order (User Approved)
+# BOOKING PARTNERS - Now uses centralized deep_links.py
 # ============================================================
-BUS_BOOKING_PARTNERS = [
-    {
-        "name": "redBus",
-        "priority": 1,
-        "url_template": "https://www.redbus.in/bus-tickets/{origin}-to-{destination}",
-        "description": "India's largest bus booking platform",
-        "is_official": False,
-    },
-    {
-        "name": "AbhiBus",
-        "priority": 2,
-        "url_template": "https://www.abhibus.com/bus-tickets/{origin}-to-{destination}",
-        "description": "Wide operator coverage",
-        "is_official": False,
-    },
-    {
-        "name": "Paytm Bus",
-        "priority": 3,
-        "url_template": "https://paytm.com/bus-tickets/{origin}-to-{destination}",
-        "description": "Cashback & easy booking",
-        "is_official": False,
-    },
-]
+# Note: BUS_BOOKING_PARTNERS constant removed in favor of
+# generate_booking_partners() from app.utils.deep_links
+# This ensures proper slug normalization and alias resolution
 
 # ============================================================
 # BUS TYPE CONFIGURATIONS
@@ -246,22 +227,12 @@ def route_to_type_offers(
     first_dep_hour, first_dep_min = map(int, route.first_departure.split(":"))
     base_departure = dep_date.replace(hour=first_dep_hour, minute=first_dep_min)
     
-    # Build booking partner URLs
-    origin_slug = route.origin_city.lower().replace(" ", "-")
-    dest_slug = route.destination_city.lower().replace(" ", "-")
-    
-    booking_partners = []
-    for partner in BUS_BOOKING_PARTNERS:
-        url = partner["url_template"].format(
-            origin=origin_slug,
-            destination=dest_slug,
-        )
-        booking_partners.append({
-            "name": partner["name"],
-            "url": url,
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-        })
+    # Build booking partner URLs using centralized deep link generator
+    # This ensures proper slug normalization and no undefined values
+    booking_partners = generate_booking_partners(
+        route.origin_city,
+        route.destination_city
+    )
     
     # CREATE ONE CARD PER BUS TYPE
     for bus_type_key, base_fare in route.fares.items():
@@ -353,23 +324,9 @@ def create_fallback_offers(
     
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
     
-    # Build booking partner URLs
-    origin_slug = origin_city.lower().replace(" ", "-")
-    dest_slug = dest_city.lower().replace(" ", "-")
-    
-    booking_partners = []
-    for partner in BUS_BOOKING_PARTNERS:
-        url = partner["url_template"].format(
-            origin=origin_slug,
-            destination=dest_slug,
-        )
-        booking_partners.append({
-            "name": partner["name"],
-            "url": url,
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-            "description": partner["description"],
-        })
+    # Build booking partner URLs using centralized deep link generator
+    # This ensures proper slug normalization and no undefined values
+    booking_partners = generate_booking_partners(origin_city, dest_city)
     
     # Estimated fares for display
     estimated_ordinary = calculate_average_fare(distance_km, "ordinary")
