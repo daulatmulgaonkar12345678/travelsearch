@@ -1,12 +1,9 @@
-"""Train Search API Router
+"""Train Search API Router - STATION-FIRST ARCHITECTURE
 
-Endpoints for searching train routes in India.
-Uses static data from Indian Railways public timetable.
-
-ARCHITECTURE PRINCIPLE:
-- Frontend is dumb, backend is smart
-- All input resolution (city names, aliases, station codes) happens here
-- Invalid inputs return structured errors with suggestions, not 500s
+🔴 CONTRACT (NON-NEGOTIABLE):
+- Only accepts station codes (CSMT, PUNE) or _ALL tokens (MUMBAI_ALL)
+- Rejects raw city names with explicit error
+- Frontend MUST enforce dropdown selection
 """
 
 from fastapi import APIRouter, Query, HTTPException
