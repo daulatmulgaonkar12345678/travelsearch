@@ -108,16 +108,23 @@ export default function BusLocationAutocomplete({
         const data = await response.json()
         
         // Convert API response to BusPlace format
-        const busPlaces: BusPlace[] = data.results.map((r: any) => ({
-          place_id: r.id,              // THIS IS THE KEY - place_id from backend
-          name: r.city || r.label.split(',')[0],
-          name_local: r.city_local || '',
-          type: r.type === 'bus_stop' ? 'STOP' : 'CITY',
-          district: r.city,
-          state: r.state || 'Maharashtra',
-          operator: r.operator || undefined,
-          is_depot: r.is_search_surface || false,
-        }))
+        const busPlaces: BusPlace[] = data.results.map((r: any) => {
+          // Extract name from label or use city
+          // The label format is: "कराड बस स्थानक" (Marathi name) or "Karad Bus Stand"
+          const stopNameLocal = r.label || ''
+          const stopNameEn = r.name_en || r.label?.split(' ')[0] || r.city
+          
+          return {
+            place_id: r.id,              // THIS IS THE KEY - place_id from backend
+            name: stopNameEn,            // Use stop name, not just city
+            name_local: stopNameLocal,   // Marathi name
+            type: r.type === 'bus_stop' ? 'STOP' : 'CITY',
+            district: r.city,            // District/parent city
+            state: r.state || 'Maharashtra',
+            operator: r.operator || undefined,
+            is_depot: r.is_search_surface || false,
+          }
+        })
         
         // Filter out the "other" place if it's already selected
         // This prevents selecting same city for both origin AND destination
