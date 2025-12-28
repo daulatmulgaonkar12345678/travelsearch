@@ -25,15 +25,21 @@ router = APIRouter(tags=["trains"])
 
 @router.get("/search/trains")
 async def search_trains_endpoint(
-    origin: str = Query(..., description="Origin station code or city name"),
-    destination: str = Query(..., description="Destination station code or city name"),
+    origin: str = Query(..., description="Origin station code, city name, or alias (e.g., 'Pune', 'Bombay', 'CSMT')"),
+    destination: str = Query(..., description="Destination station code, city name, or alias"),
     departure_date: str = Query(..., description="Departure date (YYYY-MM-DD)"),
     train_class: Optional[str] = Query(None, description="Preferred class: SL, 3A, 2A, 1A, CC"),
     train_type: Optional[str] = Query(None, description="Train type: Rajdhani, Shatabdi, Express"),
     passengers: int = Query(1, ge=1, le=6, description="Number of passengers"),
 ) -> Dict[str, Any]:
     """
-    Search for trains between two stations.
+    Search for trains between two locations.
+    
+    DEFENSIVE BACKEND:
+    - Accepts ANY input: city names, aliases (Bombay, Calcutta), or station codes
+    - Internally resolves to station codes and expands cities to all their stations
+    - Returns city-level abstraction, not raw station-pair explosions
+    - Invalid inputs return structured error with suggestions (never 500)
     
     IMPORTANT:
     - All prices shown are AVERAGE/ESTIMATED fares
@@ -43,27 +49,67 @@ async def search_trains_endpoint(
     
     Returns:
         Train offers with average fares and booking partner links
+        OR structured error with suggestions for invalid inputs
     """
     
     try:
-        # Validate date
+        # ============================================================
+        # VALIDATE DATE (Basic validation before expensive operations)
+        # ============================================================
         try:
             dep_date = datetime.strptime(departure_date, "%Y-%m-%d").date()
         except ValueError:
-            raise HTTPException(400, "Invalid date format. Use YYYY-MM-DD")
+            raise HTTPException(
+                status_code=400, 
+                detail={
+                    "error_type": "INVALID_DATE_FORMAT",
+                    "message": "Invalid date format. Use YYYY-MM-DD",
+                    "invalid_input": departure_date,
+                    "suggestions": []
+                }
+            )
         
         today = date.today()
         if dep_date < today:
-            raise HTTPException(400, "Departure date cannot be in the past")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error_type": "DATE_IN_PAST",
+                    "message": "Departure date cannot be in the past",
+                    "invalid_input": departure_date,
+                    "suggestions": [{"display_name": today.isoformat(), "subtitle": "Today"}]
+                }
+            )
         
         if dep_date > today + timedelta(days=120):
-            raise HTTPException(400, "Can only search up to 120 days in advance")
+            max_date = (today + timedelta(days=120)).isoformat()
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error_type": "DATE_TOO_FAR",
+                    "message": "Can only search up to 120 days in advance",
+                    "invalid_input": departure_date,
+                    "suggestions": [{"display_name": max_date, "subtitle": "Maximum date"}]
+                }
+            )
         
-        # Validate origin != destination
-        if origin.lower() == destination.lower():
-            raise HTTPException(400, "Origin and destination must be different")
+        # ============================================================
+        # VALIDATE ORIGIN != DESTINATION
+        # ============================================================
+        if origin.lower().strip() == destination.lower().strip():
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error_type": "SAME_ORIGIN_DESTINATION",
+                    "message": "Origin and destination must be different",
+                    "invalid_input": f"{origin} → {destination}",
+                    "suggestions": []
+                }
+            )
         
-        # Create search request
+        # ============================================================
+        # CREATE SEARCH REQUEST AND EXECUTE
+        # ============================================================
         request = TrainSearchRequest(
             origin=origin,
             destination=destination,
@@ -73,15 +119,18 @@ async def search_trains_endpoint(
             passengers=passengers,
         )
         
-        # Perform search
+        # This will raise TrainSearchError for invalid inputs
         response = await search_trains(request)
         
-        # Convert to dict for JSON response
+        # ============================================================
+        # BUILD SUCCESS RESPONSE (City-level abstraction)
+        # ============================================================
         return {
             "status": "success",
             "search_id": response.search_id,
             "timestamp": response.timestamp.isoformat(),
             
+            # City-level route info (NOT station-level)
             "route": {
                 "origin_city": response.origin_city,
                 "destination_city": response.destination_city,
@@ -98,7 +147,7 @@ async def search_trains_endpoint(
                     "train_name": o.train_name,
                     "train_type": o.train_type,
                     
-                    # Route
+                    # Route (station-level for this specific train)
                     "from_station": o.from_station,
                     "from_station_name": o.from_station_name,
                     "from_city": o.from_city,
@@ -144,12 +193,38 @@ async def search_trains_endpoint(
             # Important disclaimer
             "disclaimer": "Prices shown are average fares for reference only. Actual prices depend on availability and may vary. Please book on official sites for accurate pricing.",
         }
-        
+    
+    # ============================================================
+    # HANDLE VALIDATION ERRORS (Graceful failure with suggestions)
+    # ============================================================
+    except TrainSearchError as e:
+        logger.warning(f"Train search validation error: {e.error_type} - {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "status": "error",
+                "error_type": e.error_type,
+                "message": e.message,
+                "invalid_input": e.invalid_input,
+                "suggestions": e.suggestions,
+            }
+        )
+    
     except HTTPException:
         raise
+    
     except Exception as e:
-        logger.error(f"Train search error: {e}", exc_info=True)
-        raise HTTPException(500, f"Train search failed: {str(e)}")
+        logger.error(f"Unexpected train search error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail={
+                "status": "error",
+                "error_type": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred. Please try again.",
+                "invalid_input": None,
+                "suggestions": []
+            }
+        )
 
 
 @router.get("/stations/railway")
