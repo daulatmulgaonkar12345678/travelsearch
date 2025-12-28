@@ -470,42 +470,49 @@ function TrainResultsContent() {
         {/* Results */}
         {!loading && !error && results && (
           <>
-            {/* Fallback Notice */}
-            {results.is_fallback && results.fallback_message && (
-              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800">{results.fallback_message}</p>
-              </div>
+            {/* REDIRECT-ONLY: Show clean redirect card, NOT warnings */}
+            {results.is_fallback ? (
+              <TrainRedirectCard
+                originCity={results.origin_city || origin}
+                destinationCity={results.destination_city || destination}
+                distanceKm={results.distance_km}
+                estimatedFares={results.offers[0]?.available_classes || []}
+                bookingPartners={results.offers[0]?.booking_partners || []}
+                departureDate={departureDate}
+              />
+            ) : (
+              <>
+                {/* Results Count - Only for actual train results */}
+                <p className="text-sm text-gray-600 mb-4">
+                  {filteredOffers.length} train{filteredOffers.length !== 1 ? 's' : ''} found
+                  {results.distance_km && ` • ${results.distance_km} km`}
+                  {hasActiveFilters && results.offers.length !== filteredOffers.length && (
+                    <span className="text-blue-600"> (filtered from {results.offers.length})</span>
+                  )}
+                </p>
+                
+                {/* No results after filter */}
+                {filteredOffers.length === 0 && hasActiveFilters && (
+                  <div className="text-center py-8 bg-white rounded-lg border">
+                    <Filter className="h-8 w-8 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600">No trains match your filters</p>
+                    <button 
+                      onClick={clearFilters}
+                      className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+                
+                {/* Train Cards */}
+                <div className="space-y-4">
+                  {filteredOffers.map(offer => (
+                    <TrainCard key={offer.offer_id} offer={offer} />
+                  ))}
+                </div>
+              </>
             )}
-            
-            {/* Results Count */}
-            <p className="text-sm text-gray-600 mb-4">
-              {filteredOffers.filter(o => !o.is_fallback).length} train{filteredOffers.filter(o => !o.is_fallback).length !== 1 ? 's' : ''} found
-              {results.distance_km && ` • ${results.distance_km} km`}
-              {hasActiveFilters && results.offers.length !== filteredOffers.length && (
-                <span className="text-blue-600"> (filtered from {results.offers.length})</span>
-              )}
-            </p>
-            
-            {/* No results after filter */}
-            {filteredOffers.length === 0 && hasActiveFilters && (
-              <div className="text-center py-8 bg-white rounded-lg border">
-                <Filter className="h-8 w-8 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">No trains match your filters</p>
-                <button 
-                  onClick={clearFilters}
-                  className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
-                >
-                  Clear filters
-                </button>
-              </div>
-            )}
-            
-            {/* Train Cards */}
-            <div className="space-y-4">
-              {filteredOffers.map(offer => (
-                <TrainCard key={offer.offer_id} offer={offer} />
-              ))}
-            </div>
           </>
         )}
       </div>
