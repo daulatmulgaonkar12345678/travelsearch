@@ -14,6 +14,7 @@ import CityAutocomplete from './CityAutocomplete'
 import TransportAutocomplete, { TransportLocation } from './TransportAutocomplete'
 import BusLocationAutocomplete, { BusPlace } from './BusLocationAutocomplete'
 import TrainStationAutocomplete, { TrainStationOption } from './TrainStationAutocomplete'
+import HotelLocationAutocomplete, { HotelCity } from './HotelLocationAutocomplete'
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
 
