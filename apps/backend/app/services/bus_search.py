@@ -422,14 +422,17 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     """
     Search for buses between two cities.
     
-    VARIANT-LEVEL RESULTS:
-    - Each route × each bus type = separate card
-    - If Mumbai→Pune has [ordinary, ac_seater, ac_sleeper, volvo] → returns 4 cards
-    - Never returns 1 card for a valid route with multiple options
+    DISCOVERY-FIRST APPROACH:
+    - Maximize correct discovery
+    - Minimize false negatives
+    - Match redBus discovery behavior
     
-    PRIORITY ORDER:
-    1. Check MSRTC (Maharashtra State) routes first
-    2. Fall back to generic bus routes
+    SEARCH PRIORITY:
+    1. MSRTC routes (exact match with variants)
+    2. Generic bus routes (if in database)
+    3. STATE NETWORK RULE: If same state → ALWAYS show result
+    
+    NEVER returns "No buses found" for valid intra-state routes.
     """
     search_id = str(uuid.uuid4())
     
@@ -486,7 +489,7 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
     except Exception as e:
         logger.warning(f"MSRTC search failed for {origin} → {destination}: {e}")
     
-    # PRIORITY 2: Fall back to generic bus routes
+    # PRIORITY 2: Check generic bus routes database
     route = get_bus_route(origin, destination)
     
     if route:
@@ -525,27 +528,79 @@ async def search_buses(request: BusSearchRequest) -> BusSearchResponse:
             fallback_message=None,
         )
     
-    else:
-        # No route data - return fallback
-        logger.info(f"⚠️ No route data for {origin} → {destination}, returning fallback")
+    # ============================================================
+    # PRIORITY 3: STATE NETWORK RULE
+    # If same state → ALWAYS show result (never false negative)
+    # ============================================================
+    try:
+        from app.services.state_network_resolver import resolve_state_network_search
         
-        distance = get_distance(origin, destination)
-        fallback_offers = create_fallback_offers(
-            origin=origin,
-            destination=destination,
+        state_offers, state_metadata = resolve_state_network_search(
+            origin=request.origin,
+            destination=request.destination,
             departure_date=request.departure_date,
-            search_id=search_id,
-            distance_km=distance,
         )
         
-        return BusSearchResponse(
-            offers=fallback_offers,
-            search_id=search_id,
-            cached=False,
-            timestamp=datetime.utcnow(),
-            origin_city=origin,
-            destination_city=destination,
-            distance_km=float(distance) if distance else None,
-            is_fallback=True,
-            fallback_message="We don't have detailed schedule data for this route. Please check our booking partners (redBus, AbhiBus, Paytm) for current buses, timings, and prices.",
-        )
+        if state_offers:
+            logger.info(f"✅ State Network: {len(state_offers)} offers for {origin} → {destination}")
+            
+            # Apply optional filters
+            filtered_offers = state_offers
+            
+            if request.ac_only:
+                filtered_offers = [o for o in filtered_offers if o.is_ac]
+            
+            if request.sleeper_only:
+                filtered_offers = [o for o in filtered_offers if o.is_sleeper]
+            
+            if request.bus_type:
+                filtered_offers = [
+                    o for o in filtered_offers
+                    if request.bus_type.lower() in o.bus_type_label.lower() or
+                       request.bus_type.lower().replace("_", " ") in o.bus_type_label.lower()
+                ]
+            
+            # Sort by price
+            filtered_offers.sort(key=lambda o: o.avg_price)
+            
+            # Get distance from state network resolver
+            distance_km = filtered_offers[0].distance_km if filtered_offers else None
+            
+            return BusSearchResponse(
+                offers=filtered_offers,
+                search_id=search_id,
+                cached=False,
+                timestamp=datetime.utcnow(),
+                origin_city=origin,
+                destination_city=destination,
+                distance_km=distance_km,
+                is_fallback=False,  # NOT a fallback - valid state network result
+                fallback_message="Multiple operators run buses on this route. Fares shown are estimated averages. Check booking partners for live schedules and exact prices.",
+            )
+    
+    except Exception as e:
+        logger.warning(f"State network search failed for {origin} → {destination}: {e}")
+    
+    # PRIORITY 4: Last resort fallback (for inter-state or unknown routes)
+    logger.info(f"⚠️ No route data for {origin} → {destination}, returning fallback")
+    
+    distance = get_distance(origin, destination)
+    fallback_offers = create_fallback_offers(
+        origin=origin,
+        destination=destination,
+        departure_date=request.departure_date,
+        search_id=search_id,
+        distance_km=distance,
+    )
+    
+    return BusSearchResponse(
+        offers=fallback_offers,
+        search_id=search_id,
+        cached=False,
+        timestamp=datetime.utcnow(),
+        origin_city=origin,
+        destination_city=destination,
+        distance_km=float(distance) if distance else None,
+        is_fallback=True,
+        fallback_message="We don't have detailed schedule data for this route. Please check our booking partners (redBus, AbhiBus, Paytm) for current buses, timings, and prices.",
+    )
