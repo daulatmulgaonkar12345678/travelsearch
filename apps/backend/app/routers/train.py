@@ -2,15 +2,20 @@
 
 Endpoints for searching train routes in India.
 Uses static data from Indian Railways public timetable.
+
+ARCHITECTURE PRINCIPLE:
+- Frontend is dumb, backend is smart
+- All input resolution (city names, aliases, station codes) happens here
+- Invalid inputs return structured errors with suggestions, not 500s
 """
 
 from fastapi import APIRouter, Query, HTTPException
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import date, timedelta
 import logging
 
 from app.models.transport import TrainSearchRequest, TrainSearchResponse
-from app.services.train_search import search_trains
+from app.services.train_search import search_trains, TrainSearchError
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
