@@ -113,10 +113,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [showRoomModal, setShowRoomModal] = useState(false)
 
   // Trains & Buses state - with validated locations
-  const [trainOriginText, setTrainOriginText] = useState('')
-  const [trainOriginLocation, setTrainOriginLocation] = useState<TransportLocation | null>(null)
-  const [trainDestinationText, setTrainDestinationText] = useState('')
-  const [trainDestinationLocation, setTrainDestinationLocation] = useState<TransportLocation | null>(null)
+  // STATION-FIRST: trainOrigin/Destination store TrainStationOption with .value (e.g., "MUMBAI_ALL" or "CSMT")
+  const [trainOrigin, setTrainOrigin] = useState<TrainStationOption | null>(null)
+  const [trainDestination, setTrainDestination] = useState<TrainStationOption | null>(null)
   const [trainDate, setTrainDate] = useState(getTomorrowDate())
   const [trainPassengers, setTrainPassengers] = useState(1)
   const [trainClass, setTrainClass] = useState<string>('')
@@ -129,11 +128,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [busPassengers, setBusPassengers] = useState(1)
   const [busType, setBusType] = useState<string>('')  // '', 'ac_seater', 'ac_sleeper', 'non_ac'
 
-  // Validation flags for trains and buses
-  const trainOriginValid = trainOriginLocation !== null
-  const trainDestinationValid = trainDestinationLocation !== null
+  // Validation flags for trains - STATION-FIRST: must have valid station/ALL selection
+  const trainOriginValid = trainOrigin !== null
+  const trainDestinationValid = trainDestination !== null
   const trainSearchEnabled = trainOriginValid && trainDestinationValid && 
-    trainOriginLocation?.city_id !== trainDestinationLocation?.city_id
+    trainOrigin?.value !== trainDestination?.value
   
   // Validation flags for buses - STRICT ID-based validation
   // CRITICAL: Both origin AND destination MUST have valid place_id
