@@ -97,7 +97,7 @@ export default function HotelCityPageTemplate({
               {content.description}
             </p>
             <Link
-              href={searchUrl}
+              href={prefillUrl}
               className="inline-flex items-center px-8 py-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
             >
               Search Hotels in {cityName}
