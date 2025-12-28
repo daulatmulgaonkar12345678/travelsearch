@@ -409,11 +409,13 @@ def create_fallback_offers(
     departure_date: str,
     search_id: str,
     distance_km: Optional[int] = None,
+    origin_city_override: Optional[str] = None,
+    dest_city_override: Optional[str] = None,
 ) -> List[TrainOffer]:
     """Create fallback redirect offers for unknown routes - one per common class"""
     
-    origin_city = get_city_name(origin)
-    dest_city = get_city_name(destination)
+    origin_city = origin_city_override or get_city_name(origin)
+    dest_city = dest_city_override or get_city_name(destination)
     
     if not distance_km:
         distance_km = get_distance(origin, destination) or 500
