@@ -8,35 +8,30 @@ test_sequence: 14
 run_ui: true
 ```
 
-## Current Focus: Fix /search/trains Endpoint (P0)
+## Current Focus: Station-First Train Search Architecture (P0)
 
-- task: "Fix /search/trains Endpoint - Defensive Backend with City Resolution"
+- task: "Implement Station-First Architecture for /search/trains"
   implemented: true
   working: true
   file: "/app/apps/backend/app/routers/train.py, /app/apps/backend/app/services/train_search.py"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: false
+  needs_retesting: true
   status_history:
-    - working: "pending"
+    - working: "completed"
       agent: "main"
-      comment: "Implemented defensive /search/trains endpoint with: 1) Alias normalization (Bombay→Mumbai, Calcutta→Kolkata), 2) City-to-station expansion (Mumbai→[CSMT, BCT, LTT...]), 3) Input validation with graceful errors and suggestions, 4) City-level response abstraction, 5) TrainSearchError custom exception for structured error handling."
-    - working: true
-      agent: "testing"
-      comment: "✅ ALL TRAIN SEARCH ENDPOINT TESTS PASSED (9/9): Comprehensive validation of refactored /api/search/trains endpoint completed successfully. CRITICAL VALIDATIONS: 1) Valid Input Tests: ✅ City Names (Pune→Mumbai) returns status='success', route.origin_city='Pune', route.destination_city='Mumbai' with 1 offer, ✅ Alias Resolution (Bombay→Pune) correctly resolves 'Bombay' alias to 'Mumbai' city and returns 4 train offers, ✅ Station Codes (CSMT→PUNE) works with station codes and returns route.origin_city='Mumbai', route.destination_city='Pune', 2) Invalid Input Tests (ALL return 400, NOT 500): ✅ Invalid Origin (Punex→Mumbai) returns 400 with error_type='INVALID_ORIGIN' and 'Pune' as first suggestion, ✅ Invalid Destination (Pune→Xyzzy) returns 400 with error_type='INVALID_DESTINATION' and city suggestions, ✅ Same Origin/Destination (Pune→Pune) returns 400 with error_type='SAME_ORIGIN_DESTINATION', ✅ Past Date validation returns 400 with error_type='DATE_IN_PAST', ✅ Future Date >120 days returns 400 with error_type='DATE_TOO_FAR', 3) Response Structure Validation: ✅ All successful responses include required fields (status, search_id, timestamp, route, offers, total_results, is_fallback, disclaimer), ✅ Each offer includes train_number, train_name, departure_time, arrival_time, avg_price, booking_partners, ✅ Fallback responses have is_fallback=true with booking partner links. DEFENSIVE BACKEND WORKING PERFECTLY: City resolution (Pune, Mumbai), alias normalization (Bombay→Mumbai), station code expansion (CSMT→Mumbai), graceful error handling with structured suggestions, NO 500 errors for any invalid user input. The refactored /api/search/trains endpoint is production-ready and self-sufficient."
+      comment: "Implemented station-first contract: 1) Station codes (CSMT, PUNE) accepted, 2) CITY_ALL tokens (MUMBAI_ALL, PUNE_ALL) expand to stations internally, 3) Raw city names (Mumbai, Pune) REJECTED with clear error message, 4) New /api/trains/autocomplete endpoint returns station-first dropdown format with City (All Stations) ⭐ first."
   test_requirements:
-    - "Test GET /api/search/trains?origin=Pune&destination=Mumbai - should return status='success', route.origin_city='Pune', route.destination_city='Mumbai'"
-    - "Test GET /api/search/trains?origin=Bombay&destination=Pune - should resolve 'Bombay' alias to 'Mumbai' city, return multiple train results"
-    - "Test GET /api/search/trains?origin=CSMT&destination=PUNE - should work with station codes, return route.origin_city='Mumbai', route.destination_city='Pune'"
-    - "Test GET /api/search/trains?origin=Punex&destination=Mumbai - should return 400 with error_type='INVALID_ORIGIN', suggestions should include 'Pune' as first suggestion"
-    - "Test GET /api/search/trains?origin=Pune&destination=Xyzzy - should return 400 with error_type='INVALID_DESTINATION', include city suggestions"
-    - "Test GET /api/search/trains?origin=Pune&destination=Pune - should return 400 with error_type='SAME_ORIGIN_DESTINATION'"
-    - "Test past date validation - should return 400 with error_type='DATE_IN_PAST'"
-    - "Test future date >120 days - should return 400 with error_type='DATE_TOO_FAR'"
-    - "Verify response includes 'status': 'success' for valid searches"
-    - "Verify offers include train_name, train_number, departure_time, arrival_time, avg_price, booking_partners"
-    - "Verify fallback response has is_fallback=true with booking partner links"
-    - "Verify NO 500 errors for any invalid user input"
+    - "Test VALID: GET /api/search/trains?origin=CSMT&destination=PUNE - should return success"
+    - "Test VALID: GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE - should return success with 'Mumbai (All Stations)' as origin_city"
+    - "Test VALID: GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE_ALL - should return success"
+    - "Test INVALID: GET /api/search/trains?origin=Mumbai&destination=Pune - MUST return 400 with error_type='INVALID_ORIGIN'"
+    - "Test INVALID: GET /api/search/trains?origin=Bombay&destination=PUNE - MUST return 400 (raw city name rejected)"
+    - "Test autocomplete: GET /api/trains/autocomplete?q=Mumbai - MUST return MUMBAI_ALL first with ⭐"
+    - "Test autocomplete: GET /api/trains/autocomplete?q=CSMT - MUST return station result"
+    - "Verify NO 500 errors for any input"
+
+## Previous Focus: Fix /search/trains Endpoint (P0) - SUPERSEDED
 
 ## Current Focus: Railway Station Database & City-First Search Model
 
