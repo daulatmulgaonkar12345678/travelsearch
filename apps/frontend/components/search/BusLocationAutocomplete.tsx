@@ -31,11 +31,15 @@ export interface BusPlace {
   place_id: string       // UNIQUE - The ONLY source of truth
   name: string           // Display name (English)
   name_local?: string    // Marathi name (optional)
-  type: 'CITY' | 'STOP'  // Whether this is a city or bus stop
+  type: 'CITY' | 'STOP' | 'TOURIST'  // Place type
   district: string       // District name
   state: string          // State (Maharashtra for MSRTC)
   operator?: string      // Operator (e.g., MSRTC)
   is_depot?: boolean     // Is this a depot/search surface stop
+  // Tourist destination fields
+  is_tourist?: boolean
+  destination_type?: string  // HILL_STATION, RELIGIOUS, HERITAGE, BEACH, RESORT
+  description?: string
 }
 
 interface BusLocationAutocompleteProps {
