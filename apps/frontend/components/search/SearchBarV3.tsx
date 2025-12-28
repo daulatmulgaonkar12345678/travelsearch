@@ -886,34 +886,46 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : searchType === 'buses' ? (
-          /* Bus Search Form - Same dropdown behavior as Flights */
+          /* Bus Search Form - STRICT ID-Based Selection */
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
-              <TransportAutocomplete
+              <BusLocationAutocomplete
                 value={busOriginText}
-                selectedLocation={busOriginLocation}
-                onChange={(text, location) => {
+                selectedPlace={busOriginPlace}
+                onChange={(text, place) => {
                   setBusOriginText(text)
-                  setBusOriginLocation(location)
+                  setBusOriginPlace(place)
                 }}
-                mode="bus"
                 label="From"
                 testId="bus-origin"
-                placeholder="Select city (e.g., Mumbai)"
+                placeholder="Select city (e.g., Satara)"
+                otherPlaceId={busDestinationPlace?.place_id || null}
               />
-              <TransportAutocomplete
+              <BusLocationAutocomplete
                 value={busDestinationText}
-                selectedLocation={busDestinationLocation}
-                onChange={(text, location) => {
+                selectedPlace={busDestinationPlace}
+                onChange={(text, place) => {
                   setBusDestinationText(text)
-                  setBusDestinationLocation(location)
+                  setBusDestinationPlace(place)
                 }}
-                mode="bus"
                 label="To"
                 testId="bus-destination"
-                placeholder="Select city (e.g., Pune)"
+                placeholder="Select city (e.g., Karad)"
+                otherPlaceId={busOriginPlace?.place_id || null}
               />
             </div>
+            
+            {/* Same place error - STRICT GUARD */}
+            {busSamePlace && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                <svg className="h-4 w-4 text-red-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm text-red-700">
+                  Origin and destination cannot be the same. Please select different cities.
+                </p>
+              </div>
+            )}
             
             <div className="grid md:grid-cols-3 gap-4">
               <div>
@@ -926,7 +938,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     value={busDate}
                     min={getTodayDate()}
                     onChange={(e) => handleBusDateChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -936,7 +948,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   data-testid="bus-type"
                   value={busType}
                   onChange={(e) => setBusType(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
                   <option value="">All Types</option>
                   <option value="non_ac">Non-AC</option>
@@ -952,7 +964,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     data-testid="bus-passengers"
                     value={busPassengers}
                     onChange={(e) => setBusPassengers(Number(e.target.value))}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
                     {[1, 2, 3, 4, 5, 6].map(n => (
                       <option key={n} value={n}>{n} Passenger{n > 1 ? 's' : ''}</option>
