@@ -481,6 +481,9 @@ async def bus_autocomplete(
             # For stops: always include (they're specific)
             if result_type == "bus_stop":
                 unique_results.append(result)
+            # For tourist destinations: always include
+            elif result_type == "tourist_destination":
+                unique_results.append(result)
             # For cities: only include if no stop from same city already included
             elif city_key not in seen_cities:
                 unique_results.append(result)
