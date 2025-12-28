@@ -217,7 +217,6 @@ async def search_trains_endpoint(
                 "error_type": e.error_type,
                 "message": e.message,
                 "invalid_input": e.invalid_input,
-                "suggestions": e.suggestions,
             }
         )
         
@@ -232,9 +231,170 @@ async def search_trains_endpoint(
                 "error_type": "INTERNAL_ERROR",
                 "message": "Train search temporarily unavailable. Please try again.",
                 "invalid_input": None,
-                "suggestions": []
             }
         )
+
+
+@router.get("/trains/autocomplete")
+async def train_autocomplete_station_first(
+    q: str = Query(..., min_length=1, description="Search query"),
+    limit: int = Query(10, ge=1, le=20, description="Max results"),
+):
+    """
+    Station-first autocomplete for train search.
+    
+    🔴 **STATION-FIRST DROPDOWN FORMAT**:
+    
+    When user types "Mumbai", returns:
+    ```
+    [
+      {"value": "MUMBAI_ALL", "label": "Mumbai (All Stations) ⭐", "type": "city_all", "stations": 9},
+      {"value": "CSMT", "label": "CSMT – Chhatrapati Shivaji Maharaj Terminus", "type": "station"},
+      {"value": "BCT", "label": "BCT – Mumbai Central", "type": "station"},
+      {"value": "LTT", "label": "LTT – Lokmanya Tilak Terminus", "type": "station"},
+      ...
+    ]
+    ```
+    
+    When user types "CSMT", returns:
+    ```
+    [
+      {"value": "CSMT", "label": "CSMT – Chhatrapati Shivaji Maharaj Terminus", "type": "station"}
+    ]
+    ```
+    
+    **Frontend must:**
+    - Only allow selection from this dropdown
+    - Use the `value` field for API submission
+    - Never allow free text submission
+    """
+    from app.services.rail_connectivity import (
+        _load_data, _cities, _stations, _station_to_city
+    )
+    
+    _load_data()
+    
+    query_lower = q.lower().strip()
+    query_upper = q.upper().strip()
+    results = []
+    seen_values = set()
+    
+    # ============================================================
+    # 1. Check for exact station code match first
+    # ============================================================
+    if query_upper in _stations:
+        station = _stations[query_upper]
+        results.append({
+            "value": query_upper,
+            "label": f"{query_upper} – {station.station_name}",
+            "type": "station",
+            "city": station.city,
+            "is_major": station.is_major,
+        })
+        seen_values.add(query_upper)
+    
+    # ============================================================
+    # 2. Check for city match -> show CITY_ALL first, then stations
+    # ============================================================
+    matched_city = None
+    for city_id, city in _cities.items():
+        city_name_lower = city.city_name.lower()
+        
+        if query_lower == city_name_lower or query_lower == city_id:
+            matched_city = city
+            break
+        elif city_name_lower.startswith(query_lower):
+            if not matched_city or city.population_rank < matched_city.population_rank:
+                matched_city = city
+    
+    if matched_city:
+        city_all_value = f"{matched_city.city_id.upper()}_ALL"
+        
+        if city_all_value not in seen_values:
+            # Add "City (All Stations)" option FIRST with star
+            results.insert(0, {
+                "value": city_all_value,
+                "label": f"{matched_city.city_name} (All Stations) ⭐",
+                "type": "city_all",
+                "city": matched_city.city_name,
+                "station_count": len(matched_city.station_codes),
+                "is_recommended": True,
+            })
+            seen_values.add(city_all_value)
+        
+        # Add individual stations for this city
+        for station_code in matched_city.station_codes:
+            if station_code in _stations and station_code not in seen_values:
+                station = _stations[station_code]
+                results.append({
+                    "value": station_code,
+                    "label": f"{station_code} – {station.station_name}",
+                    "type": "station",
+                    "city": matched_city.city_name,
+                    "is_major": station.is_major,
+                })
+                seen_values.add(station_code)
+    
+    # ============================================================
+    # 3. Search stations by name/code prefix
+    # ============================================================
+    for station_code, station in _stations.items():
+        if station_code in seen_values:
+            continue
+        
+        station_name_lower = station.station_name.lower()
+        code_lower = station_code.lower()
+        
+        match = False
+        if code_lower.startswith(query_lower):
+            match = True
+        elif station_name_lower.startswith(query_lower):
+            match = True
+        elif query_lower in station_name_lower:
+            match = True
+        
+        if match:
+            results.append({
+                "value": station_code,
+                "label": f"{station_code} – {station.station_name}",
+                "type": "station",
+                "city": station.city,
+                "is_major": station.is_major,
+            })
+            seen_values.add(station_code)
+        
+        if len(results) >= limit:
+            break
+    
+    # ============================================================
+    # 4. Search other cities by name
+    # ============================================================
+    if len(results) < limit:
+        for city_id, city in _cities.items():
+            city_all_value = f"{city_id.upper()}_ALL"
+            if city_all_value in seen_values:
+                continue
+            
+            city_name_lower = city.city_name.lower()
+            
+            if query_lower in city_name_lower:
+                results.append({
+                    "value": city_all_value,
+                    "label": f"{city.city_name} (All Stations)",
+                    "type": "city_all",
+                    "city": city.city_name,
+                    "station_count": len(city.station_codes),
+                })
+                seen_values.add(city_all_value)
+            
+            if len(results) >= limit:
+                break
+    
+    return {
+        "results": results[:limit],
+        "query": q,
+        "total": len(results[:limit]),
+    }
 
 
 @router.get("/trains/routes")
