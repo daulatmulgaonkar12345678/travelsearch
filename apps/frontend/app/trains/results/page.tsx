@@ -323,8 +323,8 @@ function TrainResultsContent() {
           </div>
         </div>
         
-        {/* Filters Panel */}
-        {showFilters && (
+        {/* Filters Panel - Only for actual train results */}
+        {showFilters && results && !results.is_fallback && (
           <div className="bg-white rounded-lg border shadow-sm p-4 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-gray-900">Filter Results</h3>
