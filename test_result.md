@@ -4,9 +4,28 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 11
+test_sequence: 12
 run_ui: true
 ```
+
+## Current Focus: Likely Stops on Route Feature
+
+- task: "Likely Stops on Route - Enhanced Corridor Detection"
+  implemented: true
+  working: pending
+  file: "/app/apps/backend/app/services/corridor_resolver.py, /app/apps/backend/app/routers/route_stops.py, /app/apps/frontend/components/results/LikelyStops.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented enhanced 'Likely Stops on Route' feature with MAJOR/MINOR stop separation. Features: 1) Created highway_corridors.json with 8 major Maharashtra corridors, 2) Each corridor has stops ordered by km from start, 3) Stops classified as MAJOR (main ST stands) or MINOR (smaller stops like Kashil), 4) New corridor_resolver.py service extracts route segments, 5) Updated API endpoints: GET /api/routes/stops returns major_stops and minor_stops arrays, 6) Frontend LikelyStops component shows MAJOR stops by default with expandable MINOR stops, 7) Validation: Mumbai→Ratnagiri shows Kashil in minor_stops, Pune→Kolhapur does NOT show Kashil."
+  test_requirements:
+    - "Test GET /api/routes/stops?from_city=mumbai&to_city=ratnagiri - should return Kashil in minor_stops"
+    - "Test GET /api/routes/stops?from_city=pune&to_city=kolhapur - should NOT return Kashil"
+    - "Test frontend UI: Pune→Kolhapur bus results should show 'Likely Stops' button that expands to show MAJOR stops (Satara, Karad, Sangli) and expandable MINOR stops"
+    - "Test GET /api/routes/corridors - should return 8 corridors with MAJOR/MINOR counts"
 
 ## Test Tasks
 
