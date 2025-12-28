@@ -775,7 +775,7 @@ class RailwayStationTester:
             
             # Should include major Delhi stations
             stations = data.get("stations", [])
-            station_codes = [s.get("code") for s in stations]
+            station_codes = [s.get("station_code") for s in stations]  # Fixed: use station_code not code
             expected_stations = ["NDLS", "DLI", "NZM", "ANVT"]
             found_stations = [code for code in expected_stations if code in station_codes]
             
