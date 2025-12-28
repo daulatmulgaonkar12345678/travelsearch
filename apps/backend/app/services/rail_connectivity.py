@@ -505,10 +505,10 @@ def _check_hub_routing(origin: str, destination: str) -> ConnectivityResult:
             zone_changes=0
         )
     
-    # Case 2: Try routing via one hub
+    # Case 2: Try routing via one hub (with longer max_depth for long routes)
     for hub in [origin_hub, dest_hub]:
-        origin_to_hub = _bfs_find_path(origin, hub, max_depth=4)
-        hub_to_dest = _bfs_find_path(hub, destination, max_depth=4)
+        origin_to_hub = _bfs_find_path(origin, hub, max_depth=8)
+        hub_to_dest = _bfs_find_path(hub, destination, max_depth=8)
         
         if origin_to_hub and hub_to_dest:
             full_path = origin_to_hub + hub_to_dest[1:]  # Avoid duplicate hub
