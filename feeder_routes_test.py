@@ -360,16 +360,16 @@ class FeederRoutesTester:
             return False
     
     async def test_regular_city_to_city(self):
-        """Test 5: Regular city-to-city (highway route) - Pune → Kolhapur"""
+        """Test 5: Regular city-to-city (highway route) - Mumbai → Nashik"""
         try:
             response = await self.client.get(
                 f"{self.backend_url}/api/routes/find",
-                params={"from_city": "pune", "to_city": "kolhapur"}
+                params={"from_city": "mumbai", "to_city": "nashik"}
             )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Pune → Kolhapur Highway Route", 
+                    "Mumbai → Nashik Highway Route", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -381,7 +381,7 @@ class FeederRoutesTester:
             # Check connectivity
             if not data.get("connected"):
                 self.log_result(
-                    "Pune → Kolhapur Highway Route",
+                    "Mumbai → Nashik Highway Route",
                     False,
                     f"Expected connected=true, got {data.get('connected')}",
                     data
@@ -392,7 +392,7 @@ class FeederRoutesTester:
             route_type = data.get("route_type")
             if route_type != "HIGHWAY_DIRECT":
                 self.log_result(
-                    "Pune → Kolhapur Highway Route",
+                    "Mumbai → Nashik Highway Route",
                     False,
                     f"Expected route_type HIGHWAY_DIRECT, got {route_type}",
                     data
@@ -403,7 +403,7 @@ class FeederRoutesTester:
             dest_info = data.get("destination_info")
             if dest_info is not None:
                 self.log_result(
-                    "Pune → Kolhapur Highway Route",
+                    "Mumbai → Nashik Highway Route",
                     False,
                     f"Expected no destination_info for regular city route, got {dest_info}",
                     data
@@ -411,14 +411,14 @@ class FeederRoutesTester:
                 return False
             
             self.log_result(
-                "Pune → Kolhapur Highway Route",
+                "Mumbai → Nashik Highway Route",
                 True,
                 f"✅ Connected via HIGHWAY_DIRECT, no destination_info (regular city route)"
             )
             return True
             
         except Exception as e:
-            self.log_result("Pune → Kolhapur Highway Route", False, f"Exception: {str(e)}")
+            self.log_result("Mumbai → Nashik Highway Route", False, f"Exception: {str(e)}")
             return False
     
     async def test_remote_village_no_connectivity(self):
