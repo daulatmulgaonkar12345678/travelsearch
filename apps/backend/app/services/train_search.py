@@ -483,72 +483,141 @@ def create_fallback_offers(
 
 async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
     """
-    Search for trains between two stations.
+    Search for trains between two locations.
+    
+    DEFENSIVE BACKEND:
+    - Resolves ANY input (city, alias, station code) to valid station codes
+    - Returns city-level abstraction, NOT raw station-pair explosions
+    - Gracefully handles invalid inputs with suggestions
     
     VARIANT-LEVEL RESULTS:
     - Each train × each class = separate card
     - If Mumbai Rajdhani has SL, 3A, 2A, 1A → returns 4 cards
-    - Never returns 1 card for a valid route with multiple options
     """
     search_id = str(uuid.uuid4())
     
-    # Normalize inputs (station → city handling)
-    origin = normalize_station_code(request.origin)
-    destination = normalize_station_code(request.destination)
+    # ============================================================
+    # STEP 1: DEFENSIVE INPUT RESOLUTION (Backend-owned)
+    # ============================================================
+    origin_result = validate_and_resolve_input(request.origin)
+    dest_result = validate_and_resolve_input(request.destination)
     
-    logger.info(f"🚆 Train search: {origin} → {destination} on {request.departure_date}")
+    # Check for resolution failures
+    if not origin_result.success:
+        raise TrainSearchError(
+            error_type="INVALID_ORIGIN",
+            message=origin_result.error_message,
+            suggestions=origin_result.suggestions,
+            invalid_input=request.origin
+        )
     
-    # Try to find trains for this route
-    schedules = get_trains_for_route(origin, destination)
+    if not dest_result.success:
+        raise TrainSearchError(
+            error_type="INVALID_DESTINATION", 
+            message=dest_result.error_message,
+            suggestions=dest_result.suggestions,
+            invalid_input=request.destination
+        )
     
-    if schedules:
-        # EXPAND each train into multiple class variants
-        all_offers = []
-        for schedule in schedules:
-            class_offers = schedule_to_class_offers(schedule, request.departure_date, search_id)
-            all_offers.extend(class_offers)
-        
-        # Apply optional class filter
-        if request.train_class:
-            all_offers = [o for o in all_offers if o.selected_class == request.train_class]
-        
-        # Apply optional train type filter
-        if request.train_type:
-            all_offers = [
-                o for o in all_offers
-                if o.train_type and request.train_type.lower() in o.train_type.lower()
-            ]
-        
-        # Sort by departure time, then by price
-        all_offers.sort(key=lambda o: (o.departure_time, o.avg_price))
-        
-        logger.info(f"✅ Found {len(all_offers)} train+class variants for {origin} → {destination}")
-        
-        distance = get_distance(origin, destination)
+    # Get station codes (may be multiple for city inputs)
+    origin_stations = origin_result.station_codes
+    dest_stations = dest_result.station_codes
+    
+    # Get display names (city-level)
+    origin_city_display = origin_result.city_name or get_city_name_for_display(origin_stations, None)
+    dest_city_display = dest_result.city_name or get_city_name_for_display(dest_stations, None)
+    
+    logger.info(f"🚆 Train search: {origin_city_display} ({origin_stations}) → {dest_city_display} ({dest_stations}) on {request.departure_date}")
+    
+    # ============================================================
+    # STEP 2: SEARCH ALL STATION PAIRS (City expansion)
+    # ============================================================
+    all_offers = []
+    searched_pairs = set()
+    
+    # Search all combinations of origin and destination stations
+    for origin_code in origin_stations:
+        for dest_code in dest_stations:
+            if origin_code == dest_code:
+                continue
+            
+            pair_key = f"{origin_code}-{dest_code}"
+            if pair_key in searched_pairs:
+                continue
+            searched_pairs.add(pair_key)
+            
+            # Try to find trains for this station pair
+            schedules = get_trains_for_route(origin_code, dest_code)
+            
+            if schedules:
+                for schedule in schedules:
+                    class_offers = schedule_to_class_offers(schedule, request.departure_date, search_id)
+                    all_offers.extend(class_offers)
+    
+    # ============================================================
+    # STEP 3: APPLY FILTERS
+    # ============================================================
+    if request.train_class:
+        all_offers = [o for o in all_offers if o.selected_class == request.train_class]
+    
+    if request.train_type:
+        all_offers = [
+            o for o in all_offers
+            if o.train_type and request.train_type.lower() in o.train_type.lower()
+        ]
+    
+    # ============================================================
+    # STEP 4: DEDUPLICATE AND SORT
+    # ============================================================
+    # Remove duplicate train+class combinations (same train serving multiple stations in same city)
+    seen_train_class = set()
+    unique_offers = []
+    for offer in all_offers:
+        key = f"{offer.train_number}-{offer.selected_class}"
+        if key not in seen_train_class:
+            seen_train_class.add(key)
+            unique_offers.append(offer)
+    
+    all_offers = unique_offers
+    
+    # Sort by departure time, then by price
+    all_offers.sort(key=lambda o: (o.departure_time, o.avg_price))
+    
+    # ============================================================
+    # STEP 5: BUILD RESPONSE (City-level abstraction)
+    # ============================================================
+    # Calculate representative distance (from primary stations)
+    primary_origin = origin_stations[0]
+    primary_dest = dest_stations[0]
+    distance = get_distance(primary_origin, primary_dest)
+    
+    if all_offers:
+        logger.info(f"✅ Found {len(all_offers)} train+class variants for {origin_city_display} → {dest_city_display}")
         
         return TrainSearchResponse(
             offers=all_offers,
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
-            origin_city=get_city_name(origin),
-            destination_city=get_city_name(destination),
+            origin_city=origin_city_display,
+            destination_city=dest_city_display,
             distance_km=float(distance) if distance else None,
             is_fallback=False,
             fallback_message=None,
         )
     
     else:
-        # No route data - return fallback
-        logger.info(f"⚠️ No route data for {origin} → {destination}, returning fallback")
+        # No route data - return fallback with booking partner links
+        logger.info(f"⚠️ No route data for {origin_city_display} → {dest_city_display}, returning fallback")
         
-        distance = get_distance(origin, destination)
         fallback_offers = create_fallback_offers(
-            origin=origin,
-            destination=destination,
+            origin=primary_origin,
+            destination=primary_dest,
             departure_date=request.departure_date,
             search_id=search_id,
             distance_km=distance,
+            origin_city_override=origin_city_display,
+            dest_city_override=dest_city_display,
         )
         
         return TrainSearchResponse(
@@ -556,9 +625,29 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
             search_id=search_id,
             cached=False,
             timestamp=datetime.utcnow(),
-            origin_city=get_city_name(origin),
-            destination_city=get_city_name(destination),
+            origin_city=origin_city_display,
+            destination_city=dest_city_display,
             distance_km=float(distance) if distance else None,
             is_fallback=True,
-            fallback_message="We don't have detailed schedule data for this route. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
+            fallback_message=f"We don't have detailed schedule data for {origin_city_display} to {dest_city_display}. Please check our booking partners (IRCTC, ixigo, Paytm) for current trains, timings, and prices.",
         )
+
+
+# ============================================================
+# CUSTOM EXCEPTION FOR SEARCH ERRORS
+# ============================================================
+
+class TrainSearchError(Exception):
+    """Custom exception for train search validation errors"""
+    def __init__(
+        self, 
+        error_type: str, 
+        message: str, 
+        suggestions: List[Dict[str, Any]] = None,
+        invalid_input: str = None
+    ):
+        self.error_type = error_type
+        self.message = message
+        self.suggestions = suggestions or []
+        self.invalid_input = invalid_input
+        super().__init__(message)
