@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Train,
   ChevronDown,
@@ -11,6 +11,7 @@ import {
   Utensils,
   Info,
 } from 'lucide-react'
+import RedirectTransition from '@/components/loading/RedirectTransition'
 
 interface TrainOffer {
   offer_id: string
