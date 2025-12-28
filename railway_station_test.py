@@ -840,7 +840,7 @@ class RailwayStationTester:
                 return False
             
             # Should include major metros
-            city_names = [c.get("name", "").lower() for c in cities]
+            city_names = [c.get("city_name", "").lower() for c in cities]  # Fixed: use city_name not name
             expected_metros = ["delhi", "mumbai", "kolkata", "chennai"]
             found_metros = [metro for metro in expected_metros if any(metro in name for name in city_names)]
             
