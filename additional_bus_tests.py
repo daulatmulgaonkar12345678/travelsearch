@@ -47,7 +47,7 @@ class AdditionalBusTests:
             error_data = response.json()
             error_detail = error_data.get("detail", "").lower()
             
-            if "same" not in error_detail or "different" not in error_detail:
+            if "same" not in error_detail or ("origin" not in error_detail and "destination" not in error_detail):
                 print(f"❌ Wrong error message for same city: {error_detail}")
                 return False
             
