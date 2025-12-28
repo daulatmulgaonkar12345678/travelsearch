@@ -95,10 +95,15 @@ class CorridorResolver:
     def find_common_corridor(
         self, 
         from_city_id: int, 
-        to_city_id: int
+        to_city_id: int,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Optional[str]:
         """
         Find the best corridor connecting two cities.
+        
+        If stop_keys are provided, uses them for precise matching.
+        This enables Satara → Karad routing (both in same district).
         
         Returns corridor ID or None if no direct corridor exists.
         """
@@ -118,14 +123,23 @@ class CorridorResolver:
             corridor = self.corridors.get(corridor_id, {})
             stops = corridor.get("stops_sequence", [])
             
-            # Find indices of from/to cities
+            # Find indices of from/to stops
             from_idx = None
             to_idx = None
             
             for i, stop in enumerate(stops):
-                if stop["city_id"] == from_city_id and from_idx is None:
+                # If stop_key provided, use exact match
+                if from_stop_key:
+                    if stop["stop_key"] == from_stop_key and from_idx is None:
+                        from_idx = i
+                # Otherwise match by city_id
+                elif stop["city_id"] == from_city_id and from_idx is None:
                     from_idx = i
-                if stop["city_id"] == to_city_id:
+                    
+                if to_stop_key:
+                    if stop["stop_key"] == to_stop_key:
+                        to_idx = i
+                elif stop["city_id"] == to_city_id:
                     to_idx = i
             
             if from_idx is not None and to_idx is not None:
@@ -140,24 +154,35 @@ class CorridorResolver:
         self,
         corridor_id: str,
         from_city_id: int,
-        to_city_id: int
+        to_city_id: int,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Tuple[List[Dict], bool]:
         """
         Extract the segment of stops between two cities.
         
+        If stop_keys are provided, uses them for exact matching.
         Returns (stops_list, is_reversed) tuple.
         """
         corridor = self.corridors.get(corridor_id, {})
         all_stops = corridor.get("stops_sequence", [])
         
-        # Find first occurrence of from_city and last of to_city
+        # Find indices of origin and destination stops
         from_idx = None
         to_idx = None
         
         for i, stop in enumerate(all_stops):
-            if stop["city_id"] == from_city_id and from_idx is None:
+            # Match by stop_key if provided, else by city_id
+            if from_stop_key:
+                if stop["stop_key"] == from_stop_key and from_idx is None:
+                    from_idx = i
+            elif stop["city_id"] == from_city_id and from_idx is None:
                 from_idx = i
-            if stop["city_id"] == to_city_id:
+            
+            if to_stop_key:
+                if stop["stop_key"] == to_stop_key:
+                    to_idx = i
+            elif stop["city_id"] == to_city_id:
                 to_idx = i
         
         if from_idx is None or to_idx is None:
@@ -178,7 +203,9 @@ class CorridorResolver:
         self,
         from_city_id: int,
         to_city_id: int,
-        include_endpoints: bool = False
+        include_endpoints: bool = False,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Dict:
         """
         Get intermediate stops for a route, separated by importance.
@@ -187,12 +214,17 @@ class CorridorResolver:
             from_city_id: Origin city/district ID
             to_city_id: Destination city/district ID
             include_endpoints: Whether to include origin/destination stops
+            from_stop_key: Optional specific stop key for origin
+            to_stop_key: Optional specific stop key for destination
         
         Returns:
             Dict with major_stops, minor_stops, corridor info, and disclaimer
         """
-        # Find common corridor
-        corridor_id = self.find_common_corridor(from_city_id, to_city_id)
+        # Find common corridor (with optional stop_key precision)
+        corridor_id = self.find_common_corridor(
+            from_city_id, to_city_id,
+            from_stop_key, to_stop_key
+        )
         
         if not corridor_id:
             # No direct corridor found
@@ -210,8 +242,11 @@ class CorridorResolver:
         
         corridor = self.corridors.get(corridor_id, {})
         
-        # Extract segment
-        segment, is_reversed = self.extract_segment(corridor_id, from_city_id, to_city_id)
+        # Extract segment (using stop_keys for precision)
+        segment, is_reversed = self.extract_segment(
+            corridor_id, from_city_id, to_city_id,
+            from_stop_key, to_stop_key
+        )
         
         # Separate by importance, excluding endpoints if requested
         major_stops = []
@@ -260,16 +295,46 @@ class CorridorResolver:
     ) -> Dict:
         """
         Get route stops using city names instead of IDs.
+        
+        Handles same-district routes (e.g., Satara → Karad)
+        by using stop_key matching.
         """
         from_id = get_city_id_by_name(from_city)
         to_id = get_city_id_by_name(to_city)
+        
+        # Get stop keys for more precise matching
+        from_stop_key = self._get_stop_key_from_name(from_city)
+        to_stop_key = self._get_stop_key_from_name(to_city)
         
         if not from_id:
             return {"error": f"Unknown origin city: {from_city}"}
         if not to_id:
             return {"error": f"Unknown destination city: {to_city}"}
         
-        return self.get_route_stops(from_id, to_id, include_endpoints)
+        # Use stop-key based routing for better accuracy
+        return self.get_route_stops(
+            from_id, to_id, include_endpoints,
+            from_stop_key=from_stop_key,
+            to_stop_key=to_stop_key
+        )
+    
+    def _get_stop_key_from_name(self, name: str) -> Optional[str]:
+        """
+        Get the stop_key from a city/stop name.
+        E.g., 'Satara' -> 'satara-bus-stand'
+        """
+        name_lower = name.lower().strip()
+        
+        # Search all corridors for matching stop
+        for corridor_id, corridor in self.corridors.items():
+            for stop in corridor.get("stops_sequence", []):
+                stop_key = stop["stop_key"]
+                # Check if name matches the beginning of stop_key
+                if stop_key.startswith(name_lower) or \
+                   stop_key.replace("-bus-stand", "").replace("-cbs", "") == name_lower:
+                    return stop_key
+        
+        return None
     
     def _format_stop_name(self, stop_key: str) -> str:
         """
