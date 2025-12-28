@@ -403,10 +403,6 @@ def resolve_connectivity(from_station: str, to_station: str) -> ConnectivityResu
             note="Same station"
         )
     
-    # Check zones
-    origin_zone = _stations[origin_code].zone if origin_code in _stations else "UNKNOWN"
-    dest_zone = _stations[dest_code].zone if dest_code in _stations else "UNKNOWN"
-    
     # Strategy 1: Direct connectivity
     direct_result = _check_direct_connectivity(origin_code, dest_code)
     if direct_result.route_type == RouteType.DIRECT:
