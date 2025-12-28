@@ -11,7 +11,6 @@ import {
   BatteryCharging,
   Snowflake,
   MapPin,
-  Route,
   Users,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
