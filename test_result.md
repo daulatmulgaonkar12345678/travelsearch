@@ -16,11 +16,14 @@ run_ui: true
   file: "/app/apps/backend/app/routers/train.py, /app/apps/backend/app/services/train_search.py"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "completed"
       agent: "main"
       comment: "Implemented station-first contract: 1) Station codes (CSMT, PUNE) accepted, 2) CITY_ALL tokens (MUMBAI_ALL, PUNE_ALL) expand to stations internally, 3) Raw city names (Mumbai, Pune) REJECTED with clear error message, 4) New /api/trains/autocomplete endpoint returns station-first dropdown format with City (All Stations) ⭐ first."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL STATION-FIRST TRAIN SEARCH ARCHITECTURE TESTS PASSED (9/9): Complete validation of new station-first architecture successfully completed. CRITICAL VALIDATIONS: 1) VALID INPUTS (200 responses): ✅ Station codes (CSMT→PUNE) returns success with correct route display 'Chhatrapati Shivaji Maharaj Terminus (CSMT) → Pune Junction (PUNE)', ✅ CITY_ALL single token (MUMBAI_ALL→PUNE) returns success with 'Mumbai (All Stations)' as origin_city, ✅ Both CITY_ALL tokens (MUMBAI_ALL→PUNE_ALL) returns success with both cities showing '(All Stations)', 2) INVALID INPUTS (400 errors, NO 500s): ✅ Raw city names (Mumbai→Pune) correctly rejected with 400 error_type='INVALID_ORIGIN' and message 'City names are not allowed', ✅ Old aliases (Bombay→PUNE) correctly rejected with 400 error_type='INVALID_ORIGIN', ✅ Unknown inputs (Xyzzy→PUNE) correctly rejected with 400 error_type='INVALID_ORIGIN' and message 'not a valid station code', 3) AUTOCOMPLETE ENDPOINT (Station-First Dropdown): ✅ City search (q=Mumbai) returns MUMBAI_ALL first with label 'Mumbai (All Stations) ⭐' and type='city_all', followed by 9 individual stations, ✅ Station code search (q=CSMT) returns exact station match with type='station', ✅ Pune city search (q=Pune) returns PUNE_ALL first with '(All Stations) ⭐' label. ARCHITECTURE RULE COMPLIANCE: Station codes and _ALL tokens accepted, raw city names properly rejected, NO 500 errors for any input, autocomplete enforces dropdown selection. Station-first train search architecture is production-ready and fully compliant with contract requirements."
   test_requirements:
     - "Test VALID: GET /api/search/trains?origin=CSMT&destination=PUNE - should return success"
     - "Test VALID: GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE - should return success with 'Mumbai (All Stations)' as origin_city"
