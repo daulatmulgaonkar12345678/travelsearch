@@ -1,0 +1,233 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "Station and city aliases for intelligent search - handles old names, spelling variations, user habits",
+    "last_updated": "2025-01"
+  },
+  "station_aliases": [
+    {"alias": "new delhi", "resolves_to_station": "NDLS", "city": "Delhi"},
+    {"alias": "delhi", "resolves_to_city": "delhi"},
+    {"alias": "old delhi", "resolves_to_station": "DLI", "city": "Delhi"},
+    {"alias": "delhi junction", "resolves_to_station": "DLI", "city": "Delhi"},
+    {"alias": "nizamuddin", "resolves_to_station": "NZM", "city": "Delhi"},
+    {"alias": "h nizamuddin", "resolves_to_station": "NZM", "city": "Delhi"},
+    {"alias": "hazrat nizamuddin", "resolves_to_station": "NZM", "city": "Delhi"},
+    {"alias": "anand vihar", "resolves_to_station": "ANVT", "city": "Delhi"},
+    {"alias": "sarai rohilla", "resolves_to_station": "DEE", "city": "Delhi"},
+    
+    {"alias": "bombay", "resolves_to_city": "mumbai"},
+    {"alias": "mumbai", "resolves_to_city": "mumbai"},
+    {"alias": "vt", "resolves_to_station": "CSMT", "city": "Mumbai"},
+    {"alias": "victoria terminus", "resolves_to_station": "CSMT", "city": "Mumbai"},
+    {"alias": "cst", "resolves_to_station": "CSMT", "city": "Mumbai"},
+    {"alias": "mumbai cst", "resolves_to_station": "CSMT", "city": "Mumbai"},
+    {"alias": "mumbai central", "resolves_to_station": "BCT", "city": "Mumbai"},
+    {"alias": "bombay central", "resolves_to_station": "BCT", "city": "Mumbai"},
+    {"alias": "ltt", "resolves_to_station": "LTT", "city": "Mumbai"},
+    {"alias": "kurla", "resolves_to_station": "LTT", "city": "Mumbai"},
+    {"alias": "kurla terminus", "resolves_to_station": "LTT", "city": "Mumbai"},
+    {"alias": "dadar", "resolves_to_station": "DR", "city": "Mumbai"},
+    {"alias": "dadar central", "resolves_to_station": "DR", "city": "Mumbai"},
+    {"alias": "dadar western", "resolves_to_station": "DDR", "city": "Mumbai"},
+    {"alias": "bandra", "resolves_to_station": "BDTS", "city": "Mumbai"},
+    {"alias": "bandra terminus", "resolves_to_station": "BDTS", "city": "Mumbai"},
+    {"alias": "thane", "resolves_to_station": "TNA", "city": "Mumbai"},
+    {"alias": "kalyan", "resolves_to_station": "KYN", "city": "Mumbai"},
+    {"alias": "panvel", "resolves_to_station": "PNVL", "city": "Mumbai"},
+    
+    {"alias": "calcutta", "resolves_to_city": "kolkata"},
+    {"alias": "kolkata", "resolves_to_city": "kolkata"},
+    {"alias": "howrah", "resolves_to_station": "HWH", "city": "Kolkata"},
+    {"alias": "sealdah", "resolves_to_station": "SDAH", "city": "Kolkata"},
+    {"alias": "santragachi", "resolves_to_station": "SRC", "city": "Kolkata"},
+    {"alias": "kolkata terminal", "resolves_to_station": "KOAA", "city": "Kolkata"},
+    
+    {"alias": "madras", "resolves_to_city": "chennai"},
+    {"alias": "chennai", "resolves_to_city": "chennai"},
+    {"alias": "chennai central", "resolves_to_station": "MAS", "city": "Chennai"},
+    {"alias": "egmore", "resolves_to_station": "MS", "city": "Chennai"},
+    {"alias": "chennai egmore", "resolves_to_station": "MS", "city": "Chennai"},
+    {"alias": "tambaram", "resolves_to_station": "TBM", "city": "Chennai"},
+    {"alias": "chennai beach", "resolves_to_station": "MSB", "city": "Chennai"},
+    
+    {"alias": "bangalore", "resolves_to_city": "bengaluru"},
+    {"alias": "bengaluru", "resolves_to_city": "bengaluru"},
+    {"alias": "bangalore city", "resolves_to_station": "SBC", "city": "Bengaluru"},
+    {"alias": "ksr bangalore", "resolves_to_station": "SBC", "city": "Bengaluru"},
+    {"alias": "yesvantpur", "resolves_to_station": "YPR", "city": "Bengaluru"},
+    {"alias": "yeshwantpur", "resolves_to_station": "YPR", "city": "Bengaluru"},
+    {"alias": "cantonment", "resolves_to_station": "BNC", "city": "Bengaluru"},
+    {"alias": "banaswadi", "resolves_to_station": "BAND", "city": "Bengaluru"},
+    
+    {"alias": "secunderabad", "resolves_to_station": "SC", "city": "Hyderabad"},
+    {"alias": "hyderabad", "resolves_to_city": "hyderabad"},
+    {"alias": "nampally", "resolves_to_station": "HYB", "city": "Hyderabad"},
+    {"alias": "hyderabad deccan", "resolves_to_station": "HYB", "city": "Hyderabad"},
+    {"alias": "kachiguda", "resolves_to_station": "KCG", "city": "Hyderabad"},
+    {"alias": "lingampalli", "resolves_to_station": "LPI", "city": "Hyderabad"},
+    
+    {"alias": "pune", "resolves_to_city": "pune"},
+    {"alias": "poona", "resolves_to_city": "pune"},
+    {"alias": "pune junction", "resolves_to_station": "PUNE", "city": "Pune"},
+    {"alias": "shivaji nagar", "resolves_to_station": "SVJR", "city": "Pune"},
+    {"alias": "shivajinagar", "resolves_to_station": "SVJR", "city": "Pune"},
+    {"alias": "khadki", "resolves_to_station": "KJSR", "city": "Pune"},
+    
+    {"alias": "ahmedabad", "resolves_to_city": "ahmedabad"},
+    {"alias": "amdavad", "resolves_to_city": "ahmedabad"},
+    {"alias": "kalupur", "resolves_to_station": "ADI", "city": "Ahmedabad"},
+    {"alias": "sabarmati", "resolves_to_station": "SBIS", "city": "Ahmedabad"},
+    
+    {"alias": "jaipur", "resolves_to_city": "jaipur"},
+    {"alias": "pink city", "resolves_to_city": "jaipur"},
+    {"alias": "gandhi nagar jaipur", "resolves_to_station": "GDLS", "city": "Jaipur"},
+    
+    {"alias": "lucknow", "resolves_to_city": "lucknow"},
+    {"alias": "charbagh", "resolves_to_station": "LKO", "city": "Lucknow"},
+    {"alias": "lucknow nr", "resolves_to_station": "LKO", "city": "Lucknow"},
+    {"alias": "lucknow ner", "resolves_to_station": "LJN", "city": "Lucknow"},
+    
+    {"alias": "kanpur", "resolves_to_city": "kanpur"},
+    {"alias": "kanpur central", "resolves_to_station": "CNB", "city": "Kanpur"},
+    
+    {"alias": "varanasi", "resolves_to_city": "varanasi"},
+    {"alias": "banaras", "resolves_to_city": "varanasi"},
+    {"alias": "kashi", "resolves_to_city": "varanasi"},
+    {"alias": "benaras", "resolves_to_city": "varanasi"},
+    {"alias": "manduadih", "resolves_to_station": "BSBS", "city": "Varanasi"},
+    
+    {"alias": "allahabad", "resolves_to_city": "prayagraj"},
+    {"alias": "prayagraj", "resolves_to_city": "prayagraj"},
+    {"alias": "prayag", "resolves_to_city": "prayagraj"},
+    {"alias": "sangam", "resolves_to_station": "PRYJ", "city": "Prayagraj"},
+    
+    {"alias": "agra", "resolves_to_city": "agra"},
+    {"alias": "agra cantt", "resolves_to_station": "AGC", "city": "Agra"},
+    {"alias": "agra fort", "resolves_to_station": "AF", "city": "Agra"},
+    {"alias": "taj express", "resolves_to_station": "AGC", "city": "Agra"},
+    
+    {"alias": "patna", "resolves_to_city": "patna"},
+    {"alias": "patna junction", "resolves_to_station": "PNBE", "city": "Patna"},
+    {"alias": "rajendra nagar", "resolves_to_station": "RJPB", "city": "Patna"},
+    {"alias": "danapur", "resolves_to_station": "DNR", "city": "Patna"},
+    
+    {"alias": "bhopal", "resolves_to_city": "bhopal"},
+    {"alias": "habibganj", "resolves_to_station": "HBJ", "city": "Bhopal"},
+    {"alias": "rani kamalapati", "resolves_to_station": "HBJ", "city": "Bhopal"},
+    
+    {"alias": "nagpur", "resolves_to_city": "nagpur"},
+    {"alias": "itwari", "resolves_to_station": "ITA", "city": "Nagpur"},
+    {"alias": "ajni", "resolves_to_station": "AJNI", "city": "Nagpur"},
+    
+    {"alias": "trivandrum", "resolves_to_city": "thiruvananthapuram"},
+    {"alias": "tvm", "resolves_to_city": "thiruvananthapuram"},
+    {"alias": "trivandrum central", "resolves_to_station": "TVC", "city": "Thiruvananthapuram"},
+    
+    {"alias": "cochin", "resolves_to_city": "kochi"},
+    {"alias": "kochi", "resolves_to_city": "kochi"},
+    {"alias": "ernakulam", "resolves_to_station": "ERS", "city": "Kochi"},
+    {"alias": "ernakulam junction", "resolves_to_station": "ERS", "city": "Kochi"},
+    {"alias": "ernakulam town", "resolves_to_station": "ERN", "city": "Kochi"},
+    {"alias": "aluva", "resolves_to_station": "AWY", "city": "Kochi"},
+    
+    {"alias": "calicut", "resolves_to_city": "kozhikode"},
+    {"alias": "kozhikode", "resolves_to_city": "kozhikode"},
+    
+    {"alias": "palghat", "resolves_to_city": "palakkad"},
+    {"alias": "palakkad", "resolves_to_city": "palakkad"},
+    
+    {"alias": "goa", "resolves_to_city": "goa"},
+    {"alias": "madgaon", "resolves_to_station": "MAO", "city": "Goa"},
+    {"alias": "margao", "resolves_to_station": "MAO", "city": "Goa"},
+    {"alias": "vasco", "resolves_to_station": "VSG", "city": "Goa"},
+    {"alias": "karmali", "resolves_to_station": "KRMI", "city": "Goa"},
+    {"alias": "thivim", "resolves_to_station": "THVM", "city": "Goa"},
+    
+    {"alias": "guwahati", "resolves_to_city": "guwahati"},
+    {"alias": "gauhati", "resolves_to_city": "guwahati"},
+    {"alias": "kamakhya", "resolves_to_station": "KYQ", "city": "Guwahati"},
+    
+    {"alias": "siliguri", "resolves_to_city": "siliguri"},
+    {"alias": "njp", "resolves_to_station": "NJP", "city": "Siliguri"},
+    {"alias": "new jalpaiguri", "resolves_to_station": "NJP", "city": "Siliguri"},
+    
+    {"alias": "vizag", "resolves_to_city": "visakhapatnam"},
+    {"alias": "visakhapatnam", "resolves_to_city": "visakhapatnam"},
+    {"alias": "waltair", "resolves_to_station": "VSKP", "city": "Visakhapatnam"},
+    
+    {"alias": "vijayawada", "resolves_to_city": "vijayawada"},
+    {"alias": "bezwada", "resolves_to_city": "vijayawada"},
+    
+    {"alias": "tirupati", "resolves_to_city": "tirupati"},
+    {"alias": "tirumala", "resolves_to_city": "tirupati"},
+    
+    {"alias": "coimbatore", "resolves_to_city": "coimbatore"},
+    {"alias": "kovai", "resolves_to_city": "coimbatore"},
+    {"alias": "podanur", "resolves_to_station": "POY", "city": "Coimbatore"},
+    
+    {"alias": "madurai", "resolves_to_city": "madurai"},
+    
+    {"alias": "surat", "resolves_to_city": "surat"},
+    {"alias": "udhna", "resolves_to_station": "BRDR", "city": "Surat"},
+    
+    {"alias": "vadodara", "resolves_to_city": "vadodara"},
+    {"alias": "baroda", "resolves_to_city": "vadodara"},
+    
+    {"alias": "mysore", "resolves_to_city": "mysuru"},
+    {"alias": "mysuru", "resolves_to_city": "mysuru"},
+    
+    {"alias": "mangalore", "resolves_to_city": "mangaluru"},
+    {"alias": "mangaluru", "resolves_to_city": "mangaluru"},
+    {"alias": "mangalore central", "resolves_to_station": "MQ", "city": "Mangaluru"},
+    {"alias": "mangalore junction", "resolves_to_station": "MAJN", "city": "Mangaluru"},
+    
+    {"alias": "bhubaneswar", "resolves_to_city": "bhubaneswar"},
+    {"alias": "bbsr", "resolves_to_city": "bhubaneswar"},
+    
+    {"alias": "raipur", "resolves_to_city": "raipur"},
+    
+    {"alias": "jamshedpur", "resolves_to_city": "jamshedpur"},
+    {"alias": "tatanagar", "resolves_to_station": "TATA", "city": "Jamshedpur"},
+    {"alias": "tata", "resolves_to_station": "TATA", "city": "Jamshedpur"},
+    
+    {"alias": "ranchi", "resolves_to_city": "ranchi"},
+    {"alias": "hatia", "resolves_to_station": "HTE", "city": "Ranchi"},
+    
+    {"alias": "amritsar", "resolves_to_city": "amritsar"},
+    {"alias": "golden temple", "resolves_to_station": "AGTL", "city": "Amritsar"},
+    
+    {"alias": "chandigarh", "resolves_to_city": "chandigarh"},
+    
+    {"alias": "jammu", "resolves_to_city": "jammu"},
+    {"alias": "jammu tawi", "resolves_to_station": "JAM", "city": "Jammu"},
+    
+    {"alias": "dehradun", "resolves_to_city": "dehradun"},
+    {"alias": "doon", "resolves_to_city": "dehradun"},
+    
+    {"alias": "haridwar", "resolves_to_city": "haridwar"},
+    {"alias": "hardwar", "resolves_to_city": "haridwar"},
+    
+    {"alias": "gorakhpur", "resolves_to_city": "gorakhpur"},
+    
+    {"alias": "aurangabad", "resolves_to_city": "aurangabad"},
+    {"alias": "sambhaji nagar", "resolves_to_city": "aurangabad"},
+    {"alias": "chhatrapati sambhaji nagar", "resolves_to_city": "aurangabad"},
+    
+    {"alias": "nasik", "resolves_to_city": "nashik"},
+    {"alias": "nashik", "resolves_to_city": "nashik"},
+    {"alias": "nashik road", "resolves_to_station": "NK", "city": "Nashik"},
+    
+    {"alias": "kolhapur", "resolves_to_city": "kolhapur"},
+    
+    {"alias": "solapur", "resolves_to_city": "solapur"},
+    {"alias": "sholapur", "resolves_to_city": "solapur"},
+    
+    {"alias": "jodhpur", "resolves_to_city": "jodhpur"},
+    {"alias": "blue city", "resolves_to_city": "jodhpur"},
+    
+    {"alias": "udaipur", "resolves_to_city": "udaipur"},
+    {"alias": "city of lakes", "resolves_to_city": "udaipur"},
+    
+    {"alias": "ajmer", "resolves_to_city": "ajmer"}
+  ]
+}
