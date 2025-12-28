@@ -1,8 +1,9 @@
 """
-Route Stops API - Likely Stops on Route Feature
-================================================
+Route Stops API - Enhanced Likely Stops on Route Feature
+=========================================================
 
 Provides indicative intermediate stops for bus routes.
+Separates stops into MAJOR (always shown) and MINOR (expandable).
 
 IMPORTANT DISCLAIMER:
 - These are INDICATIVE stops based on geographic corridors
@@ -10,8 +11,9 @@ IMPORTANT DISCLAIMER:
 - Actual routes may vary by service type
 
 API Endpoints:
-- GET /api/routes/stops?from_city_id=X&to_city_id=Y
-- GET /api/routes/stops/by-name?from_city=pune&to_city=kolhapur
+- GET /api/routes/stops - Get stops with MAJOR/MINOR separation
+- GET /api/routes/summary - Get compact route summary
+- GET /api/routes/corridors - List all supported corridors
 """
 
 from fastapi import APIRouter, HTTPException, Query
@@ -19,10 +21,11 @@ from typing import Optional, List
 from pydantic import BaseModel
 import logging
 
-from app.services.route_corridors import (
-    get_likely_stops_on_route,
-    get_likely_stops_by_city_names,
-    get_route_summary,
+from app.services.corridor_resolver import (
+    get_likely_stops_enhanced,
+    get_likely_stops_by_name_enhanced,
+    get_resolver,
+    get_city_name,
     get_city_id_by_name,
 )
 
@@ -35,37 +38,45 @@ router = APIRouter()
 # Response Models
 # ============================================================
 
-class StopInfo(BaseModel):
-    """Information about a stop on the route."""
-    stop_id: int
-    stop_name: str  # Marathi name
-    stop_name_en: str  # English approximation
-    city: str  # City/district name
-    city_local: str  # City name in Marathi
-    district_id: int
-    is_major: bool
+class StopDetail(BaseModel):
+    """Detailed information about a stop."""
+    stop_key: str
+    stop_name: str
+    city_id: int
+    city_name: str
+    importance: str  # MAJOR or MINOR
+    km_from_origin: int
 
 
 class LikelyStopsResponse(BaseModel):
-    """Response for likely stops on route."""
+    """Response for likely stops on route with MAJOR/MINOR separation."""
     from_city: str
     to_city: str
-    likely_stops: List[str]  # Simplified list for frontend display
-    detailed_stops: List[StopInfo]  # Detailed info if needed
+    major_stops: List[str]  # Always shown - main ST stands
+    minor_stops: List[str]  # Shown on expand - smaller stops
+    all_stops: List[StopDetail]  # Full details for advanced UI
     corridor_name: Optional[str] = None
     highway: Optional[str] = None
-    stop_count: int
+    source: str  # "corridor" or "no_corridor"
     note: str
-    source: str  # "corridor" or "direct"
 
 
 class RouteSummaryResponse(BaseModel):
-    """Compact route summary for display."""
-    via: List[str]  # List of city names
+    """Compact route summary for inline display."""
+    via: List[str]  # Major stops only
     via_text: str  # "Satara → Karad → Sangli" or "Direct"
     corridor: Optional[str] = None
     highway: Optional[str] = None
-    stop_count: int
+    has_minor_stops: bool  # Indicates if expandable stops exist
+    minor_count: int
+
+
+class CorridorInfo(BaseModel):
+    """Information about a highway corridor."""
+    id: str
+    name: str
+    highway: str
+    description: Optional[str] = None
 
 
 # ============================================================
@@ -73,45 +84,43 @@ class RouteSummaryResponse(BaseModel):
 # ============================================================
 
 @router.get("/routes/stops", response_model=LikelyStopsResponse, tags=["routes"])
-async def get_likely_stops(
+async def get_route_stops(
     from_city_id: Optional[int] = Query(None, description="Origin city/district ID"),
     to_city_id: Optional[int] = Query(None, description="Destination city/district ID"),
     from_city: Optional[str] = Query(None, description="Origin city name (English)"),
     to_city: Optional[str] = Query(None, description="Destination city name (English)"),
-    max_stops: int = Query(10, ge=1, le=20, description="Maximum stops to return"),
 ):
     """
     Get likely intermediate stops for a bus route.
+    
+    **Separates stops by importance:**
+    - **MAJOR stops**: Main ST stands and depots - always shown
+    - **MINOR stops**: Smaller stops and phatas - shown on user expand
     
     You can specify either:
     - from_city_id & to_city_id (numeric IDs)
     - from_city & to_city (city names in English)
     
-    **Important:** These stops are INDICATIVE based on common MSRTC routes.
-    Actual stops may vary by service type. Please verify with MSRTC official timetable.
-    
-    Example response:
+    **Example - Mumbai to Ratnagiri:**
     ```json
     {
-      "from_city": "Pune",
-      "to_city": "Kolhapur",
-      "likely_stops": [
-        "Satara ST Stand",
-        "Karad ST Stand",
-        "Sangli ST Stand"
-      ],
+      "major_stops": ["Panvel", "Mahad", "Chiplun", "Ratnagiri"],
+      "minor_stops": ["Pen", "Roha", "Khed", "Kashil", "Sangmeshwar"],
+      "corridor_name": "Mumbai-Goa Konkan Highway",
+      "highway": "NH66",
       "note": "Stops are indicative and may vary by service."
     }
     ```
+    
+    **Important:** These stops are INDICATIVE based on common MSRTC routes.
+    Actual stops may vary by service type.
     """
     try:
         # Determine which method to use
         if from_city_id is not None and to_city_id is not None:
-            # Use IDs
-            result = get_likely_stops_on_route(from_city_id, to_city_id, max_stops)
+            result = get_likely_stops_enhanced(from_city_id, to_city_id)
         elif from_city and to_city:
-            # Use city names
-            result = get_likely_stops_by_city_names(from_city, to_city, max_stops)
+            result = get_likely_stops_by_name_enhanced(from_city, to_city)
         else:
             raise HTTPException(
                 status_code=400,
@@ -122,62 +131,62 @@ async def get_likely_stops(
         if "error" in result:
             raise HTTPException(status_code=404, detail=result["error"])
         
-        # Build response
         return LikelyStopsResponse(
             from_city=result["from_city"],
             to_city=result["to_city"],
-            likely_stops=[f"{s['city']} ST Stand" for s in result["stops"]],
-            detailed_stops=[
-                StopInfo(
-                    stop_id=s["stop_id"],
+            major_stops=result["major_stops"],
+            minor_stops=result["minor_stops"],
+            all_stops=[
+                StopDetail(
+                    stop_key=s["stop_key"],
                     stop_name=s["stop_name"],
-                    stop_name_en=s["stop_name_en"],
-                    city=s["city"],
-                    city_local=s["city_local"],
-                    district_id=s["district_id"],
-                    is_major=s["is_major"],
+                    city_id=s["city_id"],
+                    city_name=s["city_name"],
+                    importance=s["importance"],
+                    km_from_origin=s["km_from_origin"],
                 )
-                for s in result["stops"]
+                for s in result.get("all_stops", [])
             ],
             corridor_name=result.get("corridor_name"),
             highway=result.get("highway"),
-            stop_count=result["stop_count"],
-            note="Stops are indicative and may vary by service.",
-            source=result["source"],
+            source=result.get("source", "unknown"),
+            note=result.get("note", "Stops are indicative and may vary by service."),
         )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting likely stops: {e}")
+        logger.error(f"Error getting route stops: {e}")
         raise HTTPException(status_code=500, detail="Failed to get route stops")
 
 
 @router.get("/routes/summary", response_model=RouteSummaryResponse, tags=["routes"])
-async def get_route_summary_api(
+async def get_route_summary(
     from_city_id: Optional[int] = Query(None, description="Origin city/district ID"),
     to_city_id: Optional[int] = Query(None, description="Destination city/district ID"),
     from_city: Optional[str] = Query(None, description="Origin city name (English)"),
     to_city: Optional[str] = Query(None, description="Destination city name (English)"),
 ):
     """
-    Get a compact route summary showing via cities.
+    Get a compact route summary showing major via cities.
     
-    Returns a simplified summary suitable for display in bus cards.
+    Returns a simplified summary suitable for inline display in bus cards.
+    Also indicates if minor (expandable) stops are available.
     
-    Example response:
+    **Example response:**
     ```json
     {
       "via": ["Satara", "Karad", "Sangli"],
       "via_text": "Satara → Karad → Sangli",
       "corridor": "Pune-Kolhapur Highway",
       "highway": "NH48",
-      "stop_count": 3
+      "has_minor_stops": true,
+      "minor_count": 4
     }
     ```
     """
     try:
-        # Resolve city IDs if names provided
+        # Resolve city IDs
         resolved_from_id = from_city_id
         resolved_to_id = to_city_id
         
@@ -197,14 +206,18 @@ async def get_route_summary_api(
                 detail="Provide either (from_city_id, to_city_id) or (from_city, to_city)"
             )
         
-        result = get_route_summary(resolved_from_id, resolved_to_id)
+        result = get_likely_stops_enhanced(resolved_from_id, resolved_to_id)
+        
+        major_stops = result.get("major_stops", [])
+        minor_stops = result.get("minor_stops", [])
         
         return RouteSummaryResponse(
-            via=result["via"],
-            via_text=result["via_text"],
-            corridor=result.get("corridor"),
+            via=major_stops,
+            via_text=" → ".join(major_stops) if major_stops else "Direct",
+            corridor=result.get("corridor_name"),
             highway=result.get("highway"),
-            stop_count=result["stop_count"],
+            has_minor_stops=len(minor_stops) > 0,
+            minor_count=len(minor_stops),
         )
         
     except HTTPException:
@@ -220,18 +233,27 @@ async def list_corridors():
     List all supported highway corridors in Maharashtra.
     
     These corridors are used to determine intermediate stops.
+    Each corridor includes MAJOR and MINOR stops in geographic sequence.
     """
-    from app.services.route_corridors import CORRIDORS
+    resolver = get_resolver()
+    
+    corridors_info = []
+    for corridor_id, corridor in resolver.corridors.items():
+        major_count = len([s for s in corridor.get("stops_sequence", []) if s["importance"] == "MAJOR"])
+        minor_count = len([s for s in corridor.get("stops_sequence", []) if s["importance"] == "MINOR"])
+        
+        corridors_info.append({
+            "id": corridor_id,
+            "name": corridor.get("name"),
+            "highway": corridor.get("highway"),
+            "description": corridor.get("description"),
+            "major_stops_count": major_count,
+            "minor_stops_count": minor_count,
+            "total_stops": major_count + minor_count,
+        })
     
     return {
-        "corridors": [
-            {
-                "id": corridor_id,
-                "name": corridor["name"],
-                "highway": corridor["highway"],
-                "major_stops": corridor.get("major_stops", []),
-            }
-            for corridor_id, corridor in CORRIDORS.items()
-        ],
-        "total": len(CORRIDORS),
+        "corridors": corridors_info,
+        "total": len(corridors_info),
+        "disclaimer": "Stop sequences are indicative based on highway geography. Actual bus routes may vary."
     }
