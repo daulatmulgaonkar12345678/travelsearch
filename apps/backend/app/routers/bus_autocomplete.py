@@ -335,7 +335,7 @@ def search_tourist_destinations(query: str, limit: int = 10) -> List[Dict]:
                     "operator": None,
                     "is_search_surface": True,
                     "is_tourist": True,
-                    "destination_type": dest_type,
+                    "destination_type": dest_type,  # Include destination type
                     "description": dest.get("description"),
                     "score": score,
                 })
