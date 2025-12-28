@@ -1039,10 +1039,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           
           const getDisabledReason = () => {
             if (searchType === 'trains') {
-              if (!trainOriginValid && !trainDestinationValid) return 'Select origin and destination cities'
-              if (!trainOriginValid) return 'Select origin city from the list'
-              if (!trainDestinationValid) return 'Select destination city from the list'
-              if (trainOriginLocation?.city_id === trainDestinationLocation?.city_id) return 'Origin and destination cannot be the same'
+              if (!trainOriginValid && !trainDestinationValid) return 'Select origin and destination stations'
+              if (!trainOriginValid) return 'Select origin station from the list'
+              if (!trainDestinationValid) return 'Select destination station from the list'
+              if (trainOrigin?.value === trainDestination?.value) return 'Origin and destination cannot be the same'
             }
             if (searchType === 'buses') {
               if (!busOriginValid && !busDestinationValid) return 'Select origin and destination from dropdown'
