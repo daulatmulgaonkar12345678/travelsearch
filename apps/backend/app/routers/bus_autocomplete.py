@@ -375,6 +375,13 @@ async def bus_autocomplete(
         logger.info(f"[BUS_AUTO] query=\"{query}\" mh_cities={len(mh_cities)}")
         
         # ============================================================
+        # STEP 2.5: Search Tourist Destinations (Feeder Routes)
+        # ============================================================
+        tourist_results = search_tourist_destinations(query)
+        all_results.extend(tourist_results)
+        logger.info(f"[BUS_AUTO] query=\"{query}\" tourist_dest={len(tourist_results)}")
+        
+        # ============================================================
         # STEP 3: If no MH results, search other states (FALLBACK)
         # ============================================================
         if len(all_results) == 0:
