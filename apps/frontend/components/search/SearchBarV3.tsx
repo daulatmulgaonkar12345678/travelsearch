@@ -137,7 +137,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [includeNearbyDestination, setIncludeNearbyDestination] = useState(false)
   
   // Hotels state
-  const [city, setCity] = useState('')
+  const [selectedHotelCity, setSelectedHotelCity] = useState<HotelCity | null>(null)
   const [checkIn, setCheckIn] = useState(getTodayDate())
   const [checkOut, setCheckOut] = useState(getTomorrowDate())
   const [hotelRooms, setHotelRooms] = useState<EnhancedHotelRoomData>({
