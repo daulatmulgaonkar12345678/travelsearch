@@ -194,15 +194,15 @@ class TrainConnectivityTester:
                 )
                 return False
             
-            # Path should contain hub nodes
+            # Path should contain hub nodes (either type="HUB" or is_hub=true)
             path = data.get("path", [])
-            hub_nodes = [node for node in path if node.get("type") == "HUB"]
+            hub_nodes = [node for node in path if node.get("type") == "HUB" or node.get("is_hub") == True]
             
-            if not hub_nodes:
+            if len(hub_nodes) < 2:  # Should have at least origin/destination hubs
                 self.log_result(
                     "Hub-Based Route Delhi→Bangalore",
                     False,
-                    "Expected at least one HUB node in path",
+                    f"Expected at least 2 hub nodes in path, found {len(hub_nodes)}",
                     data
                 )
                 return False
