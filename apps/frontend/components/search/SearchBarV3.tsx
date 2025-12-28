@@ -1064,10 +1064,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         {/* Search Button with validation */}
         {(() => {
           // Determine button state based on mode
+          const hotelValid = city && city.trim().length >= 2
+          
           const isDisabled = 
             (searchType === 'flights' && (!originValid || !destinationValid)) ||
             (searchType === 'trains' && !trainSearchEnabled) ||
-            (searchType === 'buses' && !busSearchEnabled)
+            (searchType === 'buses' && !busSearchEnabled) ||
+            (searchType === 'hotels' && !hotelValid)
           
           const getDisabledReason = () => {
             if (searchType === 'trains') {
@@ -1084,6 +1087,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             }
             if (searchType === 'flights') {
               if (!originValid || !destinationValid) return 'Select valid airports from the list'
+            }
+            if (searchType === 'hotels') {
+              if (!hotelValid) return 'Enter a city or hotel name'
             }
             return null
           }
