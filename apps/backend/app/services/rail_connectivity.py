@@ -513,11 +513,8 @@ def resolve_connectivity(from_input: str, to_input: str) -> ConnectivityResult:
         
         # Add context to note
         if from_type == "city" or to_type == "city":
-            origin_name = _get_location_display_name(from_input, from_type, from_stations)
-            dest_name = _get_location_display_name(to_input, to_type, to_stations)
-            
             if len(from_stations) > 1 or len(to_stations) > 1:
-                best_result.note += f" Multiple station options available."
+                best_result.note += " Multiple station options available."
         
         return best_result
     
