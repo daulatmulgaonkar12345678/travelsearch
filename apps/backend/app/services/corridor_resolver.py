@@ -242,8 +242,11 @@ class CorridorResolver:
         
         corridor = self.corridors.get(corridor_id, {})
         
-        # Extract segment
-        segment, is_reversed = self.extract_segment(corridor_id, from_city_id, to_city_id)
+        # Extract segment (using stop_keys for precision)
+        segment, is_reversed = self.extract_segment(
+            corridor_id, from_city_id, to_city_id,
+            from_stop_key, to_stop_key
+        )
         
         # Separate by importance, excluding endpoints if requested
         major_stops = []
