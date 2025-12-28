@@ -148,7 +148,7 @@ export default function HotelCityPageTemplate({
               Hotel availability and prices are provided by third-party partners. Compare options across multiple booking platforms.
             </p>
             <Link
-              href={searchUrl}
+              href={prefillUrl}
               className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Compare Hotel Prices
