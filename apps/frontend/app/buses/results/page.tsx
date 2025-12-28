@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import BusCard from '@/components/results/BusCard'
-import { Loader2, Bus, ArrowLeft, AlertCircle, Filter, SlidersHorizontal } from 'lucide-react'
+import { Loader2, Bus, ArrowLeft, AlertCircle, Filter, SlidersHorizontal, Clock, Route, MapPin } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { addRecentSearch, updateRecentSearchPrice } from '@/lib/unifiedRecentSearchStore'
 
@@ -80,6 +80,40 @@ const TIME_SLOTS = [
   { value: 'afternoon', label: 'Afternoon (12:00-18:00)', min: 12, max: 18 },
   { value: 'evening', label: 'Evening (18:00-24:00)', min: 18, max: 24 },
 ]
+
+// 5️⃣ Helper to format city name - extracts main city and station separately
+const formatRouteCity = (cityName: string, stationName?: string): { main: string; station: string | null } => {
+  // Common station suffixes to extract
+  const suffixes = ['Swargate', 'CBS', 'Central', 'Junction', 'Bus Stand', 'Bus Station', 'Depot', 'Terminal']
+  
+  let main = cityName
+  let station: string | null = null
+  
+  // Check if city name contains a station suffix
+  for (const suffix of suffixes) {
+    if (cityName.toLowerCase().includes(suffix.toLowerCase())) {
+      // Extract just the city name
+      const parts = cityName.split(/\s+/)
+      const suffixIndex = parts.findIndex(p => p.toLowerCase().includes(suffix.toLowerCase().split(' ')[0]))
+      if (suffixIndex > 0) {
+        main = parts.slice(0, suffixIndex).join(' ')
+        station = parts.slice(suffixIndex).join(' ')
+      }
+      break
+    }
+  }
+  
+  // If station name provided separately and different from city
+  if (stationName && stationName !== cityName && !station) {
+    // Extract station identifier from station name
+    const stationParts = stationName.split(/[()]/)[1] || stationName.split(' ').pop()
+    if (stationParts && stationParts !== main) {
+      station = stationParts
+    }
+  }
+  
+  return { main, station }
+}
 
 function BusResultsContent() {
   const searchParams = useSearchParams()
@@ -274,6 +308,18 @@ function BusResultsContent() {
       max: Math.max(acc.max, o.avg_price),
     }), { min: Infinity, max: 0 }) || { min: 0, max: 5000 }
   
+  // 5️⃣ Format route header with station in parentheses
+  const originCity = results?.origin_city || origin
+  const destCity = results?.destination_city || destination
+  const originFormatted = formatRouteCity(originCity)
+  const destFormatted = formatRouteCity(destCity)
+  
+  // Check if results are estimated (state network or fallback with offers)
+  const hasEstimatedResults = results && (
+    results.is_fallback || 
+    results.offers.some(o => o.provider === 'state_network' || o.operator_name === 'Multiple Operators')
+  )
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -291,15 +337,27 @@ function BusResultsContent() {
           
           <div className="flex items-center justify-between">
             <div>
+              {/* 5️⃣ Improved Route Header */}
               <div className="flex items-center gap-3 mb-2">
                 <Bus className="h-6 w-6 text-orange-600" />
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Buses from {results?.origin_city || origin} to {results?.destination_city || destination}
+                  Buses from {originFormatted.main} → {destFormatted.main}
+                  {(originFormatted.station || destFormatted.station) && (
+                    <span className="text-lg font-normal text-gray-500 ml-2">
+                      {originFormatted.station && `(${originFormatted.station})`}
+                      {originFormatted.station && destFormatted.station && ' to '}
+                      {destFormatted.station && `(${destFormatted.station})`}
+                    </span>
+                  )}
                 </h1>
               </div>
-              <p className="text-gray-600">
-                {formatDate(departureDate)} • {passengers} passenger{parseInt(passengers) > 1 ? 's' : ''}
-              </p>
+              <div className="flex items-center gap-3 text-gray-600">
+                <span>{formatDate(departureDate)} • {passengers} passenger{parseInt(passengers) > 1 ? 's' : ''}</span>
+                {/* 5️⃣ Subject to availability note */}
+                {hasEstimatedResults && (
+                  <span className="text-xs text-gray-400">• Subject to service availability</span>
+                )}
+              </div>
             </div>
             
             {/* Filter toggle button */}
@@ -481,21 +539,42 @@ function BusResultsContent() {
         {/* Results */}
         {!loading && !error && results && (
           <>
-            {/* Fallback Notice */}
-            {results.is_fallback && results.fallback_message && (
-              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800">{results.fallback_message}</p>
+            {/* 4️⃣ Improved Fallback Notice - Confidence-based */}
+            {results.is_fallback && results.offers.length > 0 && (
+              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Bus className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900 mb-1">Buses are available on this route</p>
+                    <p className="text-sm text-gray-600">
+                      Live schedules may vary by operator and date. We've shown typical timings and fares based on common services.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
             
-            {/* Results Count */}
-            <p className="text-sm text-gray-600 mb-4">
-              {filteredOffers.filter(o => !o.is_fallback).length} bus{filteredOffers.filter(o => !o.is_fallback).length !== 1 ? 'es' : ''} found
-              {results.distance_km && ` • ${results.distance_km} km`}
-              {hasActiveFilters && results.offers.length !== filteredOffers.length && (
-                <span className="text-orange-600"> (filtered from {results.offers.length})</span>
-              )}
-            </p>
+            {/* 6️⃣ Visual Trust Indicators - Summary Stats */}
+            {filteredOffers.filter(o => !o.is_fallback).length > 0 && (
+              <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5">
+                  🚌 {filteredOffers.filter(o => !o.is_fallback).length} bus{filteredOffers.filter(o => !o.is_fallback).length !== 1 ? 'es' : ''} found
+                </span>
+                {results.distance_km && (
+                  <span className="flex items-center gap-1.5">
+                    📏 Approx. {results.distance_km} km
+                  </span>
+                )}
+                {filteredOffers.filter(o => !o.is_fallback).length > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    💰 From ₹{Math.min(...filteredOffers.filter(o => !o.is_fallback).map(o => Math.round(o.avg_price))).toLocaleString('en-IN')}
+                  </span>
+                )}
+                {hasActiveFilters && results.offers.length !== filteredOffers.length && (
+                  <span className="text-orange-600">(filtered from {results.offers.length})</span>
+                )}
+              </div>
+            )}
             
             {/* No results after filter */}
             {filteredOffers.length === 0 && hasActiveFilters && (
