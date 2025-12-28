@@ -405,7 +405,7 @@ async def get_available_routes():
     Useful for suggesting routes or showing coverage.
     """
     from app.data.train_routes import TRAIN_ROUTES
-    from app.services.train_search import get_city_name
+    from app.services.train_search import get_city_name_for_station
     
     routes = []
     for route_key in TRAIN_ROUTES.keys():
@@ -415,9 +415,9 @@ async def get_available_routes():
             routes.append({
                 "route_key": route_key,
                 "origin_code": origin,
-                "origin_city": get_city_name(origin),
+                "origin_city": get_city_name_for_station(origin),
                 "destination_code": dest,
-                "destination_city": get_city_name(dest),
+                "destination_city": get_city_name_for_station(dest),
                 "trains_count": len(TRAIN_ROUTES[route_key]),
             })
     
