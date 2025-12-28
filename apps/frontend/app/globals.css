@@ -83,4 +83,156 @@
   .active\:scale-98:active {
     transform: scale(0.98);
   }
+
+  /* ============================================ */
+  /* Search Input Focus Animation */
+  /* ============================================ */
+  .search-input-animated {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .search-input-animated:focus {
+    transform: scale(1.01);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  /* ============================================ */
+  /* Dropdown Animations */
+  /* ============================================ */
+  @keyframes dropdownOpen {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dropdownClose {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  .animate-dropdown-open {
+    animation: dropdownOpen 200ms ease-out forwards;
+  }
+
+  .animate-dropdown-close {
+    animation: dropdownClose 150ms ease-in forwards;
+  }
+
+  /* ============================================ */
+  /* Result Card Animations */
+  /* ============================================ */
+  @keyframes cardSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-card-in {
+    animation: cardSlideIn 250ms ease-out forwards;
+  }
+
+  /* Stagger delays for result cards */
+  .animate-stagger-1 { animation-delay: 0ms; }
+  .animate-stagger-2 { animation-delay: 50ms; }
+  .animate-stagger-3 { animation-delay: 100ms; }
+  .animate-stagger-4 { animation-delay: 150ms; }
+  .animate-stagger-5 { animation-delay: 200ms; }
+  .animate-stagger-6 { animation-delay: 250ms; }
+  .animate-stagger-7 { animation-delay: 300ms; }
+  .animate-stagger-8 { animation-delay: 350ms; }
+
+  /* ============================================ */
+  /* Tab Switching Animation */
+  /* ============================================ */
+  @keyframes tabIndicatorSlide {
+    from {
+      opacity: 0.5;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes tabContentFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-tab-indicator {
+    animation: tabIndicatorSlide 200ms ease-out;
+  }
+
+  .animate-tab-content {
+    animation: tabContentFadeIn 200ms ease-out;
+  }
+
+  /* ============================================ */
+  /* Empty/Info State Animation */
+  /* ============================================ */
+  @keyframes subtlePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes infoFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-icon-pulse {
+    animation: subtlePulse 2s ease-in-out infinite;
+  }
+
+  .animate-info-in {
+    animation: infoFadeIn 300ms ease-out;
+  }
+
+  /* ============================================ */
+  /* Selection Highlight */
+  /* ============================================ */
+  @keyframes selectionHighlight {
+    0% {
+      background-color: rgba(59, 130, 246, 0.2);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  .animate-selection {
+    animation: selectionHighlight 300ms ease-out;
+  }
 }
+
