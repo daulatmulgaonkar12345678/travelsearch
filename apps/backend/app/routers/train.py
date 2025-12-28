@@ -20,8 +20,8 @@ router = APIRouter()
 
 @router.get("/search/trains")
 async def search_trains_endpoint(
-    origin: str = Query(..., description="Origin station code, city name, or alias (e.g., 'Pune', 'Bombay', 'CSMT')"),
-    destination: str = Query(..., description="Destination station code, city name, or alias"),
+    origin: str = Query(..., description="Station code (CSMT, PUNE) or ALL token (MUMBAI_ALL)"),
+    destination: str = Query(..., description="Station code or ALL token"),
     departure_date: str = Query(..., description="Departure date (YYYY-MM-DD)"),
     
     # Optional filters
@@ -30,31 +30,27 @@ async def search_trains_endpoint(
     passengers: int = Query(1, ge=1, le=6, description="Number of passengers"),
 ) -> Dict[str, Any]:
     """
-    Search for trains between two locations.
+    Search for trains between two stations.
     
-    **DEFENSIVE BACKEND**:
-    - Accepts ANY input: city names, aliases (Bombay, Calcutta), or station codes
-    - Internally resolves to station codes and expands cities to all their stations
-    - Returns city-level abstraction, not raw station-pair explosions
-    - Invalid inputs return structured error with suggestions (never 500)
+    🔴 **STATION-FIRST CONTRACT** (STRICT):
     
-    **Data Source**: Static Indian Railways public timetable data.
+    **Valid inputs:**
+    - Station codes: `CSMT`, `PUNE`, `NDLS`
+    - ALL tokens: `MUMBAI_ALL`, `PUNE_ALL`, `DELHI_ALL`
     
-    **Important**:
-    - All fares shown are AVERAGE/ESTIMATED based on distance
-    - Actual prices depend on class, quota, and availability
-    - This is a metasearch - click through to booking partners for live availability
+    **Invalid inputs (will be REJECTED):**
+    - Raw city names: `Mumbai`, `Pune`, `Delhi`
+    - Free text not matching station codes
     
-    **Returns**:
-    - List of trains with schedules and average fares, OR
-    - A fallback redirect card if route not in database
-    - Structured error with suggestions for invalid inputs
-    - Never returns empty results or 500 for bad user input
+    **Examples:**
+    - ✅ `origin=CSMT&destination=PUNE`
+    - ✅ `origin=MUMBAI_ALL&destination=PUNE`
+    - ❌ `origin=Mumbai&destination=Pune` (REJECTED)
     
-    **Booking Partners** (in priority order):
-    1. IRCTC (Official)
-    2. ixigo Trains
-    3. Paytm Trains
+    **Frontend must:**
+    - Show dropdown with stations and "City (All Stations)" options
+    - Never allow free text submission
+    - Disable search until valid selection made
     """
     try:
         # ============================================================
