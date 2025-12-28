@@ -8,6 +8,33 @@ test_sequence: 14
 run_ui: true
 ```
 
+## Current Focus: Fix /search/trains Endpoint (P0)
+
+- task: "Fix /search/trains Endpoint - Defensive Backend with City Resolution"
+  implemented: true
+  working: true
+  file: "/app/apps/backend/app/routers/train.py, /app/apps/backend/app/services/train_search.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented defensive /search/trains endpoint with: 1) Alias normalization (Bombay→Mumbai, Calcutta→Kolkata), 2) City-to-station expansion (Mumbai→[CSMT, BCT, LTT...]), 3) Input validation with graceful errors and suggestions, 4) City-level response abstraction, 5) TrainSearchError custom exception for structured error handling."
+  test_requirements:
+    - "Test GET /api/search/trains?origin=Pune&destination=Mumbai - should return status='success', route.origin_city='Pune', route.destination_city='Mumbai'"
+    - "Test GET /api/search/trains?origin=Bombay&destination=Pune - should resolve 'Bombay' alias to 'Mumbai' city, return multiple train results"
+    - "Test GET /api/search/trains?origin=CSMT&destination=PUNE - should work with station codes, return route.origin_city='Mumbai', route.destination_city='Pune'"
+    - "Test GET /api/search/trains?origin=Punex&destination=Mumbai - should return 400 with error_type='INVALID_ORIGIN', suggestions should include 'Pune' as first suggestion"
+    - "Test GET /api/search/trains?origin=Pune&destination=Xyzzy - should return 400 with error_type='INVALID_DESTINATION', include city suggestions"
+    - "Test GET /api/search/trains?origin=Pune&destination=Pune - should return 400 with error_type='SAME_ORIGIN_DESTINATION'"
+    - "Test past date validation - should return 400 with error_type='DATE_IN_PAST'"
+    - "Test future date >120 days - should return 400 with error_type='DATE_TOO_FAR'"
+    - "Verify response includes 'status': 'success' for valid searches"
+    - "Verify offers include train_name, train_number, departure_time, arrival_time, avg_price, booking_partners"
+    - "Verify fallback response has is_fallback=true with booking partner links"
+    - "Verify NO 500 errors for any invalid user input"
+
 ## Current Focus: Railway Station Database & City-First Search Model
 
 - task: "Railway Station Database & City-First Search Model Validation"
