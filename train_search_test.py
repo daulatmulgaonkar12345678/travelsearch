@@ -313,12 +313,15 @@ class TrainSearchTester:
             
             data = response.json()
             
+            # Handle FastAPI HTTPException format (error details in 'detail' field)
+            error_data = data.get("detail", data)
+            
             # Check error structure
-            if data.get("status") != "error":
+            if error_data.get("status") != "error":
                 self.log_result(
                     "Invalid Origin (Punex)",
                     False,
-                    f"Expected status='error', got {data.get('status')}",
+                    f"Expected status='error', got {error_data.get('status')}",
                     data
                 )
                 return False
