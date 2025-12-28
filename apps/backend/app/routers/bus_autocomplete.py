@@ -271,6 +271,83 @@ def search_mh_cities(query: str, limit: int = 10) -> List[Dict]:
     return results[:limit]
 
 
+def search_tourist_destinations(query: str, limit: int = 10) -> List[Dict]:
+    """
+    Search tourist destinations (hill stations, temples, heritage sites).
+    
+    These destinations are accessible via feeder routes.
+    """
+    results = []
+    query_lower = normalize_query(query)
+    
+    if len(query_lower) < 2:
+        return []
+    
+    try:
+        from app.services.feeder_resolver import get_feeder_resolver
+        resolver = get_feeder_resolver()
+        
+        for dest_id, dest in resolver.destinations.items():
+            name_en = dest.get("name_en", "")
+            name_local = dest.get("name_local", "")
+            
+            # Check if query matches
+            if (query_lower in name_en.lower() or 
+                query_lower in dest_id.lower() or
+                query_lower in name_local):
+                
+                # Calculate score (tourist destinations get bonus for exact match)
+                score = 50  # Base score for tourist destinations
+                
+                if name_en.lower().startswith(query_lower):
+                    score += 30  # Prefix match bonus
+                if name_en.lower() == query_lower:
+                    score += 20  # Exact match bonus
+                
+                # Type-based bonus
+                dest_type = dest.get("type", "")
+                if dest_type == "RELIGIOUS":
+                    score += 10  # Religious sites are common searches
+                elif dest_type == "HILL_STATION":
+                    score += 8
+                elif dest_type == "HERITAGE":
+                    score += 5
+                
+                # Map destination type to emoji
+                type_icons = {
+                    "HILL_STATION": "🏔️",
+                    "RELIGIOUS": "🛕",
+                    "HERITAGE": "🏛️",
+                    "BEACH": "🏖️",
+                    "RESORT": "🏨",
+                }
+                type_icon = type_icons.get(dest_type, "📍")
+                
+                results.append({
+                    "id": f"tourist_{dest_id}",
+                    "type": "tourist_destination",
+                    "label": f"{type_icon} {name_en}",
+                    "label_en": name_en,
+                    "city": name_en,  # Use destination name as "city" for display
+                    "city_local": name_local,
+                    "state": "Maharashtra",
+                    "state_code": "MH",
+                    "operator": None,
+                    "is_search_surface": True,
+                    "is_tourist": True,
+                    "destination_type": dest_type,
+                    "description": dest.get("description"),
+                    "score": score,
+                })
+    except Exception as e:
+        logger.error(f"Error searching tourist destinations: {e}")
+    
+    # Sort by score descending
+    results.sort(key=lambda x: x["score"], reverse=True)
+    
+    return results[:limit]
+
+
 def search_other_states(query: str, limit: int = 10) -> List[Dict]:
     """
     Search cities from other states (fallback).
