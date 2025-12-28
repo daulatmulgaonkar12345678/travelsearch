@@ -120,19 +120,29 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
   const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
 
   return (
-    <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
-      <div className="p-4">
-        {/* Bus Info Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Bus className="h-5 w-5 text-orange-600" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-semibold text-gray-900">
-                  {/* 1️⃣ Operator Clarity: Add "Estimated Availability" for estimated results */}
-                  {isEstimatedResult ? (
+    <>
+      {/* Pre-redirect transition overlay */}
+      <RedirectTransition
+        mode="bus"
+        partnerName={redirecting || ''}
+        isVisible={showRedirectTransition}
+        onComplete={handleRedirectComplete}
+        duration={500}
+      />
+      
+      <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
+        <div className="p-4">
+          {/* Bus Info Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Bus className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">
+                    {/* 1️⃣ Operator Clarity: Add "Estimated Availability" for estimated results */}
+                    {isEstimatedResult ? (
                     <>
                       <span className="flex items-center gap-1.5">
                         <Users className="h-4 w-4 text-gray-500" />
