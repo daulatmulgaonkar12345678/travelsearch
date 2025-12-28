@@ -185,7 +185,7 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
             </div>
             
             <div className="flex-1 flex flex-col items-center px-4">
-              {/* 6️⃣ Visual Trust Indicators */}
+              {/* Duration - the correct proxy for distance in bus travel */}
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <Clock className="h-3.5 w-3.5" />
                 <span>{formatDuration(offer.duration_minutes)}</span>
@@ -194,12 +194,6 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
               </div>
-              {offer.distance_km && (
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                  <Route className="h-3 w-3" />
-                  <span>{offer.distance_km} km</span>
-                </div>
-              )}
             </div>
             
             <div className="flex-1 text-right">
