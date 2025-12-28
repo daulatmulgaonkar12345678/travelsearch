@@ -316,24 +316,19 @@ export default function BusLocationAutocomplete({
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate flex items-center gap-2">
                     {place.name}
-                    {place.name_local && (
-                      <span className="text-gray-500 text-sm">({place.name_local})</span>
-                    )}
                     {place.is_depot && (
                       <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
                         Depot
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {place.type === 'STOP' ? (
-                      <span>
-                        {place.district}, {place.state}
-                        {place.operator && <span className="ml-2 text-gray-400">• {place.operator}</span>}
-                      </span>
-                    ) : (
-                      <span>{place.state} - All stops</span>
+                  <div className="text-sm text-gray-500 truncate">
+                    {place.name_local && (
+                      <span className="mr-2">{place.name_local}</span>
                     )}
+                    <span className="text-gray-400">
+                      {place.district !== place.name && `${place.district}, `}{place.state}
+                    </span>
                   </div>
                 </div>
               </div>
