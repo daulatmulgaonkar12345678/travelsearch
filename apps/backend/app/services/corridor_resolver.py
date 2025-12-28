@@ -154,24 +154,35 @@ class CorridorResolver:
         self,
         corridor_id: str,
         from_city_id: int,
-        to_city_id: int
+        to_city_id: int,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Tuple[List[Dict], bool]:
         """
         Extract the segment of stops between two cities.
         
+        If stop_keys are provided, uses them for exact matching.
         Returns (stops_list, is_reversed) tuple.
         """
         corridor = self.corridors.get(corridor_id, {})
         all_stops = corridor.get("stops_sequence", [])
         
-        # Find first occurrence of from_city and last of to_city
+        # Find indices of origin and destination stops
         from_idx = None
         to_idx = None
         
         for i, stop in enumerate(all_stops):
-            if stop["city_id"] == from_city_id and from_idx is None:
+            # Match by stop_key if provided, else by city_id
+            if from_stop_key:
+                if stop["stop_key"] == from_stop_key and from_idx is None:
+                    from_idx = i
+            elif stop["city_id"] == from_city_id and from_idx is None:
                 from_idx = i
-            if stop["city_id"] == to_city_id:
+            
+            if to_stop_key:
+                if stop["stop_key"] == to_stop_key:
+                    to_idx = i
+            elif stop["city_id"] == to_city_id:
                 to_idx = i
         
         if from_idx is None or to_idx is None:
