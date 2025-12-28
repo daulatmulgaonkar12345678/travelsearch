@@ -12,7 +12,7 @@ import sys
 import os
 
 # Backend URL - using production URL from frontend config
-BACKEND_URL = "https://transit-link-fix.preview.emergentagent.com"
+BACKEND_URL = "https://train-resolver.preview.emergentagent.com"
 
 class RailwayStationTester:
     def __init__(self):
