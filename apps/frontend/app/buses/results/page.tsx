@@ -514,12 +514,13 @@ function BusResultsContent() {
           </div>
         )}
         
-        {/* Loading State */}
+        {/* Loading State - Service-specific animation */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-600 mb-4" />
-            <p className="text-gray-600">Searching for buses...</p>
-          </div>
+          <TransportLoadingState 
+            mode="bus"
+            origin={originFormatted.main}
+            destination={destFormatted.main}
+          />
         )}
         
         {/* Error State */}
