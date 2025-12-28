@@ -1004,16 +1004,15 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : (
-          /* Hotel Search Form */
+          /* Hotel Search Form - Controlled Selection */
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
               <HotelLocationAutocomplete
                 value={selectedHotelCity}
                 onChange={setSelectedHotelCity}
-                label=""
+                label="Destination"
                 placeholder="City, area, or hotel name"
-                testId="city-input"
+                testId="hotel-city-input"
               />
             </div>
 
