@@ -111,6 +111,23 @@ export default function BusLocationAutocomplete({
         // IMPORTANT: Use label_en (stop name) as the primary name, not city name
         // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
         const busPlaces: BusPlace[] = data.results.map((r: any) => {
+          // For tourist destinations, use the destination name directly
+          if (r.type === 'tourist_destination') {
+            return {
+              place_id: r.id,
+              name: r.label_en || r.city,
+              name_local: r.city_local || '',
+              type: 'TOURIST' as const,
+              district: r.city,
+              state: r.state || 'Maharashtra',
+              operator: undefined,
+              is_depot: false,
+              is_tourist: true,
+              destination_type: r.destination_type,
+              description: r.description,
+            }
+          }
+          
           // label_en format: "Karad Bus Stand" -> extract first part as name
           // For cities without label_en, use city name
           const labelEn = r.label_en || ''
