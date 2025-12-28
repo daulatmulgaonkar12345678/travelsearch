@@ -417,8 +417,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleHotelSearch = () => {
-    if (!city) {
-      alert('Please enter a city')
+    if (!selectedHotelCity) {
+      alert('Please select a city from the dropdown')
       return
     }
     
