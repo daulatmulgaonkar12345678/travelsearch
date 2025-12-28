@@ -318,7 +318,12 @@ class BackendTester:
             
             if response.status_code == 400:
                 data = response.json()
-                if 'error_type' in data and 'DATE_IN_PAST' in str(data.get('error_type')):
+                # Check if error is in detail object (FastAPI format)
+                detail = data.get('detail', {})
+                if isinstance(detail, dict) and 'error_type' in detail and 'DATE_IN_PAST' in str(detail.get('error_type')):
+                    self.log_test("Train Search Past Date Error", True, 
+                                "Correctly rejected past date with 400 error")
+                elif 'error_type' in data and 'DATE_IN_PAST' in str(data.get('error_type')):
                     self.log_test("Train Search Past Date Error", True, 
                                 "Correctly rejected past date with 400 error")
                 else:
