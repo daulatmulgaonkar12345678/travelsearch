@@ -153,6 +153,29 @@ test_all: false
 test_priority: "high_first"
 ```
 
+## Current Focus: Bus Discovery System - STATE NETWORK RULE
+
+- task: "Bus Discovery System - STATE NETWORK RULE Validation"
+  implemented: true
+  working: true
+  file: "/app/apps/backend/app/services/bus_search.py, /app/apps/backend/app/services/state_network_resolver.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL BUS DISCOVERY SYSTEM TESTS PASSED (8/8): Complete validation of refactored bus discovery system with STATE NETWORK RULE. CRITICAL VALIDATION: 1) Pune → Kolhapur (MSRTC): ✅ Found 4 MSRTC offers, is_fallback=false, 2) Satara → Karad (CRITICAL): ✅ CRITICAL TEST PASSED - 3 offers with 3 bus types (Non-AC, AC Seater, AC Sleeper), is_fallback=false, fares ₹41-₹197 for ~40km distance, operator='Multiple Operators', 3) Mumbai → Ratnagiri (Long Distance): ✅ Found 4 offers including Volvo for 330km route, is_fallback=false, max_fare=₹1231, 4) Pune → Mahabaleshwar (Tourist): ✅ Found 4 offers for tourist destination via feeder route enhancement, is_fallback=false, 5) Aurangabad → Ajanta (Heritage): ✅ Found 4 offers for heritage site, is_fallback=false, 6) Nashik → Shirdi (Remote): ✅ Found 4 offers for Shirdi (tourist destination), is_fallback=false, 7) Pune → Bangalore (Inter-state): ✅ Correctly returns is_fallback=true for inter-state route (acceptable behavior), 8) Booking Partners: ✅ All offers include correct booking partners (MSRTC Official, redBus, AbhiBus, Paytm). STATE NETWORK RULE working perfectly - NO 'false negatives' for Maharashtra internal routes, multiple bus types shown for each route, estimated fares are reasonable based on distance, booking partners included correctly. The refactored bus discovery system ensures ZERO '0 buses found' results for valid intra-state routes."
+  test_requirements:
+    - "Test GET /api/search/buses?origin=pune&destination=kolhapur&departure_date=2025-12-30&passengers=1 - should return multiple MSRTC offers, is_fallback=false"
+    - "Test GET /api/search/buses?origin=satara&destination=karad&departure_date=2025-12-30&passengers=1 - CRITICAL: should return multiple offers (Non-AC, AC Seater, AC Sleeper), is_fallback=false, operator_name='Multiple Operators'"
+    - "Test GET /api/search/buses?origin=mumbai&destination=ratnagiri&departure_date=2025-12-30&passengers=1 - should return 4 offers including Volvo for long distance, is_fallback=false"
+    - "Test GET /api/search/buses?origin=pune&destination=mahabaleshwar&departure_date=2025-12-30&passengers=1 - should return multiple offers for tourist destination, is_fallback=false"
+    - "Test GET /api/search/buses?origin=aurangabad&destination=ajanta&departure_date=2025-12-30&passengers=1 - should return multiple offers for heritage site, is_fallback=false"
+    - "Test GET /api/search/buses?origin=nashik&destination=shirdi&departure_date=2025-12-30&passengers=1 - should return multiple offers for tourist destination, is_fallback=false"
+    - "Test GET /api/search/buses?origin=pune&destination=bangalore&departure_date=2025-12-30&passengers=1 - may have offers OR is_fallback=true (inter-state route)"
+    - "Validate booking partners include redBus, MSRTC Official, AbhiBus, Paytm"
+
 ## Agent Communication
 - agent: "main"
   message: "Implemented recent searches and saved searches features. Recent searches use localStorage with automatic saving, FIFO management, and 7-day expiry. Saved searches use backend MongoDB storage with email consent modal. Both features include last known price tracking for future price alerts."
