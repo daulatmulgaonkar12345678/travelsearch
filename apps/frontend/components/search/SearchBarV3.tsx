@@ -802,32 +802,22 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : searchType === 'trains' ? (
-          /* Train Search Form - Same dropdown behavior as Flights */
+          /* Train Search Form - STATION-FIRST ARCHITECTURE */
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
-              <TransportAutocomplete
-                value={trainOriginText}
-                selectedLocation={trainOriginLocation}
-                onChange={(text, location) => {
-                  setTrainOriginText(text)
-                  setTrainOriginLocation(location)
-                }}
-                mode="train"
+              <TrainStationAutocomplete
+                value={trainOrigin}
+                onChange={setTrainOrigin}
                 label="From"
                 testId="train-origin"
-                placeholder="Select city (e.g., Delhi)"
+                placeholder="Station or City (All Stations)"
               />
-              <TransportAutocomplete
-                value={trainDestinationText}
-                selectedLocation={trainDestinationLocation}
-                onChange={(text, location) => {
-                  setTrainDestinationText(text)
-                  setTrainDestinationLocation(location)
-                }}
-                mode="train"
+              <TrainStationAutocomplete
+                value={trainDestination}
+                onChange={setTrainDestination}
                 label="To"
                 testId="train-destination"
-                placeholder="Select city (e.g., Mumbai)"
+                placeholder="Station or City (All Stations)"
               />
             </div>
             
