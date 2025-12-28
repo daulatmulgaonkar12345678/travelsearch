@@ -53,11 +53,15 @@ interface TrainOffer {
 
 interface TrainCardProps {
   offer: TrainOffer
+  index?: number  // For stagger animation
 }
 
-export default function TrainCard({ offer }: TrainCardProps) {
+export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
+
+  // Calculate stagger class (max 8 levels)
+  const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
 
   const formatTime = (iso: string) => {
     if (!iso || iso === '0001-01-01T00:00:00') return '--:--'
