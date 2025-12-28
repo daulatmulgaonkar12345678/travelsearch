@@ -15,7 +15,9 @@
  * - "route not in database"
  */
 
+import { useState, useCallback } from 'react'
 import { Train, ExternalLink, Clock, MapPin, Ticket, Star } from 'lucide-react'
+import RedirectTransition from '@/components/loading/RedirectTransition'
 
 interface BookingPartner {
   name: string
