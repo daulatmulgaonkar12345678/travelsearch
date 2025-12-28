@@ -4,11 +4,33 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 12
+test_sequence: 13
 run_ui: true
 ```
 
-## Current Focus: Bus Search Destination Overwrite Fix
+## Current Focus: Bus Booking Deep Link Fix (P0)
+
+- task: "Bus Booking Deep Link Fix - Slug-Only URLs"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/utils/deep_links.py, /app/apps/backend/app/services/state_network_resolver.py, /app/apps/backend/app/services/bus_search.py, /app/apps/backend/app/scrapers/msrtc_service.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented centralized deep link generator. Fixed broken URLs to booking partners (redBus, Paytm, AbhiBus). Features: 1) Created deep_links.py utility with slug normalization and city alias resolution, 2) Integrated into state_network_resolver.py, bus_search.py, and msrtc_service.py, 3) City aliases resolve correctly (e.g., 'Ajanta Caves' → 'aurangabad', 'Chhatrapati Sambhaji Nagar' → 'aurangabad'), 4) Suffixes like 'Bus Stand', 'CBS', 'Depot' are stripped, 5) MSRTC Official returns homepage (doesn't support deep linking). Quick curl tests passed for: Pune→Kolhapur, Satara→Karad, Pune→Mahabaleshwar, Mumbai→Pune, Ajanta→Mumbai (alias), Nashik CBS→Aurangabad Depot (suffix)."
+  test_requirements:
+    - "Test GET /api/search/buses?origin=Pune&destination=Kolhapur - booking_partners URLs should be slug-based (e.g., https://www.redbus.in/bus-tickets/pune-to-kolhapur)"
+    - "Test GET /api/search/buses?origin=Satara&destination=Karad - URLs should NOT contain 'undefined', 'NaN', or query params with IDs"
+    - "Test GET /api/search/buses?origin=Ajanta%20Caves&destination=Mumbai - Ajanta should resolve to 'aurangabad' in URLs"
+    - "Test GET /api/search/buses?origin=Kolhapur%20Bus%20Stand&destination=Pune%20Swargate - suffixes should be stripped from URLs"
+    - "Test GET /api/search/buses?origin=Nashik%20CBS&destination=Aurangabad%20Depot - CBS/Depot suffixes should be stripped"
+    - "Validate MSRTC Official URL returns homepage (https://public.msrtcors.com/ticket/)"
+    - "Validate ALL booking partner URLs in response have no 'undefined' values"
+
+## Previous Focus: Bus Search Destination Overwrite Fix
 
 - task: "Bus Search Destination Overwrite Fix - Satara → Karad Validation"
   implemented: true
