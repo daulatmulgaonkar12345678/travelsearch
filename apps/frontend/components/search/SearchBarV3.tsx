@@ -1004,14 +1004,21 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
           </div>
         ) : (
+          /* Hotel Search Form */
           <div className="space-y-4">
-            <CityAutocomplete
-              value={city}
-              onChange={setCity}
-              label="City or Hotel"
-              placeholder="Where are you going?"
-              testId="city-input"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
+              <div className="relative">
+                <Hotel className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <CityAutocomplete
+                  value={city}
+                  onChange={setCity}
+                  label=""
+                  placeholder="City, area, or hotel name"
+                  testId="city-input"
+                />
+              </div>
+            </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               <DateInputs
@@ -1038,6 +1045,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   </div>
                 </button>
               </div>
+            </div>
+            
+            {/* Note banner - consistent with Trains/Buses */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> We compare prices from multiple hotel booking sites. You&apos;ll complete your booking on the partner website.
+              </p>
             </div>
           </div>
         )}
