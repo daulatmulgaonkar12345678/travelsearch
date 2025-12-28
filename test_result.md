@@ -12,15 +12,18 @@ run_ui: true
 
 - task: "Bus Booking Deep Link Fix - Slug-Only URLs"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/backend/app/utils/deep_links.py, /app/apps/backend/app/services/state_network_resolver.py, /app/apps/backend/app/services/bus_search.py, /app/apps/backend/app/scrapers/msrtc_service.py"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented centralized deep link generator. Fixed broken URLs to booking partners (redBus, Paytm, AbhiBus). Features: 1) Created deep_links.py utility with slug normalization and city alias resolution, 2) Integrated into state_network_resolver.py, bus_search.py, and msrtc_service.py, 3) City aliases resolve correctly (e.g., 'Ajanta Caves' → 'aurangabad', 'Chhatrapati Sambhaji Nagar' → 'aurangabad'), 4) Suffixes like 'Bus Stand', 'CBS', 'Depot' are stripped, 5) MSRTC Official returns homepage (doesn't support deep linking). Quick curl tests passed for: Pune→Kolhapur, Satara→Karad, Pune→Mahabaleshwar, Mumbai→Pune, Ajanta→Mumbai (alias), Nashik CBS→Aurangabad Depot (suffix)."
+    - working: true
+      agent: "testing"
+      comment: "✅ BUS BOOKING DEEP LINK FIX VALIDATION COMPLETE (7/7 TESTS PASSED): All deep link requirements successfully validated. CRITICAL FIXES CONFIRMED: 1) Basic Slug URL Validation: ✅ Pune→Kolhapur returns proper slug-based URLs (https://www.redbus.in/bus-tickets/pune-to-kolhapur, https://www.abhibus.com/bus-tickets/pune-to-kolhapur, https://tickets.paytm.com/bus/pune-to-kolhapur), 2) State Network Route Validation: ✅ Satara→Karad URLs contain NO 'undefined', 'NaN', or query params with IDs - all clean slug format, 3) City Alias Resolution: ✅ 'Ajanta Caves' correctly resolves to 'aurangabad' in URLs (https://www.redbus.in/bus-tickets/aurangabad-to-mumbai), 4) Suffix Normalization (Bus Stand): ✅ 'Kolhapur Bus Stand' and 'Pune Swargate' suffixes stripped to 'kolhapur-to-pune', 5) Suffix Normalization (CBS/Depot): ✅ 'Nashik CBS' and 'Aurangabad Depot' suffixes stripped to 'nashik-to-aurangabad', 6) Tourist Destination Routes: ✅ Pune→Mahabaleshwar has valid slug URLs in all offers, 7) MSRTC Route Validation: ✅ MSRTC Official returns correct homepage URL (https://public.msrtcors.com/ticket/). ALL booking partner URLs across ALL offers validated - NO undefined values, NO broken formats, proper slug-only URLs. Deep link fix is production-ready and completely resolves the broken URL issue."
   test_requirements:
     - "Test GET /api/search/buses?origin=Pune&destination=Kolhapur - booking_partners URLs should be slug-based (e.g., https://www.redbus.in/bus-tickets/pune-to-kolhapur)"
     - "Test GET /api/search/buses?origin=Satara&destination=Karad - URLs should NOT contain 'undefined', 'NaN', or query params with IDs"
