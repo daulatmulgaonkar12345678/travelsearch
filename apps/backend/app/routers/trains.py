@@ -2,6 +2,11 @@
 
 Provides train search endpoints with static/official data only.
 No live pricing, no seat availability - just average fares and schedules.
+
+ARCHITECTURE PRINCIPLE:
+- Frontend is dumb, backend is smart
+- All input resolution (city names, aliases, station codes) happens here
+- Invalid inputs return structured errors with suggestions, not 500s
 """
 
 from fastapi import APIRouter, Query, HTTPException
@@ -11,7 +16,7 @@ import uuid
 import logging
 
 from app.models.transport import TrainSearchRequest, TrainSearchResponse
-from app.services.train_search import search_trains
+from app.services.train_search import search_trains, TrainSearchError, validate_and_resolve_input
 from app.data.stations import get_all_railway_stations, get_railway_station, RAILWAY_STATIONS
 
 logger = logging.getLogger(__name__)
