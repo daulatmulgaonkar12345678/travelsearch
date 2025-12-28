@@ -125,39 +125,13 @@ def are_same_state(origin: str, destination: str) -> Tuple[bool, str]:
 
 
 # ============================================================
-# BOOKING PARTNERS
+# BOOKING PARTNERS - Use centralized deep link generator
 # ============================================================
 
-BUS_BOOKING_PARTNERS = [
-    {
-        "name": "redBus",
-        "priority": 1,
-        "url_template": "https://www.redbus.in/bus-tickets/{origin}-to-{destination}",
-        "description": "India's largest bus booking platform",
-        "is_official": False,
-    },
-    {
-        "name": "MSRTC Official",
-        "priority": 2,
-        "url_template": "https://public.msrtcors.com/ticket/",
-        "description": "Official MSRTC Online Reservation",
-        "is_official": True,
-    },
-    {
-        "name": "AbhiBus",
-        "priority": 3,
-        "url_template": "https://www.abhibus.com/bus-tickets/{origin}-to-{destination}",
-        "description": "Wide operator coverage",
-        "is_official": False,
-    },
-    {
-        "name": "Paytm Bus",
-        "priority": 4,
-        "url_template": "https://paytm.com/bus-tickets/{origin}-to-{destination}",
-        "description": "Cashback & easy booking",
-        "is_official": False,
-    },
-]
+from app.utils.deep_links import generate_booking_partners, BookingPartner
+
+# Legacy constant for backward compatibility
+BUS_BOOKING_PARTNERS = BookingPartner.all_partners()
 
 
 # ============================================================
