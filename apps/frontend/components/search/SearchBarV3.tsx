@@ -444,13 +444,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleTrainSearch = () => {
-    // Validate selections from dropdown
-    if (!trainOriginLocation || !trainDestinationLocation) {
+    // STATION-FIRST: Validate station/ALL selections from dropdown
+    if (!trainOrigin || !trainDestination) {
       alert('Please select origin and destination from the dropdown')
       return
     }
     
-    if (trainOriginLocation.city_id === trainDestinationLocation.city_id) {
+    if (trainOrigin.value === trainDestination.value) {
       alert('Origin and destination cannot be the same')
       return
     }
@@ -464,10 +464,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       return
     }
     
-    // Use city names for backend search (it will normalize them)
+    // STATION-FIRST: Submit .value (station code or _ALL token)
+    // Examples: "CSMT", "PUNE", "MUMBAI_ALL", "PUNE_ALL"
     const params = new URLSearchParams({
-      origin: trainOriginLocation.city,
-      destination: trainDestinationLocation.city,
+      origin: trainOrigin.value,        // e.g., "MUMBAI_ALL" or "CSMT"
+      destination: trainDestination.value,  // e.g., "PUNE" or "PUNE_ALL"
       departure_date: trainDate,
       passengers: trainPassengers.toString(),
     })
