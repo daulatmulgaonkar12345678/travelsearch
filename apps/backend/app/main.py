@@ -191,6 +191,10 @@ app.include_router(route_stops.router, prefix="/api", tags=["routes"])
 from app.routers import feeder_routes
 app.include_router(feeder_routes.router, prefix="/api", tags=["feeder-routes"])
 
+# Train Connectivity - Hub-based routing for Indian Railways
+from app.routers import train_connectivity
+app.include_router(train_connectivity.router, prefix="/api", tags=["train-connectivity"])
+
 # ============================================================
 # Local Run
 # ============================================================
