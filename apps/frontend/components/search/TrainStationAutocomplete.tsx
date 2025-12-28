@@ -243,7 +243,7 @@ export default function TrainStationAutocomplete({
 
       {/* Dropdown */}
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto animate-dropdown-open">
           <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
             <span className="text-xs text-gray-600 font-medium">
               Select a station or "All Stations"
