@@ -326,17 +326,17 @@ class TrainSearchTester:
                 )
                 return False
             
-            if data.get("error_type") != "INVALID_ORIGIN":
+            if error_data.get("error_type") != "INVALID_ORIGIN":
                 self.log_result(
                     "Invalid Origin (Punex)",
                     False,
-                    f"Expected error_type='INVALID_ORIGIN', got {data.get('error_type')}",
+                    f"Expected error_type='INVALID_ORIGIN', got {error_data.get('error_type')}",
                     data
                 )
                 return False
             
             # Check suggestions array exists and has Pune as first suggestion
-            suggestions = data.get("suggestions", [])
+            suggestions = error_data.get("suggestions", [])
             if not suggestions:
                 self.log_result(
                     "Invalid Origin (Punex)",
