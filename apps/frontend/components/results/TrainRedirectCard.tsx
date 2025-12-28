@@ -227,5 +227,6 @@ export default function TrainRedirectCard({
         </p>
       </div>
     </div>
+    </>
   )
 }
