@@ -604,9 +604,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="flights-tab"
           onClick={() => setSearchType('flights')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
             searchType === 'flights'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600 animate-tab-indicator'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
@@ -616,9 +616,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="buses-tab"
           onClick={() => setSearchType('buses')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
             searchType === 'buses'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600 animate-tab-indicator'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
@@ -628,9 +628,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="trains-tab"
           onClick={() => setSearchType('trains')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
             searchType === 'trains'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600 animate-tab-indicator'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
@@ -640,9 +640,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="hotels-tab"
           onClick={() => setSearchType('hotels')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-colors ${
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
             searchType === 'hotels'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600 animate-tab-indicator'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
@@ -651,8 +651,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         </button>
       </div>
 
-      {/* Search Form */}
-      <div className="p-6">
+      {/* Search Form - with tab content animation */}
+      <div className="p-6 animate-tab-content" key={searchType}>
         {searchType === 'flights' ? (
           <div className="space-y-4">
             <TripTypeSelector value={tripType} onChange={setTripType} />
