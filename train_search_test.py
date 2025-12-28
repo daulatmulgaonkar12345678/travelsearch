@@ -523,21 +523,24 @@ class TrainSearchTester:
             
             data = response.json()
             
+            # Handle FastAPI HTTPException format (error details in 'detail' field)
+            error_data = data.get("detail", data)
+            
             # Check error structure
-            if data.get("status") != "error":
+            if error_data.get("status") != "error":
                 self.log_result(
                     "Past Date Validation",
                     False,
-                    f"Expected status='error', got {data.get('status')}",
+                    f"Expected status='error', got {error_data.get('status')}",
                     data
                 )
                 return False
             
-            if data.get("error_type") != "DATE_IN_PAST":
+            if error_data.get("error_type") != "DATE_IN_PAST":
                 self.log_result(
                     "Past Date Validation",
                     False,
-                    f"Expected error_type='DATE_IN_PAST', got {data.get('error_type')}",
+                    f"Expected error_type='DATE_IN_PAST', got {error_data.get('error_type')}",
                     data
                 )
                 return False
