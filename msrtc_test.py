@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 # API Base URL - using production URL from frontend config
-API_BASE_URL = "https://busway-planner.preview.emergentagent.com/api"
+API_BASE_URL = "https://transit-link-fix.preview.emergentagent.com/api"
 
 class Colors:
     GREEN = '\033[92m'

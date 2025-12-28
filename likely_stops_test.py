@@ -21,7 +21,7 @@ import sys
 import os
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://busway-planner.preview.emergentagent.com"
+BACKEND_URL = "https://transit-link-fix.preview.emergentagent.com"
 
 class LikelyStopsTester:
     def __init__(self):
