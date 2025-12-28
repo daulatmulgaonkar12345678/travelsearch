@@ -466,12 +466,13 @@ function TrainResultsContent() {
           </div>
         )}
         
-        {/* Loading State */}
+        {/* Loading State - Service-specific animation */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-            <p className="text-gray-600">Searching for trains...</p>
-          </div>
+          <TransportLoadingState 
+            mode="train"
+            origin={results?.origin_city || origin}
+            destination={results?.destination_city || destination}
+          />
         )}
         
         {/* Error State */}
