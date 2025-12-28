@@ -1,12 +1,13 @@
 /**
  * Unified Recent Searches Component
  * 
- * Displays recent searches across ALL transport modes on the homepage.
- * - Flights, Trains, Buses, Hotels all appear together
+ * Displays recent searches filtered by active transport mode on the homepage.
  * - Data persisted in localStorage automatically
- * - Shows last 12 searches (FIFO)
+ * - Shows last 12 searches for the current mode (FIFO)
  * - Clicking a search re-runs it
  * - Different icons/colors per transport mode
+ * 
+ * SERVICE CONSISTENCY: Receives activeService from parent to filter searches
  */
 
 'use client'
@@ -99,15 +100,32 @@ const MODE_CONFIG: Record<TransportMode, {
   },
 }
 
-export default function RecentSearches() {
+// Map service type to transport mode
+const SERVICE_TO_MODE: Record<string, TransportMode> = {
+  flights: 'flight',
+  trains: 'train',
+  buses: 'bus',
+  hotels: 'hotel',
+}
+
+interface RecentSearchesProps {
+  /** Active service from URL - filters searches to show only relevant ones */
+  activeService?: 'flights' | 'trains' | 'buses' | 'hotels'
+}
+
+export default function RecentSearches({ activeService = 'flights' }: RecentSearchesProps) {
   const router = useRouter()
-  const [searches, setSearches] = useState<RecentSearch[]>([])
+  const [allSearches, setAllSearches] = useState<RecentSearch[]>([])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    setSearches(getRecentSearches())
+    setAllSearches(getRecentSearches())
   }, [])
+
+  // Filter searches by active service
+  const activeMode = SERVICE_TO_MODE[activeService] || 'flight'
+  const searches = allSearches.filter(search => search.mode === activeMode)
 
   const handleSearchClick = (search: RecentSearch) => {
     const url = buildSearchUrl(search)
@@ -117,12 +135,17 @@ export default function RecentSearches() {
   const handleRemoveSearch = (e: React.MouseEvent, search: RecentSearch) => {
     e.stopPropagation()
     const updated = removeRecentSearch(search)
-    setSearches(updated)
+    setAllSearches(updated)
   }
 
   const handleClearAll = () => {
-    clearRecentSearches()
-    setSearches([])
+    // Only clear searches for the current mode
+    const remaining = allSearches.filter(search => search.mode !== activeMode)
+    // Update localStorage with remaining searches
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('recent_searches', JSON.stringify(remaining))
+    }
+    setAllSearches(remaining)
   }
 
   // Don't render until mounted (avoid hydration mismatch)
@@ -130,8 +153,15 @@ export default function RecentSearches() {
     return null
   }
 
-  // Empty state
+  // Empty state for this service
   if (searches.length === 0) {
+    const serviceLabels: Record<string, string> = {
+      flights: 'flight',
+      trains: 'train',
+      buses: 'bus',
+      hotels: 'hotel',
+    }
+    
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -140,7 +170,7 @@ export default function RecentSearches() {
         className="text-center py-4"
       >
         <p className="text-sm text-gray-500">
-          Your recent searches will appear here.
+          Your recent {serviceLabels[activeService] || 'travel'} searches will appear here.
         </p>
       </motion.div>
     )
@@ -211,11 +241,6 @@ export default function RecentSearches() {
                   {search.returnDate && (search.mode === 'flight' || search.mode === 'hotel') && (
                     <> - {formatSearchDate(search.returnDate)}</>
                   )}
-                </span>
-                
-                {/* Mode badge */}
-                <span className={`text-xs px-1.5 py-0.5 rounded ${config.bgColor} ${config.color} font-medium capitalize`}>
-                  {search.mode}
                 </span>
                 
                 {/* Price (display only - for reference) */}
