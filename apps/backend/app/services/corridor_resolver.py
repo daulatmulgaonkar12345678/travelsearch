@@ -333,11 +333,18 @@ class CorridorResolver:
             return {"error": f"Unknown destination city: {to_city}"}
         
         # Use stop-key based routing for better accuracy
-        return self.get_route_stops(
+        result = self.get_route_stops(
             from_id, to_id, include_endpoints,
             from_stop_key=from_stop_key,
             to_stop_key=to_stop_key
         )
+        
+        # Override the city names with the actual stop names for display
+        # This handles Satara → Karad correctly (both in same district)
+        result["from_city"] = from_city.title()
+        result["to_city"] = to_city.title()
+        
+        return result
     
     def _get_stop_key_from_name(self, name: str) -> Optional[str]:
         """
