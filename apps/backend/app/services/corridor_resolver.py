@@ -274,16 +274,46 @@ class CorridorResolver:
     ) -> Dict:
         """
         Get route stops using city names instead of IDs.
+        
+        Handles same-district routes (e.g., Satara → Karad)
+        by using stop_key matching.
         """
         from_id = get_city_id_by_name(from_city)
         to_id = get_city_id_by_name(to_city)
+        
+        # Get stop keys for more precise matching
+        from_stop_key = self._get_stop_key_from_name(from_city)
+        to_stop_key = self._get_stop_key_from_name(to_city)
         
         if not from_id:
             return {"error": f"Unknown origin city: {from_city}"}
         if not to_id:
             return {"error": f"Unknown destination city: {to_city}"}
         
-        return self.get_route_stops(from_id, to_id, include_endpoints)
+        # Use stop-key based routing for better accuracy
+        return self.get_route_stops(
+            from_id, to_id, include_endpoints,
+            from_stop_key=from_stop_key,
+            to_stop_key=to_stop_key
+        )
+    
+    def _get_stop_key_from_name(self, name: str) -> Optional[str]:
+        """
+        Get the stop_key from a city/stop name.
+        E.g., 'Satara' -> 'satara-bus-stand'
+        """
+        name_lower = name.lower().strip()
+        
+        # Search all corridors for matching stop
+        for corridor_id, corridor in self.corridors.items():
+            for stop in corridor.get("stops_sequence", []):
+                stop_key = stop["stop_key"]
+                # Check if name matches the beginning of stop_key
+                if stop_key.startswith(name_lower) or \
+                   stop_key.replace("-bus-stand", "").replace("-cbs", "") == name_lower:
+                    return stop_key
+        
+        return None
     
     def _format_stop_name(self, stop_key: str) -> str:
         """
