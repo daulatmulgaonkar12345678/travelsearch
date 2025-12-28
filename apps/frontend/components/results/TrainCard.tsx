@@ -281,5 +281,6 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
         <p className="mt-3 text-xs text-gray-400">{offer.price_disclaimer}</p>
       </div>
     </div>
+    </>
   )
 }
