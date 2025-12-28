@@ -394,27 +394,30 @@ class TrainSearchTester:
             
             data = response.json()
             
+            # Handle FastAPI HTTPException format (error details in 'detail' field)
+            error_data = data.get("detail", data)
+            
             # Check error structure
-            if data.get("status") != "error":
+            if error_data.get("status") != "error":
                 self.log_result(
                     "Invalid Destination (Xyzzy)",
                     False,
-                    f"Expected status='error', got {data.get('status')}",
+                    f"Expected status='error', got {error_data.get('status')}",
                     data
                 )
                 return False
             
-            if data.get("error_type") != "INVALID_DESTINATION":
+            if error_data.get("error_type") != "INVALID_DESTINATION":
                 self.log_result(
                     "Invalid Destination (Xyzzy)",
                     False,
-                    f"Expected error_type='INVALID_DESTINATION', got {data.get('error_type')}",
+                    f"Expected error_type='INVALID_DESTINATION', got {error_data.get('error_type')}",
                     data
                 )
                 return False
             
             # Check suggestions array exists
-            suggestions = data.get("suggestions", [])
+            suggestions = error_data.get("suggestions", [])
             if not suggestions:
                 self.log_result(
                     "Invalid Destination (Xyzzy)",
