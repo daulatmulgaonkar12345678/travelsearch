@@ -211,9 +211,9 @@ def _generate_suggestions(user_input: str) -> List[Dict[str, Any]]:
     _load_data()
     
     suggestions = []
-    input_lower = user_input.lower()
+    input_lower = user_input.lower().strip()
     
-    # Use the existing search function which does fuzzy matching
+    # First try the existing search function
     search_results = search_stations_cities(user_input, limit=5)
     
     for result in search_results:
@@ -224,20 +224,64 @@ def _generate_suggestions(user_input: str) -> List[Dict[str, Any]]:
             "station_codes": result.station_codes,
         })
     
-    # If no results from search, try character-level similarity
-    if not suggestions:
-        # Simple prefix/substring matching on cities
+    # If no or few results, try more aggressive fuzzy matching
+    if len(suggestions) < 3:
+        # Score all cities by similarity to input
+        scored_cities = []
+        
         for city_id, city in _cities.items():
             city_lower = city.city_name.lower()
             
-            # Check prefix match
-            if city_lower.startswith(input_lower[:2]) if len(input_lower) >= 2 else False:
+            # Calculate similarity score
+            score = 0
+            
+            # Exact prefix match (high priority)
+            if city_lower.startswith(input_lower):
+                score += 100
+            elif input_lower.startswith(city_lower):
+                score += 80
+            
+            # First N characters match
+            match_len = min(len(input_lower), len(city_lower))
+            chars_match = 0
+            for i in range(match_len):
+                if i < len(input_lower) and i < len(city_lower) and input_lower[i] == city_lower[i]:
+                    chars_match += 1
+                else:
+                    break
+            
+            if chars_match >= 2:
+                score += chars_match * 10
+            
+            # Contains
+            if input_lower in city_lower or city_lower in input_lower:
+                score += 50
+            
+            # Character overlap
+            common_chars = len(set(input_lower) & set(city_lower))
+            score += common_chars * 2
+            
+            # Boost by population rank (more popular cities first)
+            score -= city.population_rank // 10
+            
+            if score > 0:
+                scored_cities.append((score, city))
+        
+        # Sort by score descending
+        scored_cities.sort(key=lambda x: x[0], reverse=True)
+        
+        # Add top cities that aren't already in suggestions
+        existing_display_names = {s["display_name"] for s in suggestions}
+        for score, city in scored_cities[:5]:
+            display_name = city.city_name
+            if display_name not in existing_display_names:
                 suggestions.append({
                     "type": "city",
                     "display_name": city.city_name,
                     "subtitle": f"{city.state} • {len(city.station_codes)} stations",
                     "station_codes": city.station_codes,
                 })
+                existing_display_names.add(display_name)
             
             if len(suggestions) >= 5:
                 break
