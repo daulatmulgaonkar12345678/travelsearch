@@ -460,7 +460,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     }
     
     const params = new URLSearchParams({
-      city,
+      city: selectedHotelCity.name,
       check_in: checkIn,
       check_out: checkOut,
       rooms: hotelRooms.rooms.length.toString(),
