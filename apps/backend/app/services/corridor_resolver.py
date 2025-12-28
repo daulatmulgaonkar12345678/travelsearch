@@ -70,12 +70,33 @@ def get_city_name(city_id: int) -> str:
 
 
 def get_city_id_by_name(name: str) -> Optional[int]:
-    """Get city ID from name (English or normalized)."""
+    """
+    Get city ID from name (English or normalized).
+    
+    Also searches bus stops for stop-level names like 'Karad'.
+    """
     name_lower = name.lower().strip()
+    
+    # First try cities
     for city in load_cities():
         if (city["name_en"].lower() == name_lower or 
             city["normalized_key"] == name_lower):
             return city["city_id"]
+    
+    # If not found in cities, try to find in bus stops
+    # This handles cases like 'Karad' which is a stop in Satara district
+    try:
+        from app.data.places.loader import get_all_stops
+        all_stops = get_all_stops()
+        for stop in all_stops:
+            normalized_key = stop.get("normalized_key", "")
+            # Check if the name matches the beginning of the stop key
+            if normalized_key.startswith(name_lower) or \
+               normalized_key.replace("-bus-stand", "").replace("-cbs", "") == name_lower:
+                return stop.get("city_id")
+    except Exception:
+        pass
+    
     return None
 
 
