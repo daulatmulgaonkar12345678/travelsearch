@@ -134,10 +134,14 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const trainSearchEnabled = trainOriginValid && trainDestinationValid && 
     trainOriginLocation?.city_id !== trainDestinationLocation?.city_id
   
-  const busOriginValid = busOriginLocation !== null
-  const busDestinationValid = busDestinationLocation !== null
-  const busSearchEnabled = busOriginValid && busDestinationValid &&
-    busOriginLocation?.city_id !== busDestinationLocation?.city_id
+  // Validation flags for buses - STRICT ID-based validation
+  // CRITICAL: Both origin AND destination MUST have valid place_id
+  // This prevents the "Satara → Karad" becoming "Satara → Satara" bug
+  const busOriginValid = busOriginPlace !== null && busOriginPlace.place_id !== ''
+  const busDestinationValid = busDestinationPlace !== null && busDestinationPlace.place_id !== ''
+  const busSamePlace = busOriginPlace?.place_id === busDestinationPlace?.place_id && 
+                       busOriginPlace !== null && busDestinationPlace !== null
+  const busSearchEnabled = busOriginValid && busDestinationValid && !busSamePlace
 
   // Synchronize dates between all modes
   useEffect(() => {
