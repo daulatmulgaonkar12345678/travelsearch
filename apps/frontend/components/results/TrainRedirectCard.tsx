@@ -77,22 +77,48 @@ export default function TrainRedirectCard({
     })
   }
 
+  const handlePartnerClick = (partner: BookingPartner, e: React.MouseEvent) => {
+    e.preventDefault()
+    setRedirecting(partner.name)
+    setPendingRedirectUrl(partner.url)
+    setShowRedirectTransition(true)
+  }
+
+  const handleRedirectComplete = useCallback(() => {
+    if (pendingRedirectUrl) {
+      window.open(pendingRedirectUrl, '_blank')
+    }
+    setShowRedirectTransition(false)
+    setRedirecting(null)
+    setPendingRedirectUrl(null)
+  }, [pendingRedirectUrl])
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-card-in">
-      {/* Header - Route Info */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="bg-white/20 p-2 rounded-lg">
-            <Train className="h-6 w-6" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">
-              {originCity} → {destinationCity}
-            </h2>
-            <p className="text-blue-100 text-sm">
-              {formatDate(departureDate)}
-              {distanceKm && ` • ${distanceKm} km`}
-            </p>
+    <>
+      {/* Pre-redirect transition overlay */}
+      <RedirectTransition
+        mode="train"
+        partnerName={redirecting || ''}
+        isVisible={showRedirectTransition}
+        onComplete={handleRedirectComplete}
+        duration={500}
+      />
+      
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-card-in">
+        {/* Header - Route Info */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="bg-white/20 p-2 rounded-lg">
+              <Train className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">
+                {originCity} → {destinationCity}
+              </h2>
+              <p className="text-blue-100 text-sm">
+                {formatDate(departureDate)}
+                {distanceKm && ` • ${distanceKm} km`}
+              </p>
           </div>
         </div>
       </div>
