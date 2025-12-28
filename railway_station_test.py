@@ -905,7 +905,7 @@ class RailwayStationTester:
                 return False
             
             # Should include major Maharashtra cities
-            city_names = [c.get("name", "").lower() for c in cities]
+            city_names = [c.get("city_name", "").lower() for c in cities]  # Fixed: use city_name not name
             expected_cities = ["mumbai", "pune", "nagpur"]
             found_cities = [city for city in expected_cities if any(city in name for name in city_names)]
             
