@@ -5,12 +5,14 @@ import {
   Bus,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
+  Search,
   Clock,
   Wifi,
   BatteryCharging,
   Snowflake,
-  Info,
+  MapPin,
+  Route,
+  Users,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
 
@@ -57,9 +59,21 @@ interface BusCardProps {
   offer: BusOffer
 }
 
+// Button label mapping for each partner
+const getPartnerButtonLabel = (partnerName: string): string => {
+  const labels: Record<string, string> = {
+    'redBus': '🔍 Search on redBus',
+    'Paytm Bus': '🔍 Open Paytm Bus',
+    'AbhiBus': '🔍 Open AbhiBus',
+    'MSRTC Official': '🔍 Open MSRTC Official',
+  }
+  return labels[partnerName] || `🔍 Open ${partnerName}`
+}
+
 export default function BusCard({ offer }: BusCardProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [showFareTooltip, setShowFareTooltip] = useState(false)
 
   const formatTime = (iso: string) => {
     if (!iso || iso === '0001-01-01T00:00:00') return '--:--'
@@ -87,18 +101,12 @@ export default function BusCard({ offer }: BusCardProps) {
 
   // Sort booking partners by priority
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
+  
+  // Check if this is an estimated/state network result
+  const isEstimatedResult = offer.provider === 'state_network' || offer.operator_name === 'Multiple Operators'
 
   return (
     <div className="relative bg-white border rounded-lg shadow-sm hover:shadow-md transition">
-      {/* Fallback Badge */}
-      {offer.is_fallback && (
-        <div className="absolute top-3 right-3">
-          <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
-            Redirect Only
-          </span>
-        </div>
-      )}
-
       <div className="p-4">
         {/* Bus Info Header */}
         <div className="flex items-center justify-between mb-4">
@@ -107,7 +115,22 @@ export default function BusCard({ offer }: BusCardProps) {
               <Bus className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900">{offer.operator_name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-gray-900">
+                  {/* 1️⃣ Operator Clarity: Add "Estimated Availability" for estimated results */}
+                  {isEstimatedResult ? (
+                    <>
+                      <span className="flex items-center gap-1.5">
+                        <Users className="h-4 w-4 text-gray-500" />
+                        Multiple Operators
+                        <span className="text-xs font-normal text-gray-500">(Estimated Availability)</span>
+                      </span>
+                    </>
+                  ) : (
+                    offer.operator_name
+                  )}
+                </p>
+              </div>
               <p className="text-sm text-gray-500">{offer.bus_type_label}</p>
             </div>
           </div>
@@ -129,7 +152,7 @@ export default function BusCard({ offer }: BusCardProps) {
           )}
         </div>
 
-        {/* Route & Time */}
+        {/* Route & Time with Trust Indicators */}
         {!offer.is_fallback && (
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
@@ -139,13 +162,20 @@ export default function BusCard({ offer }: BusCardProps) {
             </div>
             
             <div className="flex-1 flex flex-col items-center px-4">
-              <p className="text-sm text-gray-500">{formatDuration(offer.duration_minutes)}</p>
+              {/* 6️⃣ Visual Trust Indicators */}
+              <div className="flex items-center gap-1 text-sm text-gray-500">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{formatDuration(offer.duration_minutes)}</span>
+              </div>
               <div className="w-full h-0.5 bg-gray-200 my-1 relative">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
               </div>
               {offer.distance_km && (
-                <p className="text-xs text-gray-400">{offer.distance_km} km</p>
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <Route className="h-3 w-3" />
+                  <span>{offer.distance_km} km</span>
+                </div>
               )}
             </div>
             
@@ -157,28 +187,49 @@ export default function BusCard({ offer }: BusCardProps) {
           </div>
         )}
 
-        {/* Fallback Message */}
+        {/* 4️⃣ Fallback Message - Confidence-based explanation */}
         {offer.is_fallback && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                This route is not in our database. Check our booking partners for live schedules and availability.
-              </p>
+          <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Bus className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-gray-900 mb-1">Buses are available on this route</p>
+                <p className="text-sm text-gray-600">
+                  Live schedules may vary by operator and date. We've shown typical timings and fares based on common services.
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Price */}
+        {/* Price with Tooltip */}
         <div className="flex items-center justify-between mb-4">
-          <div>
+          <div className="relative">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-green-600">
+              {/* 6️⃣ Visual Trust Indicator for Price */}
+              <span 
+                className="text-2xl font-bold text-green-600 cursor-help flex items-center gap-1"
+                onMouseEnter={() => setShowFareTooltip(true)}
+                onMouseLeave={() => setShowFareTooltip(false)}
+              >
                 ₹{Math.round(offer.avg_price).toLocaleString('en-IN')}
               </span>
               <span className="text-sm text-gray-500">/ seat</span>
             </div>
-            <p className="text-xs text-gray-400">{offer.price_label}</p>
+            
+            {/* 1️⃣ Pricing Clarity - Better label */}
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              💰 Estimated Fare • {offer.bus_type_label}
+            </p>
+            
+            {/* 7️⃣ Tooltip on hover */}
+            {showFareTooltip && (
+              <div className="absolute left-0 top-full mt-2 z-10 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg">
+                <p>This is an estimate based on common bus services.</p>
+                <p className="mt-1">Final price and seat availability are shown on the booking partner's site.</p>
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
+              </div>
+            )}
           </div>
           
           {/* Additional amenities */}
@@ -197,6 +248,13 @@ export default function BusCard({ offer }: BusCardProps) {
             </div>
           )}
         </div>
+
+        {/* 1️⃣ Pricing Clarity - Additional info text */}
+        {isEstimatedResult && !offer.is_fallback && (
+          <p className="text-xs text-gray-400 mb-3">
+            Estimated fare based on typical services on this route. Actual fares, timings & seats shown on booking partner.
+          </p>
+        )}
 
         {/* Expand Details Button */}
         {!offer.is_fallback && (
@@ -237,7 +295,7 @@ export default function BusCard({ offer }: BusCardProps) {
           />
         )}
 
-        {/* Booking Partners */}
+        {/* 3️⃣ Booking Partners with Improved Button Labels */}
         <div className="border-t pt-4 mt-3">
           <p className="text-xs text-gray-500 mb-2">Book on:</p>
           <div className="flex flex-wrap gap-2">
@@ -251,18 +309,17 @@ export default function BusCard({ offer }: BusCardProps) {
                 {redirecting === partner.name ? (
                   'Redirecting...'
                 ) : (
-                  <>
-                    {partner.name}
-                    <ExternalLink className="h-3 w-3" />
-                  </>
+                  getPartnerButtonLabel(partner.name)
                 )}
               </button>
             ))}
           </div>
+          
+          {/* 3️⃣ Helper text below buttons */}
+          <p className="mt-2 text-xs text-gray-400">
+            You'll be redirected to the operator's website for live availability and booking.
+          </p>
         </div>
-
-        {/* Disclaimer */}
-        <p className="mt-3 text-xs text-gray-400">{offer.price_disclaimer}</p>
       </div>
     </div>
   )
