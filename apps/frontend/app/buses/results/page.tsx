@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import BusCard from '@/components/results/BusCard'
 import TransportLoadingState from '@/components/loading/TransportLoadingState'
-import { Loader2, Bus, ArrowLeft, AlertCircle, Filter, SlidersHorizontal, Clock, Route, MapPin } from 'lucide-react'
+import { Loader2, Bus, ArrowLeft, AlertCircle, Filter, SlidersHorizontal, Clock, MapPin } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { addRecentSearch, updateRecentSearchPrice } from '@/lib/unifiedRecentSearchStore'
 
