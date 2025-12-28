@@ -192,7 +192,9 @@ class CorridorResolver:
         self,
         from_city_id: int,
         to_city_id: int,
-        include_endpoints: bool = False
+        include_endpoints: bool = False,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Dict:
         """
         Get intermediate stops for a route, separated by importance.
@@ -201,12 +203,17 @@ class CorridorResolver:
             from_city_id: Origin city/district ID
             to_city_id: Destination city/district ID
             include_endpoints: Whether to include origin/destination stops
+            from_stop_key: Optional specific stop key for origin
+            to_stop_key: Optional specific stop key for destination
         
         Returns:
             Dict with major_stops, minor_stops, corridor info, and disclaimer
         """
-        # Find common corridor
-        corridor_id = self.find_common_corridor(from_city_id, to_city_id)
+        # Find common corridor (with optional stop_key precision)
+        corridor_id = self.find_common_corridor(
+            from_city_id, to_city_id,
+            from_stop_key, to_stop_key
+        )
         
         if not corridor_id:
             # No direct corridor found
