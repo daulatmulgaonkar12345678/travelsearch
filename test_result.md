@@ -319,6 +319,27 @@ test_priority: "high_first"
     - "Test GET /api/search/buses?origin=pune&destination=bangalore&departure_date=2025-12-30&passengers=1 - may have offers OR is_fallback=true (inter-state route)"
     - "Validate booking partners include redBus, MSRTC Official, AbhiBus, Paytm"
 
+## Current Focus: Service-Specific Loading and Transition Animations
+
+- task: "Service-Specific Loading and Transition Animations for Train and Bus Search"
+  implemented: true
+  working: true
+  file: "/app/apps/frontend/components/loading/TransportLoadingState.tsx, /app/apps/frontend/components/loading/RedirectTransition.tsx, /app/apps/frontend/app/trains/results/page.tsx, /app/apps/frontend/app/buses/results/page.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL SERVICE-SPECIFIC LOADING AND TRANSITION ANIMATIONS TESTS PASSED (6/6): Complete validation of newly implemented transport-specific animations successfully completed. CRITICAL VALIDATIONS: 1) Train Search Loading Animation: ✅ TransportLoadingState component with mode='train' displays blue train icon animated moving left to right, track/line visual with sleepers (gray bars), rotating text messages '🚆 Checking train availability…', skeleton cards while loading, route display 'PUNE → CSMT', 2) Bus Search Loading Animation: ✅ TransportLoadingState component with mode='bus' displays orange bus icon animated moving left to right, road/dashed line visual (yellow dashed border), rotating text messages '🚌 Finding the best bus options…', skeleton cards while loading, route display 'Pune → Mumbai', 3) Results Entry Animation: ✅ After search results load, loader fades out smoothly, result cards fade in with slide-up animation (animate-card-in class), cards have staggered entry with delay increases (animate-stagger-1 through animate-stagger-8), 4) Pre-Redirect Animation (Bus): ✅ RedirectTransition component shows modal with bus icon animation, orange theme, 'Redirecting to redBus' heading, 'Taking you to check live seats & book your bus…' message, progress bar animation, 'Opening in new tab' indicator, ~500ms duration, 5) Pre-Redirect Animation (Train): ✅ RedirectTransition component shows modal with train icon animation, blue theme, 'Redirecting to IRCTC' heading, 'Taking you to check live availability & book your train…' message, progress bar animation, 'Opening in new tab' indicator, ~500ms duration, 6) Accessibility: ✅ Animations respect prefers-reduced-motion setting with proper CSS media queries, animations disabled when user prefers reduced motion. ANIMATION QUALITY: Service-specific theming (blue for trains, orange for buses), smooth icon movement animations, proper skeleton loading states, staggered card entry creates premium feel, redirect transitions provide clear feedback before external navigation. All animations are intentional, smooth, and enhance UX without blocking navigation. Complete implementation is production-ready and meets all acceptance criteria."
+  test_requirements:
+    - "Test Train Search Loading: Navigate to /trains/results?origin=PUNE&destination=CSMT&departure_date=2026-02-15&passengers=1 - should show TransportLoadingState with train icon, track visual, rotating messages"
+    - "Test Bus Search Loading: Navigate to /buses/results?origin=Pune&destination=Mumbai&departure_date=2026-02-15&passengers=1 - should show TransportLoadingState with bus icon, road visual, rotating messages"
+    - "Test Results Entry Animation: After search results load, verify loader fades out and cards fade in with staggered animation"
+    - "Test Bus Pre-Redirect Animation: Click 'Search on redBus' button, verify modal with bus animation and progress bar"
+    - "Test Train Pre-Redirect Animation: Click 'IRCTC' button, verify modal with train animation and progress bar"
+    - "Test Accessibility: Verify animations respect prefers-reduced-motion setting"
+
 ## Agent Communication
 - agent: "main"
   message: "Implemented recent searches and saved searches features. Recent searches use localStorage with automatic saving, FIFO management, and 7-day expiry. Saved searches use backend MongoDB storage with email consent modal. Both features include last known price tracking for future price alerts."
