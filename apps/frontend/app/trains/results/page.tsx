@@ -528,7 +528,7 @@ function TrainResultsContent() {
                 
                 {/* Train Cards */}
                 <div className="space-y-4">
-                  {filteredOffers.map(offer => (
+                  {filteredOffers.map((offer, idx) => (
                     <TrainCard key={offer.offer_id} offer={offer} index={idx} />
                   ))}
                 </div>
