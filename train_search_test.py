@@ -582,21 +582,24 @@ class TrainSearchTester:
             
             data = response.json()
             
+            # Handle FastAPI HTTPException format (error details in 'detail' field)
+            error_data = data.get("detail", data)
+            
             # Check error structure
-            if data.get("status") != "error":
+            if error_data.get("status") != "error":
                 self.log_result(
                     "Future Date Too Far",
                     False,
-                    f"Expected status='error', got {data.get('status')}",
+                    f"Expected status='error', got {error_data.get('status')}",
                     data
                 )
                 return False
             
-            if data.get("error_type") != "DATE_TOO_FAR":
+            if error_data.get("error_type") != "DATE_TOO_FAR":
                 self.log_result(
                     "Future Date Too Far",
                     False,
-                    f"Expected error_type='DATE_TOO_FAR', got {data.get('error_type')}",
+                    f"Expected error_type='DATE_TOO_FAR', got {error_data.get('error_type')}",
                     data
                 )
                 return False
