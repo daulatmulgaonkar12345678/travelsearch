@@ -60,6 +60,8 @@ interface TrainCardProps {
 export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
+  const [showRedirectTransition, setShowRedirectTransition] = useState(false)
+  const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
 
   // Calculate stagger class (max 8 levels)
   const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
