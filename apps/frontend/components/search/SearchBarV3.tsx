@@ -121,9 +121,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const [trainClass, setTrainClass] = useState<string>('')
   
   const [busOriginText, setBusOriginText] = useState('')
-  const [busOriginLocation, setBusOriginLocation] = useState<TransportLocation | null>(null)
+  const [busOriginPlace, setBusOriginPlace] = useState<BusPlace | null>(null)
   const [busDestinationText, setBusDestinationText] = useState('')
-  const [busDestinationLocation, setBusDestinationLocation] = useState<TransportLocation | null>(null)
+  const [busDestinationPlace, setBusDestinationPlace] = useState<BusPlace | null>(null)
   const [busDate, setBusDate] = useState(getTomorrowDate())
   const [busPassengers, setBusPassengers] = useState(1)
   const [busType, setBusType] = useState<string>('')  // '', 'ac_seater', 'ac_sleeper', 'non_ac'
