@@ -108,18 +108,20 @@ export default function BusLocationAutocomplete({
         const data = await response.json()
         
         // Convert API response to BusPlace format
+        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
+        // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
         const busPlaces: BusPlace[] = data.results.map((r: any) => {
-          // Extract name from label or use city
-          // The label format is: "कराड बस स्थानक" (Marathi name) or "Karad Bus Stand"
-          const stopNameLocal = r.label || ''
-          const stopNameEn = r.name_en || r.label?.split(' ')[0] || r.city
+          // label_en is the English stop name: "Karad Bus Stand" -> "Karad"
+          // For cities, use city name
+          const stopNameEn = r.label_en?.split(' ')[0] || r.city
+          const stopNameLocal = r.label || r.city_local || ''
           
           return {
             place_id: r.id,              // THIS IS THE KEY - place_id from backend
-            name: stopNameEn,            // Use stop name, not just city
-            name_local: stopNameLocal,   // Marathi name
+            name: stopNameEn,            // Stop name (e.g., "Karad" not "Satara")
+            name_local: stopNameLocal,   // Marathi name (e.g., "कराड बस स्थानक")
             type: r.type === 'bus_stop' ? 'STOP' : 'CITY',
-            district: r.city,            // District/parent city
+            district: r.city,            // District/parent city (for display)
             state: r.state || 'Maharashtra',
             operator: r.operator || undefined,
             is_depot: r.is_search_surface || false,
