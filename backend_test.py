@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Search Persistence System
-Tests the Saved Searches (Backend - MongoDB) functionality
+Backend API Testing for Station-First Train Search Architecture
+Tests the new STATION-FIRST train search architecture for /api/search/trains and /api/trains/autocomplete endpoints.
 """
 
 import asyncio
 import httpx
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import sys
 import os
 
-# Backend URL - using localhost as per system setup
-BACKEND_URL = "http://localhost:8001"
+# Backend URL - using production URL from frontend config
+BACKEND_URL = "https://train-resolver.preview.emergentagent.com"
 
-class SavedSearchesTester:
+class StationFirstTrainSearchTester:
     def __init__(self):
         self.backend_url = BACKEND_URL
         self.client = httpx.AsyncClient(timeout=60.0)
         self.test_results = []
-        self.created_search_ids = []  # Track created searches for cleanup
+        self.future_date = (date.today() + timedelta(days=10)).isoformat()
         
     async def __aenter__(self):
         return self
@@ -44,31 +44,25 @@ class SavedSearchesTester:
         if response_data and not success:
             print(f"   Response: {json.dumps(response_data, indent=2)}")
     
-    async def test_save_search_valid(self):
-        """Test POST /api/saved-searches with valid data"""
+    # ============================================================
+    # VALID INPUTS TESTS (Must return 200 with results)
+    # ============================================================
+    
+    async def test_valid_station_codes(self):
+        """Test 1.1: Station codes - GET /api/search/trains?origin=CSMT&destination=PUNE"""
         try:
-            payload = {
-                "email": "test2@example.com",
-                "search": {
-                    "origin": "BLR",
-                    "destination": "CCU",
-                    "departure_date": "2026-02-15",
-                    "adults": 2,
-                    "cabin_class": "economy",
-                    "trip_type": "oneway"
-                },
-                "last_known_price": 12500,
-                "last_known_currency": "INR"
-            }
-            
-            response = await self.client.post(
-                f"{self.backend_url}/api/saved-searches",
-                json=payload
+            response = await self.client.get(
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "CSMT",
+                    "destination": "PUNE", 
+                    "departure_date": self.future_date
+                }
             )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Save Search Valid", 
+                    "Valid Station Codes", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -77,63 +71,380 @@ class SavedSearchesTester:
             
             data = response.json()
             
-            # Check required fields in response
-            required_fields = ["id", "message", "created_at"]
+            # Check required fields
+            required_fields = ["status", "route", "offers"]
             missing_fields = [field for field in required_fields if field not in data]
             
             if missing_fields:
                 self.log_result(
-                    "Save Search Valid",
+                    "Valid Station Codes",
                     False,
-                    f"Missing required fields in response: {missing_fields}",
+                    f"Missing required fields: {missing_fields}",
                     data
                 )
                 return False
             
-            # Validate response structure
-            if not isinstance(data.get("id"), str) or len(data["id"]) < 10:
+            # Check status is success
+            if data.get("status") != "success":
                 self.log_result(
-                    "Save Search Valid",
+                    "Valid Station Codes",
                     False,
-                    f"Invalid search ID format: {data.get('id')}",
+                    f"Expected status='success', got {data.get('status')}",
                     data
                 )
                 return False
             
-            if "saved" not in data.get("message", "").lower():
+            # Check route contains CSMT and PUNE
+            route = data.get("route", {})
+            origin_city = route.get("origin_city", "")
+            dest_city = route.get("destination_city", "")
+            
+            if "CSMT" not in origin_city and "Mumbai" not in origin_city:
                 self.log_result(
-                    "Save Search Valid",
+                    "Valid Station Codes",
                     False,
-                    f"Unexpected message format: {data.get('message')}",
+                    f"Origin city should contain CSMT or Mumbai, got: {origin_city}",
                     data
                 )
                 return False
             
-            # Store search ID for later tests
-            self.created_search_ids.append(data["id"])
+            if "PUNE" not in dest_city and "Pune" not in dest_city:
+                self.log_result(
+                    "Valid Station Codes",
+                    False,
+                    f"Destination city should contain PUNE or Pune, got: {dest_city}",
+                    data
+                )
+                return False
             
             self.log_result(
-                "Save Search Valid",
+                "Valid Station Codes",
                 True,
-                f"Successfully saved search with ID: {data['id']}"
+                f"Successfully returned results for CSMT→PUNE: {origin_city} → {dest_city}"
             )
             return True
             
         except Exception as e:
-            self.log_result("Save Search Valid", False, f"Exception: {str(e)}")
+            self.log_result("Valid Station Codes", False, f"Exception: {str(e)}")
             return False
     
-    async def test_get_saved_searches(self):
-        """Test GET /api/saved-searches?email=test2@example.com"""
+    async def test_valid_city_all_single(self):
+        """Test 1.2: CITY_ALL token (single) - GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE"""
         try:
             response = await self.client.get(
-                f"{self.backend_url}/api/saved-searches",
-                params={"email": "test2@example.com"}
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "MUMBAI_ALL",
+                    "destination": "PUNE", 
+                    "departure_date": self.future_date
+                }
             )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Get Saved Searches", 
+                    "Valid CITY_ALL Single", 
+                    False, 
+                    f"Expected 200, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check status is success
+            if data.get("status") != "success":
+                self.log_result(
+                    "Valid CITY_ALL Single",
+                    False,
+                    f"Expected status='success', got {data.get('status')}",
+                    data
+                )
+                return False
+            
+            # Check route.origin_city contains 'Mumbai (All Stations)'
+            route = data.get("route", {})
+            origin_city = route.get("origin_city", "")
+            
+            if "Mumbai" not in origin_city and "All Stations" not in origin_city:
+                self.log_result(
+                    "Valid CITY_ALL Single",
+                    False,
+                    f"Expected origin_city to contain 'Mumbai (All Stations)', got: {origin_city}",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Valid CITY_ALL Single",
+                True,
+                f"Successfully returned results for MUMBAI_ALL→PUNE: {origin_city}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Valid CITY_ALL Single", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_valid_both_city_all(self):
+        """Test 1.3: Both CITY_ALL tokens - GET /api/search/trains?origin=MUMBAI_ALL&destination=PUNE_ALL"""
+        try:
+            response = await self.client.get(
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "MUMBAI_ALL",
+                    "destination": "PUNE_ALL", 
+                    "departure_date": self.future_date
+                }
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Valid Both CITY_ALL", 
+                    False, 
+                    f"Expected 200, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check status is success
+            if data.get("status") != "success":
+                self.log_result(
+                    "Valid Both CITY_ALL",
+                    False,
+                    f"Expected status='success', got {data.get('status')}",
+                    data
+                )
+                return False
+            
+            # Check both cities show '(All Stations)'
+            route = data.get("route", {})
+            origin_city = route.get("origin_city", "")
+            dest_city = route.get("destination_city", "")
+            
+            if "All Stations" not in origin_city:
+                self.log_result(
+                    "Valid Both CITY_ALL",
+                    False,
+                    f"Expected origin_city to contain '(All Stations)', got: {origin_city}",
+                    data
+                )
+                return False
+            
+            if "All Stations" not in dest_city:
+                self.log_result(
+                    "Valid Both CITY_ALL",
+                    False,
+                    f"Expected destination_city to contain '(All Stations)', got: {dest_city}",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Valid Both CITY_ALL",
+                True,
+                f"Successfully returned results for MUMBAI_ALL→PUNE_ALL: {origin_city} → {dest_city}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Valid Both CITY_ALL", False, f"Exception: {str(e)}")
+            return False
+    
+    # ============================================================
+    # INVALID INPUTS TESTS (MUST return 400, NOT 500)
+    # ============================================================
+    
+    async def test_invalid_raw_city_name(self):
+        """Test 2.1: Raw city name (Mumbai) - MUST return 400 error"""
+        try:
+            response = await self.client.get(
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "Mumbai",
+                    "destination": "Pune", 
+                    "departure_date": self.future_date
+                }
+            )
+            
+            # MUST return 400, NOT 500
+            if response.status_code != 400:
+                self.log_result(
+                    "Invalid Raw City Name", 
+                    False, 
+                    f"Expected 400 for raw city name, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            
+            # Check error structure
+            if "detail" not in data:
+                self.log_result(
+                    "Invalid Raw City Name",
+                    False,
+                    "Missing 'detail' in error response",
+                    data
+                )
+                return False
+            
+            detail = data.get("detail", {})
+            error_type = detail.get("error_type", "")
+            message = detail.get("message", "")
+            
+            # Check error_type is INVALID_ORIGIN
+            if error_type != "INVALID_ORIGIN":
+                self.log_result(
+                    "Invalid Raw City Name",
+                    False,
+                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
+                    data
+                )
+                return False
+            
+            # Check message contains "City names are not allowed"
+            if "City names are not allowed" not in message:
+                self.log_result(
+                    "Invalid Raw City Name",
+                    False,
+                    f"Expected message to contain 'City names are not allowed', got: {message}",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Invalid Raw City Name",
+                True,
+                f"Correctly rejected raw city name with 400 error: {error_type}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Invalid Raw City Name", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_invalid_old_alias(self):
+        """Test 2.2: Old alias (Bombay) - MUST return 400 error"""
+        try:
+            response = await self.client.get(
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "Bombay",
+                    "destination": "PUNE", 
+                    "departure_date": self.future_date
+                }
+            )
+            
+            # MUST return 400, NOT 500
+            if response.status_code != 400:
+                self.log_result(
+                    "Invalid Old Alias", 
+                    False, 
+                    f"Expected 400 for old alias, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            detail = data.get("detail", {})
+            error_type = detail.get("error_type", "")
+            
+            # Check error_type is INVALID_ORIGIN (aliases also rejected now)
+            if error_type != "INVALID_ORIGIN":
+                self.log_result(
+                    "Invalid Old Alias",
+                    False,
+                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Invalid Old Alias",
+                True,
+                f"Correctly rejected old alias with 400 error: {error_type}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Invalid Old Alias", False, f"Exception: {str(e)}")
+            return False
+    
+    async def test_invalid_unknown_input(self):
+        """Test 2.3: Unknown input - MUST return 400 error"""
+        try:
+            response = await self.client.get(
+                f"{self.backend_url}/api/search/trains",
+                params={
+                    "origin": "Xyzzy",
+                    "destination": "PUNE", 
+                    "departure_date": self.future_date
+                }
+            )
+            
+            # MUST return 400, NOT 500
+            if response.status_code != 400:
+                self.log_result(
+                    "Invalid Unknown Input", 
+                    False, 
+                    f"Expected 400 for unknown input, got {response.status_code}",
+                    response.text
+                )
+                return False
+            
+            data = response.json()
+            detail = data.get("detail", {})
+            error_type = detail.get("error_type", "")
+            message = detail.get("message", "")
+            
+            # Check error_type is INVALID_ORIGIN
+            if error_type != "INVALID_ORIGIN":
+                self.log_result(
+                    "Invalid Unknown Input",
+                    False,
+                    f"Expected error_type='INVALID_ORIGIN', got: {error_type}",
+                    data
+                )
+                return False
+            
+            # Check message contains "not a valid station code"
+            if "not a valid station code" not in message:
+                self.log_result(
+                    "Invalid Unknown Input",
+                    False,
+                    f"Expected message to contain 'not a valid station code', got: {message}",
+                    data
+                )
+                return False
+            
+            self.log_result(
+                "Invalid Unknown Input",
+                True,
+                f"Correctly rejected unknown input with 400 error: {error_type}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Invalid Unknown Input", False, f"Exception: {str(e)}")
+            return False
+    
+    # ============================================================
+    # AUTOCOMPLETE ENDPOINT TESTS (Station-First Dropdown)
+    # ============================================================
+    
+    async def test_autocomplete_city_search(self):
+        """Test 3.1: City search - GET /api/trains/autocomplete?q=Mumbai"""
+        try:
+            response = await self.client.get(
+                f"{self.backend_url}/api/trains/autocomplete",
+                params={"q": "Mumbai"}
+            )
+            
+            if response.status_code != 200:
+                self.log_result(
+                    "Autocomplete City Search", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -143,119 +454,92 @@ class SavedSearchesTester:
             data = response.json()
             
             # Check response structure
-            if "searches" not in data or "count" not in data:
+            if "results" not in data:
                 self.log_result(
-                    "Get Saved Searches",
+                    "Autocomplete City Search",
                     False,
-                    "Missing 'searches' or 'count' in response",
+                    "Missing 'results' in response",
                     data
                 )
                 return False
             
-            searches = data.get("searches", [])
-            count = data.get("count", 0)
+            results = data.get("results", [])
             
-            if len(searches) != count:
+            if not results:
                 self.log_result(
-                    "Get Saved Searches",
+                    "Autocomplete City Search",
                     False,
-                    f"Count mismatch: {count} reported but {len(searches)} searches returned",
+                    "No results returned for Mumbai search",
                     data
                 )
                 return False
             
-            # If we have searches, validate structure
-            if searches:
-                first_search = searches[0]
-                required_fields = ["id", "email", "search", "created_at", "is_active"]
-                missing_fields = [field for field in required_fields if field not in first_search]
-                
-                if missing_fields:
-                    self.log_result(
-                        "Get Saved Searches",
-                        False,
-                        f"Missing required fields in search: {missing_fields}",
-                        first_search
-                    )
-                    return False
-                
-                # Check MongoDB schema fields
-                expected_schema_fields = ["notification_count", "last_notified_at"]
-                for field in expected_schema_fields:
-                    if field not in first_search:
-                        self.log_result(
-                            "Get Saved Searches",
-                            False,
-                            f"Missing MongoDB schema field: {field}",
-                            first_search
-                        )
-                        return False
-                
-                # Validate initial values
-                if first_search.get("notification_count") != 0:
-                    self.log_result(
-                        "Get Saved Searches",
-                        False,
-                        f"Expected notification_count=0, got {first_search.get('notification_count')}",
-                        first_search
-                    )
-                    return False
-                
-                if first_search.get("last_notified_at") is not None:
-                    self.log_result(
-                        "Get Saved Searches",
-                        False,
-                        f"Expected last_notified_at=null, got {first_search.get('last_notified_at')}",
-                        first_search
-                    )
-                    return False
-                
-                if first_search.get("is_active") != True:
-                    self.log_result(
-                        "Get Saved Searches",
-                        False,
-                        f"Expected is_active=true, got {first_search.get('is_active')}",
-                        first_search
-                    )
-                    return False
+            # First result should have value='MUMBAI_ALL'
+            first_result = results[0]
+            
+            if first_result.get("value") != "MUMBAI_ALL":
+                self.log_result(
+                    "Autocomplete City Search",
+                    False,
+                    f"Expected first result value='MUMBAI_ALL', got: {first_result.get('value')}",
+                    data
+                )
+                return False
+            
+            # Label should contain '(All Stations) ⭐'
+            label = first_result.get("label", "")
+            if "(All Stations)" not in label or "⭐" not in label:
+                self.log_result(
+                    "Autocomplete City Search",
+                    False,
+                    f"Expected label to contain '(All Stations) ⭐', got: {label}",
+                    data
+                )
+                return False
+            
+            # Type should be 'city_all'
+            if first_result.get("type") != "city_all":
+                self.log_result(
+                    "Autocomplete City Search",
+                    False,
+                    f"Expected type='city_all', got: {first_result.get('type')}",
+                    data
+                )
+                return False
+            
+            # Following results should be individual stations
+            station_results = [r for r in results[1:] if r.get("type") == "station"]
+            if not station_results:
+                self.log_result(
+                    "Autocomplete City Search",
+                    False,
+                    "No individual station results found after city_all option",
+                    data
+                )
+                return False
             
             self.log_result(
-                "Get Saved Searches",
+                "Autocomplete City Search",
                 True,
-                f"Retrieved {count} saved searches with correct schema"
+                f"Correctly returned MUMBAI_ALL first with {len(station_results)} individual stations"
             )
             return True
             
         except Exception as e:
-            self.log_result("Get Saved Searches", False, f"Exception: {str(e)}")
+            self.log_result("Autocomplete City Search", False, f"Exception: {str(e)}")
             return False
     
-    async def test_duplicate_prevention(self):
-        """Test saving same search twice should update, not create duplicate"""
+    async def test_autocomplete_station_code_search(self):
+        """Test 3.2: Station code search - GET /api/trains/autocomplete?q=CSMT"""
         try:
-            # Save the same search again
-            payload = {
-                "email": "test2@example.com",
-                "search": {
-                    "origin": "BLR",
-                    "destination": "CCU",
-                    "departure_date": "2026-02-15",
-                    "adults": 2,
-                    "cabin_class": "economy",
-                    "trip_type": "oneway"
-                },
-                "last_known_price": 13000,  # Different price
-                "last_known_currency": "INR"
-            }
-            
-            response = await self.client.post(
-                f"{self.backend_url}/api/saved-searches",
-                json=payload
+            response = await self.client.get(
+                f"{self.backend_url}/api/trains/autocomplete",
+                params={"q": "CSMT"}
             )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Duplicate Prevention", 
+                    "Autocomplete Station Code Search", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -263,92 +547,61 @@ class SavedSearchesTester:
                 return False
             
             data = response.json()
+            results = data.get("results", [])
             
-            # Should get "updated" message
-            if "updated" not in data.get("message", "").lower():
+            if not results:
                 self.log_result(
-                    "Duplicate Prevention",
+                    "Autocomplete Station Code Search",
                     False,
-                    f"Expected 'updated' message, got: {data.get('message')}",
+                    "No results returned for CSMT search",
                     data
                 )
                 return False
             
-            # Verify only one search exists for this route
-            get_response = await self.client.get(
-                f"{self.backend_url}/api/saved-searches",
-                params={"email": "test2@example.com"}
-            )
+            # First result should have value='CSMT'
+            first_result = results[0]
             
-            if get_response.status_code != 200:
+            if first_result.get("value") != "CSMT":
                 self.log_result(
-                    "Duplicate Prevention",
+                    "Autocomplete Station Code Search",
                     False,
-                    f"Failed to verify duplicate prevention: {get_response.status_code}",
-                    get_response.text
+                    f"Expected first result value='CSMT', got: {first_result.get('value')}",
+                    data
                 )
                 return False
             
-            get_data = get_response.json()
-            blr_ccu_searches = [
-                s for s in get_data.get("searches", [])
-                if s.get("search", {}).get("origin") == "BLR" 
-                and s.get("search", {}).get("destination") == "CCU"
-                and s.get("search", {}).get("departure_date") == "2026-02-15"
-            ]
-            
-            if len(blr_ccu_searches) != 1:
+            # Type should be 'station'
+            if first_result.get("type") != "station":
                 self.log_result(
-                    "Duplicate Prevention",
+                    "Autocomplete Station Code Search",
                     False,
-                    f"Expected 1 BLR-CCU search, found {len(blr_ccu_searches)}",
-                    get_data
-                )
-                return False
-            
-            # Check that price was updated
-            updated_search = blr_ccu_searches[0]
-            if updated_search.get("last_known_price") != 13000:
-                self.log_result(
-                    "Duplicate Prevention",
-                    False,
-                    f"Price not updated: expected 13000, got {updated_search.get('last_known_price')}",
-                    updated_search
+                    f"Expected type='station', got: {first_result.get('type')}",
+                    data
                 )
                 return False
             
             self.log_result(
-                "Duplicate Prevention",
+                "Autocomplete Station Code Search",
                 True,
-                "Duplicate search correctly updated existing record"
+                f"Correctly returned CSMT station result: {first_result.get('label')}"
             )
             return True
             
         except Exception as e:
-            self.log_result("Duplicate Prevention", False, f"Exception: {str(e)}")
+            self.log_result("Autocomplete Station Code Search", False, f"Exception: {str(e)}")
             return False
     
-    async def test_delete_saved_search(self):
-        """Test DELETE /api/saved-searches/{search_id}?email=test2@example.com"""
+    async def test_autocomplete_pune_city_search(self):
+        """Test 3.3: City search (Pune) - GET /api/trains/autocomplete?q=Pune"""
         try:
-            if not self.created_search_ids:
-                self.log_result(
-                    "Delete Saved Search",
-                    False,
-                    "No search ID available for deletion test"
-                )
-                return False
-            
-            search_id = self.created_search_ids[0]
-            
-            response = await self.client.delete(
-                f"{self.backend_url}/api/saved-searches/{search_id}",
-                params={"email": "test2@example.com"}
+            response = await self.client.get(
+                f"{self.backend_url}/api/trains/autocomplete",
+                params={"q": "Pune"}
             )
             
             if response.status_code != 200:
                 self.log_result(
-                    "Delete Saved Search", 
+                    "Autocomplete Pune City Search", 
                     False, 
                     f"Expected 200, got {response.status_code}",
                     response.text
@@ -356,224 +609,74 @@ class SavedSearchesTester:
                 return False
             
             data = response.json()
+            results = data.get("results", [])
             
-            # Check response structure
-            if "message" not in data or "id" not in data:
+            if not results:
                 self.log_result(
-                    "Delete Saved Search",
+                    "Autocomplete Pune City Search",
                     False,
-                    "Missing 'message' or 'id' in delete response",
+                    "No results returned for Pune search",
                     data
                 )
                 return False
             
-            if data.get("id") != search_id:
+            # First result should have value='PUNE_ALL'
+            first_result = results[0]
+            
+            if first_result.get("value") != "PUNE_ALL":
                 self.log_result(
-                    "Delete Saved Search",
+                    "Autocomplete Pune City Search",
                     False,
-                    f"ID mismatch: expected {search_id}, got {data.get('id')}",
+                    f"Expected first result value='PUNE_ALL', got: {first_result.get('value')}",
                     data
                 )
                 return False
             
-            # Verify soft delete - search should not appear in active searches
-            get_response = await self.client.get(
-                f"{self.backend_url}/api/saved-searches",
-                params={"email": "test2@example.com"}
-            )
-            
-            if get_response.status_code == 200:
-                get_data = get_response.json()
-                active_searches = get_data.get("searches", [])
-                deleted_search = next((s for s in active_searches if s.get("id") == search_id), None)
-                
-                if deleted_search:
-                    self.log_result(
-                        "Delete Saved Search",
-                        False,
-                        f"Deleted search {search_id} still appears in active searches",
-                        deleted_search
-                    )
-                    return False
-            
-            self.log_result(
-                "Delete Saved Search",
-                True,
-                f"Successfully soft-deleted search {search_id}"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Delete Saved Search", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_invalid_email_validation(self):
-        """Test validation with invalid email"""
-        try:
-            payload = {
-                "email": "invalid-email",  # Invalid email format
-                "search": {
-                    "origin": "BLR",
-                    "destination": "CCU",
-                    "departure_date": "2026-02-15",
-                    "adults": 2,
-                    "cabin_class": "economy",
-                    "trip_type": "oneway"
-                },
-                "last_known_price": 12500,
-                "last_known_currency": "INR"
-            }
-            
-            response = await self.client.post(
-                f"{self.backend_url}/api/saved-searches",
-                json=payload
-            )
-            
-            # Should return validation error (422)
-            if response.status_code != 422:
+            # Label should contain '(All Stations) ⭐'
+            label = first_result.get("label", "")
+            if "(All Stations)" not in label or "⭐" not in label:
                 self.log_result(
-                    "Invalid Email Validation", 
-                    False, 
-                    f"Expected 422 for invalid email, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check that it's a validation error
-            if "detail" not in data:
-                self.log_result(
-                    "Invalid Email Validation",
+                    "Autocomplete Pune City Search",
                     False,
-                    "Missing validation error details",
+                    f"Expected label to contain '(All Stations) ⭐', got: {label}",
                     data
                 )
                 return False
             
             self.log_result(
-                "Invalid Email Validation",
+                "Autocomplete Pune City Search",
                 True,
-                "Invalid email correctly rejected with 422"
+                f"Correctly returned PUNE_ALL first: {label}"
             )
             return True
             
         except Exception as e:
-            self.log_result("Invalid Email Validation", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_missing_required_fields(self):
-        """Test validation with missing required fields"""
-        try:
-            payload = {
-                "email": "test@example.com",
-                "search": {
-                    "origin": "BLR",
-                    # Missing destination
-                    "departure_date": "2026-02-15",
-                    "adults": 2,
-                    "cabin_class": "economy",
-                    "trip_type": "oneway"
-                },
-                "last_known_price": 12500,
-                "last_known_currency": "INR"
-            }
-            
-            response = await self.client.post(
-                f"{self.backend_url}/api/saved-searches",
-                json=payload
-            )
-            
-            # Should return validation error (422)
-            if response.status_code != 422:
-                self.log_result(
-                    "Missing Required Fields", 
-                    False, 
-                    f"Expected 422 for missing fields, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            # Check that it's a validation error
-            if "detail" not in data:
-                self.log_result(
-                    "Missing Required Fields",
-                    False,
-                    "Missing validation error details",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Missing Required Fields",
-                True,
-                "Missing required fields correctly rejected with 422"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Missing Required Fields", False, f"Exception: {str(e)}")
-            return False
-    
-    async def test_delete_nonexistent_search(self):
-        """Test deleting a non-existent search"""
-        try:
-            fake_id = "00000000-0000-0000-0000-000000000000"
-            
-            response = await self.client.delete(
-                f"{self.backend_url}/api/saved-searches/{fake_id}",
-                params={"email": "test2@example.com"}
-            )
-            
-            # Should return 404 for non-existent search
-            if response.status_code != 404:
-                self.log_result(
-                    "Delete Nonexistent Search", 
-                    False, 
-                    f"Expected 404 for non-existent search, got {response.status_code}",
-                    response.text
-                )
-                return False
-            
-            data = response.json()
-            
-            if "detail" not in data:
-                self.log_result(
-                    "Delete Nonexistent Search",
-                    False,
-                    "Missing error details for 404",
-                    data
-                )
-                return False
-            
-            self.log_result(
-                "Delete Nonexistent Search",
-                True,
-                "Non-existent search correctly returns 404"
-            )
-            return True
-            
-        except Exception as e:
-            self.log_result("Delete Nonexistent Search", False, f"Exception: {str(e)}")
+            self.log_result("Autocomplete Pune City Search", False, f"Exception: {str(e)}")
             return False
     
     async def run_all_tests(self):
-        """Run all saved searches tests"""
-        print("🚀 Starting Saved Searches Backend Tests")
+        """Run all station-first train search tests"""
+        print("🚀 Starting Station-First Train Search Architecture Tests")
         print(f"Backend URL: {self.backend_url}")
-        print("=" * 60)
+        print(f"Future date for testing: {self.future_date}")
+        print("=" * 80)
         
         # Run all tests in order
         tests = [
-            self.test_save_search_valid,
-            self.test_get_saved_searches,
-            self.test_duplicate_prevention,
-            self.test_delete_saved_search,
-            self.test_invalid_email_validation,
-            self.test_missing_required_fields,
-            self.test_delete_nonexistent_search
+            # Valid inputs (Must return 200 with results)
+            self.test_valid_station_codes,
+            self.test_valid_city_all_single,
+            self.test_valid_both_city_all,
+            
+            # Invalid inputs (MUST return 400, NOT 500)
+            self.test_invalid_raw_city_name,
+            self.test_invalid_old_alias,
+            self.test_invalid_unknown_input,
+            
+            # Autocomplete endpoint (Station-First Dropdown)
+            self.test_autocomplete_city_search,
+            self.test_autocomplete_station_code_search,
+            self.test_autocomplete_pune_city_search,
         ]
         
         results = []
@@ -586,32 +689,52 @@ class SavedSearchesTester:
                 results.append(False)
         
         # Summary
-        print("\n" + "=" * 60)
-        print("📊 SAVED SEARCHES TEST SUMMARY")
-        print("=" * 60)
+        print("\n" + "=" * 80)
+        print("📊 STATION-FIRST TRAIN SEARCH TEST SUMMARY")
+        print("=" * 80)
         
         passed = sum(results)
         total = len(results)
         
-        for result in self.test_results:
+        # Group results by category
+        valid_tests = self.test_results[:3]
+        invalid_tests = self.test_results[3:6]
+        autocomplete_tests = self.test_results[6:]
+        
+        print("\n🟢 VALID INPUTS TESTS (Must return 200 with results):")
+        for result in valid_tests:
             status = "✅" if result["success"] else "❌"
-            print(f"{status} {result['test']}: {result['details']}")
+            print(f"  {status} {result['test']}: {result['details']}")
+        
+        print("\n🔴 INVALID INPUTS TESTS (MUST return 400, NOT 500):")
+        for result in invalid_tests:
+            status = "✅" if result["success"] else "❌"
+            print(f"  {status} {result['test']}: {result['details']}")
+        
+        print("\n🔍 AUTOCOMPLETE ENDPOINT TESTS (Station-First Dropdown):")
+        for result in autocomplete_tests:
+            status = "✅" if result["success"] else "❌"
+            print(f"  {status} {result['test']}: {result['details']}")
         
         print(f"\n🎯 Results: {passed}/{total} tests passed")
         
         if passed == total:
-            print("🎉 All saved searches tests passed!")
-            print("📝 MongoDB schema validation successful")
-            print("📝 Duplicate prevention working correctly")
-            print("📝 Soft delete functionality verified")
+            print("🎉 All Station-First Train Search tests passed!")
+            print("📝 Station codes (CSMT, PUNE) working correctly")
+            print("📝 CITY_ALL tokens (MUMBAI_ALL, PUNE_ALL) working correctly")
+            print("📝 Raw city names properly rejected with 400 errors")
+            print("📝 Autocomplete returns station-first dropdown format")
+            print("📝 NO 500 errors for any input - architecture is robust")
         else:
             print("⚠️  Some tests failed. Check the details above.")
+            failed_tests = [r for r in self.test_results if not r["success"]]
+            print(f"❌ Failed tests: {[t['test'] for t in failed_tests]}")
         
         return passed == total
 
 async def main():
     """Main test runner"""
-    async with SavedSearchesTester() as tester:
+    async with StationFirstTrainSearchTester() as tester:
         success = await tester.run_all_tests()
         sys.exit(0 if success else 1)
 
