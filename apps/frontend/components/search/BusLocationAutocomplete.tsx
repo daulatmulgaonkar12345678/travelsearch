@@ -328,11 +328,20 @@ export default function BusLocationAutocomplete({
               <div className="flex items-center gap-3">
                 {/* Icon/Badge */}
                 <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                  place.type === 'TOURIST' ? 'bg-purple-100' :
                   place.type === 'STOP' && place.is_depot ? 'bg-green-100' :
                   place.type === 'STOP' ? 'bg-orange-100' :
                   'bg-gray-100'
                 }`}>
-                  {place.type === 'STOP' ? (
+                  {place.type === 'TOURIST' ? (
+                    <span className="text-lg">
+                      {place.destination_type === 'HILL_STATION' ? '🏔️' :
+                       place.destination_type === 'RELIGIOUS' ? '🛕' :
+                       place.destination_type === 'HERITAGE' ? '🏛️' :
+                       place.destination_type === 'BEACH' ? '🏖️' :
+                       place.destination_type === 'RESORT' ? '🏨' : '📍'}
+                    </span>
+                  ) : place.type === 'STOP' ? (
                     <span className={`text-lg ${place.is_depot ? 'text-green-600' : 'text-orange-600'}`}>
                       🚌
                     </span>
@@ -343,6 +352,11 @@ export default function BusLocationAutocomplete({
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-900 truncate flex items-center gap-2">
                     {place.name}
+                    {place.type === 'TOURIST' && (
+                      <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
+                        {place.destination_type?.replace('_', ' ').toLowerCase()}
+                      </span>
+                    )}
                     {place.is_depot && (
                       <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
                         Depot
@@ -350,12 +364,18 @@ export default function BusLocationAutocomplete({
                     )}
                   </div>
                   <div className="text-sm text-gray-500 truncate">
-                    {place.name_local && (
-                      <span className="mr-2">{place.name_local}</span>
+                    {place.type === 'TOURIST' && place.description ? (
+                      <span>{place.description}</span>
+                    ) : (
+                      <>
+                        {place.name_local && (
+                          <span className="mr-2">{place.name_local}</span>
+                        )}
+                        <span className="text-gray-400">
+                          {place.district !== place.name && `${place.district}, `}{place.state}
+                        </span>
+                      </>
                     )}
-                    <span className="text-gray-400">
-                      {place.district !== place.name && `${place.district}, `}{place.state}
-                    </span>
                   </div>
                 </div>
               </div>
