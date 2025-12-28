@@ -143,6 +143,7 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
+  - "Feeder Routes for Tourist Destinations testing completed successfully - all 11 API test suites passed"
   - "MSRTC Scraper Implementation testing completed successfully - all 5 API test suites passed"
   - "MSRTC Frontend Integration completed - variant-level bus cards displaying correctly"
   - "Tab Order UI Fix verified - tabs correctly ordered as [Flights, Buses, Trains, Hotels]"
