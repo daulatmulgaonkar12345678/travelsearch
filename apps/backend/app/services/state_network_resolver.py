@@ -313,23 +313,9 @@ def create_state_network_offers(
     # Get route enhancement (optional, for UX)
     enhancement = get_route_enhancement(origin, destination)
     
-    # Build booking partner URLs
-    origin_slug = origin.lower().replace(" ", "-")
-    dest_slug = destination.lower().replace(" ", "-")
-    
-    booking_partners = []
-    for partner in BUS_BOOKING_PARTNERS:
-        url = partner["url_template"].format(
-            origin=origin_slug,
-            destination=dest_slug,
-        )
-        booking_partners.append({
-            "name": partner["name"],
-            "url": url,
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-            "description": partner["description"],
-        })
+    # Build booking partner URLs using centralized deep link generator
+    # This ensures proper slug normalization and alias resolution
+    booking_partners = generate_booking_partners(origin, destination)
     
     # Parse departure date
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")

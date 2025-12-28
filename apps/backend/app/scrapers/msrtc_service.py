@@ -28,37 +28,17 @@ from app.models.transport import (
     TransportMode,
     BusType,
 )
+from app.utils.deep_links import generate_booking_partners
 
 logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# BOOKING PARTNER - MSRTC Official + redBus
+# BOOKING PARTNER - Now uses centralized deep_links.py
 # ============================================================
-
-MSRTC_BOOKING_PARTNERS = [
-    {
-        "name": "MSRTC Official",
-        "priority": 1,
-        "url_template": "https://public.msrtcors.com/ticket/",
-        "description": "Official MSRTC Online Reservation",
-        "is_official": True,
-    },
-    {
-        "name": "redBus",
-        "priority": 2,
-        "url_template": "https://www.redbus.in/bus-tickets/{origin}-to-{destination}",
-        "description": "India's largest bus booking platform",
-        "is_official": False,
-    },
-    {
-        "name": "AbhiBus",
-        "priority": 3,
-        "url_template": "https://www.abhibus.com/bus-tickets/{origin}-to-{destination}",
-        "description": "Wide operator coverage",
-        "is_official": False,
-    },
-]
+# Note: MSRTC_BOOKING_PARTNERS constant removed in favor of
+# generate_booking_partners() from app.utils.deep_links
+# This ensures proper slug normalization and alias resolution
 
 
 # Map MSRTC bus types to app's BusType enum
@@ -97,26 +77,12 @@ def msrtc_route_to_offers(
     first_hour, first_min = map(int, route.first_departure.split(":"))
     base_departure = dep_date.replace(hour=first_hour, minute=first_min)
     
-    # Build booking partner URLs
-    origin_slug = route.origin_english.lower().replace(" ", "-")
-    dest_slug = route.destination_english.lower().replace(" ", "-")
-    
-    booking_partners = []
-    for partner in MSRTC_BOOKING_PARTNERS:
-        if "{origin}" in partner["url_template"]:
-            url = partner["url_template"].format(
-                origin=origin_slug,
-                destination=dest_slug,
-            )
-        else:
-            url = partner["url_template"]
-        
-        booking_partners.append({
-            "name": partner["name"],
-            "url": url,
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-        })
+    # Build booking partner URLs using centralized deep link generator
+    # This ensures proper slug normalization, alias resolution, and no undefined values
+    booking_partners = generate_booking_partners(
+        route.origin_english,
+        route.destination_english
+    )
     
     # CREATE ONE CARD PER BUS TYPE
     offset_minutes = 0
