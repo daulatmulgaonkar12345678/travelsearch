@@ -4,6 +4,7 @@ ARCHITECTURE PRINCIPLE:
 - One route ≠ one result
 - One train × multiple classes = multiple results
 - Each class variant = separate card (like flights)
+- Backend is smart, frontend is dumb: ALL input resolution happens here
 
 Data Source: Static Indian Railways timetable data
 Fare Strategy: Distance-based average fares with slight variations
@@ -12,7 +13,8 @@ Fare Strategy: Distance-based average fares with slight variations
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Tuple
+from dataclasses import dataclass
 import random
 
 from app.models.transport import (
@@ -28,8 +30,38 @@ from app.data.train_routes import (
     TrainSchedule,
     TRAIN_ROUTES,
 )
+from app.services.rail_connectivity import (
+    resolve_to_station_codes,
+    search_stations_cities,
+    get_city_info,
+    get_station_info,
+    _load_data,
+    _cities,
+    _stations,
+    _aliases,
+    _station_to_city,
+)
 
 logger = logging.getLogger(__name__)
+
+# ============================================================
+# RESOLUTION ERROR MODELS
+# ============================================================
+
+@dataclass
+class ResolutionResult:
+    """Result of resolving user input to station codes"""
+    success: bool
+    input_type: str  # "city", "station", "alias", "unknown"
+    station_codes: List[str]
+    city_name: Optional[str]  # Resolved city name for display
+    city_id: Optional[str]  # City ID if resolved to city
+    error_message: Optional[str] = None
+    suggestions: List[Dict[str, Any]] = None
+    
+    def __post_init__(self):
+        if self.suggestions is None:
+            self.suggestions = []
 
 # ============================================================
 # BOOKING PARTNERS - Priority Order (User Approved)
@@ -73,80 +105,188 @@ CLASS_DISPLAY_NAMES = {
 }
 
 # ============================================================
-# STATION CODE MAPPINGS
+# DEFENSIVE INPUT RESOLUTION
 # ============================================================
-CITY_TO_STATION = {
-    # Major cities
-    "delhi": "NDLS",
-    "new delhi": "NDLS",
-    "mumbai": "CSMT",
-    "bombay": "CSMT",
-    "bangalore": "SBC",
-    "bengaluru": "SBC",
-    "chennai": "MAS",
-    "madras": "MAS",
-    "kolkata": "HWH",
-    "calcutta": "HWH",
-    "hyderabad": "SC",
-    "secunderabad": "SC",
-    "pune": "PUNE",
-    "jaipur": "JP",
-    "ahmedabad": "ADI",
-    "goa": "MAO",
-    "panaji": "MAO",
-    "lucknow": "LKO",
-    "varanasi": "BSB",
-    "patna": "PNBE",
-    "bhopal": "BPL",
-    "agra": "AGC",
-    "chandigarh": "CDG",
-    "kochi": "ERS",
-    "cochin": "ERS",
-    "trivandrum": "TVC",
-    "thiruvananthapuram": "TVC",
-    "visakhapatnam": "VSKP",
-    "vizag": "VSKP",
-}
 
-STATION_TO_CITY = {
-    "NDLS": "New Delhi",
-    "CSMT": "Mumbai CST",
-    "BCT": "Mumbai Central",
-    "SBC": "Bangalore",
-    "MAS": "Chennai Central",
-    "HWH": "Howrah (Kolkata)",
-    "SDAH": "Sealdah (Kolkata)",
-    "SC": "Secunderabad",
-    "PUNE": "Pune",
-    "JP": "Jaipur",
-    "ADI": "Ahmedabad",
-    "MAO": "Madgaon (Goa)",
-    "LKO": "Lucknow",
-    "BSB": "Varanasi",
-    "PNBE": "Patna",
-    "BPL": "Bhopal",
-    "AGC": "Agra Cantt",
-    "CDG": "Chandigarh",
-    "ERS": "Ernakulam (Kochi)",
-    "TVC": "Trivandrum",
-    "VSKP": "Visakhapatnam",
-    "HNZM": "Hazrat Nizamuddin (Delhi)",
-}
-
-
-def normalize_station_code(input_str: str) -> str:
-    """Convert city name or station code to standard station code"""
-    input_lower = input_str.lower().strip()
+def validate_and_resolve_input(user_input: str) -> ResolutionResult:
+    """
+    Defensively resolve ANY user input to valid station codes.
     
-    if input_lower in CITY_TO_STATION:
-        return CITY_TO_STATION[input_lower]
+    This is the SINGLE source of truth for input resolution.
+    Backend owns this - never trust frontend input.
     
-    return input_str.upper().strip()
+    Handles:
+    - City names: "Pune", "Mumbai", "Delhi"
+    - Aliases: "Bombay", "Calcutta", "Madras", "Poona"
+    - Station codes: "CSMT", "PUNE", "NDLS"
+    - Station names: "Shivaji Nagar", "Anand Vihar"
+    
+    Returns:
+    - ResolutionResult with success=True and station_codes if valid
+    - ResolutionResult with success=False, error_message, and suggestions if invalid
+    """
+    _load_data()  # Ensure data is loaded
+    
+    if not user_input or not user_input.strip():
+        return ResolutionResult(
+            success=False,
+            input_type="unknown",
+            station_codes=[],
+            city_name=None,
+            city_id=None,
+            error_message="Location cannot be empty",
+            suggestions=[]
+        )
+    
+    user_input = user_input.strip()
+    input_lower = user_input.lower()
+    input_upper = user_input.upper()
+    
+    # 1. Try resolution via rail_connectivity service
+    input_type, station_codes = resolve_to_station_codes(user_input)
+    
+    if input_type != "unknown" and station_codes:
+        # Successfully resolved - determine city name
+        city_name = None
+        city_id = None
+        
+        if input_type == "city":
+            # Find the city
+            for cid, city in _cities.items():
+                if input_lower == city.city_name.lower() or input_lower == cid:
+                    city_name = city.city_name
+                    city_id = cid
+                    break
+            
+            # Check aliases for city resolution
+            if not city_name and input_lower in _aliases:
+                alias_info = _aliases[input_lower]
+                if alias_info.get("resolves_to_city"):
+                    resolved_city_id = alias_info["resolves_to_city"]
+                    if resolved_city_id in _cities:
+                        city_name = _cities[resolved_city_id].city_name
+                        city_id = resolved_city_id
+        
+        elif input_type == "station":
+            # Single station - get its city
+            station_code = station_codes[0]
+            if station_code in _station_to_city:
+                city_id = _station_to_city[station_code]
+                if city_id in _cities:
+                    city_name = _cities[city_id].city_name
+            elif station_code in _stations:
+                city_name = _stations[station_code].city
+        
+        # Fallback city name derivation
+        if not city_name and station_codes:
+            first_station = station_codes[0]
+            if first_station in _stations:
+                city_name = _stations[first_station].city
+            else:
+                city_name = user_input.title()
+        
+        return ResolutionResult(
+            success=True,
+            input_type=input_type,
+            station_codes=station_codes,
+            city_name=city_name,
+            city_id=city_id
+        )
+    
+    # 2. Input not found - generate suggestions
+    suggestions = _generate_suggestions(user_input)
+    
+    return ResolutionResult(
+        success=False,
+        input_type="unknown",
+        station_codes=[],
+        city_name=None,
+        city_id=None,
+        error_message=f"'{user_input}' is not a recognized city, station, or alias",
+        suggestions=suggestions
+    )
 
+
+def _generate_suggestions(user_input: str) -> List[Dict[str, Any]]:
+    """Generate helpful suggestions for invalid input using fuzzy matching"""
+    _load_data()
+    
+    suggestions = []
+    input_lower = user_input.lower()
+    
+    # Use the existing search function which does fuzzy matching
+    search_results = search_stations_cities(user_input, limit=5)
+    
+    for result in search_results:
+        suggestions.append({
+            "type": result.result_type.value,
+            "display_name": result.display_name,
+            "subtitle": result.subtitle,
+            "station_codes": result.station_codes,
+        })
+    
+    # If no results from search, try character-level similarity
+    if not suggestions:
+        # Simple prefix/substring matching on cities
+        for city_id, city in _cities.items():
+            city_lower = city.city_name.lower()
+            
+            # Check prefix match
+            if city_lower.startswith(input_lower[:2]) if len(input_lower) >= 2 else False:
+                suggestions.append({
+                    "type": "city",
+                    "display_name": city.city_name,
+                    "subtitle": f"{city.state} • {len(city.station_codes)} stations",
+                    "station_codes": city.station_codes,
+                })
+            
+            if len(suggestions) >= 5:
+                break
+    
+    return suggestions[:5]
+
+
+def get_city_name_for_display(station_codes: List[str], resolved_city_name: Optional[str]) -> str:
+    """Get display-friendly city name from station codes"""
+    if resolved_city_name:
+        return resolved_city_name
+    
+    if not station_codes:
+        return "Unknown"
+    
+    _load_data()
+    
+    # Try to get city from first station
+    first_station = station_codes[0]
+    
+    if first_station in _station_to_city:
+        city_id = _station_to_city[first_station]
+        if city_id in _cities:
+            return _cities[city_id].city_name
+    
+    if first_station in _stations:
+        return _stations[first_station].city
+    
+    return first_station
+
+
+# ============================================================
+# LEGACY COMPATIBILITY (for existing code that uses these)
+# ============================================================
 
 def get_city_name(station_code: str) -> str:
-    """Get city name for a station code"""
-    return STATION_TO_CITY.get(station_code.upper(), station_code)
+    """Get city name for a station code - uses new resolution system"""
+    _load_data()
+    
+    if station_code in _station_to_city:
+        city_id = _station_to_city[station_code]
+        if city_id in _cities:
+            return _cities[city_id].city_name
+    
+    if station_code in _stations:
+        return _stations[station_code].city
+    
+    return station_code
 
 
 def add_fare_variation(base_fare: int, train_type: str) -> int:
