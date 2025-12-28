@@ -447,6 +447,88 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
   )
 }
 
+/**
+ * Popular Train Routes Section
+ * Static content with prefill links to homepage
+ */
+export function PopularTrainRoutes() {
+  const routes = POPULAR_TRAIN_ROUTES.slice(0, 6)
+
+  return (
+    <section aria-labelledby="popular-trains-heading">
+      <h2 
+        id="popular-trains-heading"
+        className="text-xl font-semibold text-gray-900 mb-4"
+      >
+        Popular Train Routes
+      </h2>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {routes.map((route) => (
+          <Link
+            key={route.slug}
+            href={`/?tab=trains&prefill_origin=${encodeURIComponent(route.origin)}&prefill_dest=${encodeURIComponent(route.destination)}`}
+            className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V6M5 12l7-7 7 7" />
+                </svg>
+              </div>
+              <span className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {route.label}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600">{route.description}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Popular Bus Routes Section
+ * Static content with prefill links to homepage
+ */
+export function PopularBusRoutes() {
+  const routes = POPULAR_BUS_ROUTES.slice(0, 6)
+
+  return (
+    <section aria-labelledby="popular-buses-heading">
+      <h2 
+        id="popular-buses-heading"
+        className="text-xl font-semibold text-gray-900 mb-4"
+      >
+        Popular Bus Routes
+      </h2>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {routes.map((route) => (
+          <Link
+            key={route.slug}
+            href={`/?tab=buses&prefill_origin=${encodeURIComponent(route.origin)}&prefill_dest=${encodeURIComponent(route.destination)}`}
+            className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                </svg>
+              </div>
+              <span className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+                {route.label}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600">{route.description}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 // ============================================================================
 // LEGACY COMPONENTS (Text-only - kept for backward compatibility)
 // ============================================================================
