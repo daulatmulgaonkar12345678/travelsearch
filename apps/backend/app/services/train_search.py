@@ -518,7 +518,7 @@ async def search_trains(request: TrainSearchRequest) -> TrainSearchResponse:
         )
     
     else:
-        logger.info(f"⚠️ No route data, returning fallback")
+        logger.info("⚠️ No route data, returning fallback")
         
         fallback_offers = create_fallback_offers(
             origin=primary_origin,
