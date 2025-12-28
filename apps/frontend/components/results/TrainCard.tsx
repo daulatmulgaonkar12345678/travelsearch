@@ -84,11 +84,18 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
 
   const handleBookingClick = (partner: TrainOffer['booking_partners'][0]) => {
     setRedirecting(partner.name)
-    setTimeout(() => {
-      window.open(partner.url, '_blank')
-      setRedirecting(null)
-    }, 500)
+    setPendingRedirectUrl(partner.url)
+    setShowRedirectTransition(true)
   }
+
+  const handleRedirectComplete = useCallback(() => {
+    if (pendingRedirectUrl) {
+      window.open(pendingRedirectUrl, '_blank')
+    }
+    setShowRedirectTransition(false)
+    setRedirecting(null)
+    setPendingRedirectUrl(null)
+  }, [pendingRedirectUrl])
 
   // Sort booking partners by priority
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
