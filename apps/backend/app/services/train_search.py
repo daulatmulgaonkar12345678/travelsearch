@@ -140,7 +140,6 @@ def validate_and_resolve_input(user_input: str) -> ResolutionResult:
     
     user_input = user_input.strip()
     input_lower = user_input.lower()
-    input_upper = user_input.upper()
     
     # 1. Try resolution via rail_connectivity service
     input_type, station_codes = resolve_to_station_codes(user_input)
