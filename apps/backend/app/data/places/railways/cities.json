@@ -1,0 +1,549 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "description": "City-level search entities with multi-station support",
+    "last_updated": "2025-01"
+  },
+  "cities": [
+    {
+      "city_id": "delhi",
+      "city_name": "Delhi",
+      "state": "Delhi",
+      "station_codes": ["NDLS", "DLI", "NZM", "ANVT", "DEE", "DSB"],
+      "primary_station": "NDLS",
+      "is_metro": true,
+      "population_rank": 1
+    },
+    {
+      "city_id": "mumbai",
+      "city_name": "Mumbai",
+      "state": "Maharashtra",
+      "station_codes": ["CSMT", "BCT", "LTT", "DR", "DDR", "BDTS", "PNVL", "TNA", "KYN"],
+      "primary_station": "CSMT",
+      "is_metro": true,
+      "population_rank": 2
+    },
+    {
+      "city_id": "kolkata",
+      "city_name": "Kolkata",
+      "state": "West Bengal",
+      "station_codes": ["HWH", "SDAH", "KOAA", "SRC", "BLY", "DH"],
+      "primary_station": "HWH",
+      "is_metro": true,
+      "population_rank": 3
+    },
+    {
+      "city_id": "chennai",
+      "city_name": "Chennai",
+      "state": "Tamil Nadu",
+      "station_codes": ["MAS", "MS", "MSB", "TBM", "MPKT", "PER"],
+      "primary_station": "MAS",
+      "is_metro": true,
+      "population_rank": 4
+    },
+    {
+      "city_id": "bengaluru",
+      "city_name": "Bengaluru",
+      "state": "Karnataka",
+      "station_codes": ["SBC", "YPR", "BAND", "BNC", "BYPL", "KJM"],
+      "primary_station": "SBC",
+      "is_metro": true,
+      "population_rank": 5
+    },
+    {
+      "city_id": "hyderabad",
+      "city_name": "Hyderabad",
+      "state": "Telangana",
+      "station_codes": ["SC", "HYB", "KCG", "BZA", "LPI"],
+      "primary_station": "SC",
+      "is_metro": true,
+      "population_rank": 6
+    },
+    {
+      "city_id": "pune",
+      "city_name": "Pune",
+      "state": "Maharashtra",
+      "station_codes": ["PUNE", "SVJR", "KJSR", "HDPD", "PNPT"],
+      "primary_station": "PUNE",
+      "is_metro": true,
+      "population_rank": 7
+    },
+    {
+      "city_id": "ahmedabad",
+      "city_name": "Ahmedabad",
+      "state": "Gujarat",
+      "station_codes": ["ADI", "SBIS", "SBIB", "AMD"],
+      "primary_station": "ADI",
+      "is_metro": true,
+      "population_rank": 8
+    },
+    {
+      "city_id": "jaipur",
+      "city_name": "Jaipur",
+      "state": "Rajasthan",
+      "station_codes": ["JP", "DPA", "GDLS"],
+      "primary_station": "JP",
+      "is_metro": true,
+      "population_rank": 9
+    },
+    {
+      "city_id": "lucknow",
+      "city_name": "Lucknow",
+      "state": "Uttar Pradesh",
+      "station_codes": ["LKO", "LJN", "BBK", "ASH"],
+      "primary_station": "LKO",
+      "is_metro": true,
+      "population_rank": 10
+    },
+    {
+      "city_id": "kanpur",
+      "city_name": "Kanpur",
+      "state": "Uttar Pradesh",
+      "station_codes": ["CNB", "KNH", "GVH"],
+      "primary_station": "CNB",
+      "is_metro": true,
+      "population_rank": 11
+    },
+    {
+      "city_id": "varanasi",
+      "city_name": "Varanasi",
+      "state": "Uttar Pradesh",
+      "station_codes": ["BSB", "BCY", "BSBS"],
+      "primary_station": "BSB",
+      "is_metro": true,
+      "population_rank": 12
+    },
+    {
+      "city_id": "prayagraj",
+      "city_name": "Prayagraj",
+      "state": "Uttar Pradesh",
+      "station_codes": ["ALD", "PRYJ", "NNS"],
+      "primary_station": "ALD",
+      "is_metro": true,
+      "population_rank": 13
+    },
+    {
+      "city_id": "agra",
+      "city_name": "Agra",
+      "state": "Uttar Pradesh",
+      "station_codes": ["AGC", "AF", "RKM", "IDH"],
+      "primary_station": "AGC",
+      "is_metro": true,
+      "population_rank": 14
+    },
+    {
+      "city_id": "patna",
+      "city_name": "Patna",
+      "state": "Bihar",
+      "station_codes": ["PNBE", "RJPB", "DNR", "PNC"],
+      "primary_station": "PNBE",
+      "is_metro": true,
+      "population_rank": 15
+    },
+    {
+      "city_id": "bhopal",
+      "city_name": "Bhopal",
+      "state": "Madhya Pradesh",
+      "station_codes": ["BPL", "HBJ", "MDDP"],
+      "primary_station": "BPL",
+      "is_metro": true,
+      "population_rank": 16
+    },
+    {
+      "city_id": "nagpur",
+      "city_name": "Nagpur",
+      "state": "Maharashtra",
+      "station_codes": ["NGP", "AJNI", "ITA"],
+      "primary_station": "NGP",
+      "is_metro": true,
+      "population_rank": 17
+    },
+    {
+      "city_id": "thiruvananthapuram",
+      "city_name": "Thiruvananthapuram",
+      "state": "Kerala",
+      "station_codes": ["TVC", "TVP"],
+      "primary_station": "TVC",
+      "is_metro": false,
+      "population_rank": 18
+    },
+    {
+      "city_id": "kochi",
+      "city_name": "Kochi",
+      "state": "Kerala",
+      "station_codes": ["ERS", "ERN", "AWY"],
+      "primary_station": "ERS",
+      "is_metro": true,
+      "population_rank": 19
+    },
+    {
+      "city_id": "kozhikode",
+      "city_name": "Kozhikode",
+      "state": "Kerala",
+      "station_codes": ["CLT", "FK"],
+      "primary_station": "CLT",
+      "is_metro": false,
+      "population_rank": 20
+    },
+    {
+      "city_id": "palakkad",
+      "city_name": "Palakkad",
+      "state": "Kerala",
+      "station_codes": ["PGT", "PGTN"],
+      "primary_station": "PGT",
+      "is_metro": false,
+      "population_rank": 21
+    },
+    {
+      "city_id": "goa",
+      "city_name": "Goa",
+      "state": "Goa",
+      "station_codes": ["MAO", "VSG", "KRMI", "THVM"],
+      "primary_station": "MAO",
+      "is_metro": false,
+      "population_rank": 22
+    },
+    {
+      "city_id": "guwahati",
+      "city_name": "Guwahati",
+      "state": "Assam",
+      "station_codes": ["GHY", "KYQ"],
+      "primary_station": "GHY",
+      "is_metro": true,
+      "population_rank": 23
+    },
+    {
+      "city_id": "siliguri",
+      "city_name": "Siliguri",
+      "state": "West Bengal",
+      "station_codes": ["NJP", "SGUJ", "SGUT"],
+      "primary_station": "NJP",
+      "is_metro": false,
+      "population_rank": 24
+    },
+    {
+      "city_id": "visakhapatnam",
+      "city_name": "Visakhapatnam",
+      "state": "Andhra Pradesh",
+      "station_codes": ["VSKP", "SCMN"],
+      "primary_station": "VSKP",
+      "is_metro": true,
+      "population_rank": 25
+    },
+    {
+      "city_id": "vijayawada",
+      "city_name": "Vijayawada",
+      "state": "Andhra Pradesh",
+      "station_codes": ["VJA"],
+      "primary_station": "VJA",
+      "is_metro": true,
+      "population_rank": 26
+    },
+    {
+      "city_id": "tirupati",
+      "city_name": "Tirupati",
+      "state": "Andhra Pradesh",
+      "station_codes": ["TPTY", "TPTE"],
+      "primary_station": "TPTY",
+      "is_metro": false,
+      "population_rank": 27
+    },
+    {
+      "city_id": "coimbatore",
+      "city_name": "Coimbatore",
+      "state": "Tamil Nadu",
+      "station_codes": ["CBE", "CBF", "POY"],
+      "primary_station": "CBE",
+      "is_metro": true,
+      "population_rank": 28
+    },
+    {
+      "city_id": "madurai",
+      "city_name": "Madurai",
+      "state": "Tamil Nadu",
+      "station_codes": ["MDU"],
+      "primary_station": "MDU",
+      "is_metro": false,
+      "population_rank": 29
+    },
+    {
+      "city_id": "surat",
+      "city_name": "Surat",
+      "state": "Gujarat",
+      "station_codes": ["ST", "BRDR"],
+      "primary_station": "ST",
+      "is_metro": true,
+      "population_rank": 30
+    },
+    {
+      "city_id": "vadodara",
+      "city_name": "Vadodara",
+      "state": "Gujarat",
+      "station_codes": ["BRC", "PRTN"],
+      "primary_station": "BRC",
+      "is_metro": true,
+      "population_rank": 31
+    },
+    {
+      "city_id": "rajkot",
+      "city_name": "Rajkot",
+      "state": "Gujarat",
+      "station_codes": ["RJT"],
+      "primary_station": "RJT",
+      "is_metro": false,
+      "population_rank": 32
+    },
+    {
+      "city_id": "hubli",
+      "city_name": "Hubli",
+      "state": "Karnataka",
+      "station_codes": ["BBE"],
+      "primary_station": "BBE",
+      "is_metro": false,
+      "population_rank": 33
+    },
+    {
+      "city_id": "mysuru",
+      "city_name": "Mysuru",
+      "state": "Karnataka",
+      "station_codes": ["MYS"],
+      "primary_station": "MYS",
+      "is_metro": false,
+      "population_rank": 34
+    },
+    {
+      "city_id": "mangaluru",
+      "city_name": "Mangaluru",
+      "state": "Karnataka",
+      "station_codes": ["MQ", "MAJN"],
+      "primary_station": "MQ",
+      "is_metro": false,
+      "population_rank": 35
+    },
+    {
+      "city_id": "bhubaneswar",
+      "city_name": "Bhubaneswar",
+      "state": "Odisha",
+      "station_codes": ["BHP", "BBSR"],
+      "primary_station": "BHP",
+      "is_metro": true,
+      "population_rank": 36
+    },
+    {
+      "city_id": "cuttack",
+      "city_name": "Cuttack",
+      "state": "Odisha",
+      "station_codes": ["CTC"],
+      "primary_station": "CTC",
+      "is_metro": false,
+      "population_rank": 37
+    },
+    {
+      "city_id": "puri",
+      "city_name": "Puri",
+      "state": "Odisha",
+      "station_codes": ["PURI"],
+      "primary_station": "PURI",
+      "is_metro": false,
+      "population_rank": 38
+    },
+    {
+      "city_id": "raipur",
+      "city_name": "Raipur",
+      "state": "Chhattisgarh",
+      "station_codes": ["RPH", "RJN"],
+      "primary_station": "RPH",
+      "is_metro": true,
+      "population_rank": 39
+    },
+    {
+      "city_id": "bilaspur",
+      "city_name": "Bilaspur",
+      "state": "Chhattisgarh",
+      "station_codes": ["BSP"],
+      "primary_station": "BSP",
+      "is_metro": false,
+      "population_rank": 40
+    },
+    {
+      "city_id": "jamshedpur",
+      "city_name": "Jamshedpur",
+      "state": "Jharkhand",
+      "station_codes": ["TATA"],
+      "primary_station": "TATA",
+      "is_metro": false,
+      "population_rank": 41
+    },
+    {
+      "city_id": "ranchi",
+      "city_name": "Ranchi",
+      "state": "Jharkhand",
+      "station_codes": ["RNC", "HTE"],
+      "primary_station": "RNC",
+      "is_metro": true,
+      "population_rank": 42
+    },
+    {
+      "city_id": "amritsar",
+      "city_name": "Amritsar",
+      "state": "Punjab",
+      "station_codes": ["ASR", "AGTL"],
+      "primary_station": "ASR",
+      "is_metro": true,
+      "population_rank": 43
+    },
+    {
+      "city_id": "ludhiana",
+      "city_name": "Ludhiana",
+      "state": "Punjab",
+      "station_codes": ["LDH"],
+      "primary_station": "LDH",
+      "is_metro": true,
+      "population_rank": 44
+    },
+    {
+      "city_id": "jalandhar",
+      "city_name": "Jalandhar",
+      "state": "Punjab",
+      "station_codes": ["JRC", "JUC"],
+      "primary_station": "JRC",
+      "is_metro": false,
+      "population_rank": 45
+    },
+    {
+      "city_id": "chandigarh",
+      "city_name": "Chandigarh",
+      "state": "Chandigarh",
+      "station_codes": ["CDG"],
+      "primary_station": "CDG",
+      "is_metro": true,
+      "population_rank": 46
+    },
+    {
+      "city_id": "ambala",
+      "city_name": "Ambala",
+      "state": "Haryana",
+      "station_codes": ["UMB", "UMBJ"],
+      "primary_station": "UMB",
+      "is_metro": false,
+      "population_rank": 47
+    },
+    {
+      "city_id": "jammu",
+      "city_name": "Jammu",
+      "state": "Jammu & Kashmir",
+      "station_codes": ["JAM"],
+      "primary_station": "JAM",
+      "is_metro": false,
+      "population_rank": 48
+    },
+    {
+      "city_id": "dehradun",
+      "city_name": "Dehradun",
+      "state": "Uttarakhand",
+      "station_codes": ["DDN"],
+      "primary_station": "DDN",
+      "is_metro": false,
+      "population_rank": 49
+    },
+    {
+      "city_id": "haridwar",
+      "city_name": "Haridwar",
+      "state": "Uttarakhand",
+      "station_codes": ["HW"],
+      "primary_station": "HW",
+      "is_metro": false,
+      "population_rank": 50
+    },
+    {
+      "city_id": "gorakhpur",
+      "city_name": "Gorakhpur",
+      "state": "Uttar Pradesh",
+      "station_codes": ["GKP"],
+      "primary_station": "GKP",
+      "is_metro": false,
+      "population_rank": 51
+    },
+    {
+      "city_id": "solapur",
+      "city_name": "Solapur",
+      "state": "Maharashtra",
+      "station_codes": ["SUR", "SDLG"],
+      "primary_station": "SUR",
+      "is_metro": false,
+      "population_rank": 52
+    },
+    {
+      "city_id": "aurangabad",
+      "city_name": "Aurangabad",
+      "state": "Maharashtra",
+      "station_codes": ["AWB"],
+      "primary_station": "AWB",
+      "is_metro": false,
+      "population_rank": 53
+    },
+    {
+      "city_id": "nashik",
+      "city_name": "Nashik",
+      "state": "Maharashtra",
+      "station_codes": ["NK", "NIS"],
+      "primary_station": "NK",
+      "is_metro": false,
+      "population_rank": 54
+    },
+    {
+      "city_id": "kolhapur",
+      "city_name": "Kolhapur",
+      "state": "Maharashtra",
+      "station_codes": ["KOP"],
+      "primary_station": "KOP",
+      "is_metro": false,
+      "population_rank": 55
+    },
+    {
+      "city_id": "kota",
+      "city_name": "Kota",
+      "state": "Rajasthan",
+      "station_codes": ["KOTA"],
+      "primary_station": "KOTA",
+      "is_metro": false,
+      "population_rank": 56
+    },
+    {
+      "city_id": "ajmer",
+      "city_name": "Ajmer",
+      "state": "Rajasthan",
+      "station_codes": ["AJU"],
+      "primary_station": "AJU",
+      "is_metro": false,
+      "population_rank": 57
+    },
+    {
+      "city_id": "udaipur",
+      "city_name": "Udaipur",
+      "state": "Rajasthan",
+      "station_codes": ["UDR"],
+      "primary_station": "UDR",
+      "is_metro": false,
+      "population_rank": 58
+    },
+    {
+      "city_id": "jodhpur",
+      "city_name": "Jodhpur",
+      "state": "Rajasthan",
+      "station_codes": ["JDH"],
+      "primary_station": "JDH",
+      "is_metro": false,
+      "population_rank": 59
+    },
+    {
+      "city_id": "bikaner",
+      "city_name": "Bikaner",
+      "state": "Rajasthan",
+      "station_codes": ["BKN"],
+      "primary_station": "BKN",
+      "is_metro": false,
+      "population_rank": 60
+    }
+  ]
+}
