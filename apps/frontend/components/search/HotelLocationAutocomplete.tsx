@@ -111,12 +111,15 @@ export default function HotelLocationAutocomplete({
       if (response.ok) {
         const data = await response.json()
         
+        // Handle API response format: { results: [...] }
+        const rawResults = data.results || data || []
+        
         // Map to HotelCity structure
-        const cities: HotelCity[] = data.map((item: any) => ({
-          city: item.city,
-          country: item.country,
-          display: item.display || `${item.city}, ${item.country}`,
-          countryCode: item.countryCode,
+        const cities: HotelCity[] = rawResults.map((item: any) => ({
+          city: item.city || item.label?.split(',')[0] || '',
+          country: item.country || 'Unknown',
+          display: item.label || `${item.city}, ${item.country}`,
+          countryCode: item.country,
           latitude: item.latitude,
           longitude: item.longitude,
         }))
