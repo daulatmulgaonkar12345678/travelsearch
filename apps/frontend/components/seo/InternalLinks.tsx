@@ -228,6 +228,15 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
 /**
  * Hotel Destination Card with Image
  * 
+ * UX PRINCIPLE: Prefill, don't auto-search. Let users confirm intent.
+ * 
+ * Instead of navigating to results (which causes "Missing parameters" error),
+ * clicking this card will:
+ * 1. Navigate to homepage with ?tab=hotels&prefill_city={city}
+ * 2. SearchBarV3 will read this and prefill the hotel city field
+ * 3. User selects check-in/check-out dates
+ * 4. User clicks "Search Hotels" to execute search
+ * 
  * Image path: /images/hotels/{city}.webp
  * Alt text: "Hotels in {City}"
  */
@@ -236,6 +245,9 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
   // Images are now available in public/images/hotels/
   const hasImage = true
   const imageSrc = `/images/hotels/${destination.slug}.webp`
+  
+  // Build prefill URL instead of direct search URL
+  const prefillUrl = `/?tab=hotels&prefill_city=${encodeURIComponent(destination.city)}`
   
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -273,11 +285,11 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
         </div>
       </div>
       
-      {/* CTA - unchanged */}
+      {/* CTA - Navigate to homepage with prefill, NOT to results */}
       <Link 
-        href={`/hotels/${destination.slug}`}
+        href={prefillUrl}
         className="block p-3 text-center text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors"
-        aria-label={`Find hotels in ${destination.city}`}
+        aria-label={`Search hotels in ${destination.city}`}
       >
         Find Hotels →
       </Link>
