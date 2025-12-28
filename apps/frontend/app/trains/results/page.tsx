@@ -301,23 +301,25 @@ function TrainResultsContent() {
               </p>
             </div>
             
-            {/* Filter toggle button */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition ${
-                hasActiveFilters 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {hasActiveFilters && (
-                <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
-                  {selectedClasses.length + selectedTypes.length + selectedTimeSlots.length + (maxPrice ? 1 : 0) + (maxStops !== null ? 1 : 0)}
-                </span>
-              )}
-            </button>
+            {/* Filter toggle button - Only show for actual train results */}
+            {results && !results.is_fallback && (
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition ${
+                  hasActiveFilters 
+                    ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+                {hasActiveFilters && (
+                  <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                    {selectedClasses.length + selectedTypes.length + selectedTimeSlots.length + (maxPrice ? 1 : 0) + (maxStops !== null ? 1 : 0)}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
         
