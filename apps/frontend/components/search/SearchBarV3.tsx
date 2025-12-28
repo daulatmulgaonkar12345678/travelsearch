@@ -278,8 +278,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       // Create a HotelCity object to prefill the autocomplete
       setSelectedHotelCity({
         city: prefillCity,
-        state: '',
         country: 'India',
+        display: `${prefillCity}, India`,
       })
       setPrefillProcessed(true)
       
