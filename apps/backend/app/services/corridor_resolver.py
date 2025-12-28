@@ -95,10 +95,15 @@ class CorridorResolver:
     def find_common_corridor(
         self, 
         from_city_id: int, 
-        to_city_id: int
+        to_city_id: int,
+        from_stop_key: str = None,
+        to_stop_key: str = None
     ) -> Optional[str]:
         """
         Find the best corridor connecting two cities.
+        
+        If stop_keys are provided, uses them for precise matching.
+        This enables Satara → Karad routing (both in same district).
         
         Returns corridor ID or None if no direct corridor exists.
         """
@@ -118,14 +123,23 @@ class CorridorResolver:
             corridor = self.corridors.get(corridor_id, {})
             stops = corridor.get("stops_sequence", [])
             
-            # Find indices of from/to cities
+            # Find indices of from/to stops
             from_idx = None
             to_idx = None
             
             for i, stop in enumerate(stops):
-                if stop["city_id"] == from_city_id and from_idx is None:
+                # If stop_key provided, use exact match
+                if from_stop_key:
+                    if stop["stop_key"] == from_stop_key and from_idx is None:
+                        from_idx = i
+                # Otherwise match by city_id
+                elif stop["city_id"] == from_city_id and from_idx is None:
                     from_idx = i
-                if stop["city_id"] == to_city_id:
+                    
+                if to_stop_key:
+                    if stop["stop_key"] == to_stop_key:
+                        to_idx = i
+                elif stop["city_id"] == to_city_id:
                     to_idx = i
             
             if from_idx is not None and to_idx is not None:
