@@ -105,9 +105,12 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
   
   // Check if this is an estimated/state network result
   const isEstimatedResult = offer.provider === 'state_network' || offer.operator_name === 'Multiple Operators'
+  
+  // Calculate stagger class (max 8 levels)
+  const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
 
   return (
-    <div className="relative bg-white border rounded-lg shadow-sm hover:shadow-md transition">
+    <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
       <div className="p-4">
         {/* Bus Info Header */}
         <div className="flex items-center justify-between mb-4">
