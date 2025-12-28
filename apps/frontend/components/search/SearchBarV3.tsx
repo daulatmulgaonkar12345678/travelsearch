@@ -1009,16 +1009,13 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
-              <div className="relative">
-                <Hotel className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <CityAutocomplete
-                  value={city}
-                  onChange={setCity}
-                  label=""
-                  placeholder="City, area, or hotel name"
-                  testId="city-input"
-                />
-              </div>
+              <HotelLocationAutocomplete
+                value={selectedHotelCity}
+                onChange={setSelectedHotelCity}
+                label=""
+                placeholder="City, area, or hotel name"
+                testId="city-input"
+              />
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
