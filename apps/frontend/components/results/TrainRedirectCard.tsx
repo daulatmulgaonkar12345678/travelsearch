@@ -72,7 +72,7 @@ export default function TrainRedirectCard({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-card-in">
       {/* Header - Route Info */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white">
         <div className="flex items-center gap-3 mb-3">
