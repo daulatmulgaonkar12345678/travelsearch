@@ -1,0 +1,171 @@
+{
+  "corridors": {
+    "NH66_KONKAN": {
+      "name": "Mumbai-Goa Konkan Highway",
+      "highway": "NH66",
+      "description": "Coastal highway connecting Mumbai to Goa via Konkan coast",
+      "districts_sequence": [1, 5, 6, 7],
+      "stops_sequence": [
+        {"stop_key": "mumbai-central-bus-stand", "importance": "MAJOR", "city_id": 1, "km_from_start": 0},
+        {"stop_key": "dadar", "importance": "MINOR", "city_id": 1, "km_from_start": 8},
+        {"stop_key": "panvel-bus-stand", "importance": "MAJOR", "city_id": 5, "km_from_start": 45},
+        {"stop_key": "pen-bus-stand", "importance": "MINOR", "city_id": 5, "km_from_start": 75},
+        {"stop_key": "alibag-bus-stand", "importance": "MAJOR", "city_id": 5, "km_from_start": 95},
+        {"stop_key": "roha-bus-stand", "importance": "MINOR", "city_id": 5, "km_from_start": 115},
+        {"stop_key": "mangav-bus-stand", "importance": "MINOR", "city_id": 5, "km_from_start": 140},
+        {"stop_key": "mhad-bus-stand", "importance": "MAJOR", "city_id": 5, "km_from_start": 165},
+        {"stop_key": "poladpoor", "importance": "MINOR", "city_id": 5, "km_from_start": 185},
+        {"stop_key": "khed-bus-stand", "importance": "MINOR", "city_id": 6, "km_from_start": 210},
+        {"stop_key": "chiplun-bus-stand", "importance": "MAJOR", "city_id": 6, "km_from_start": 235},
+        {"stop_key": "kashil", "importance": "MINOR", "city_id": 6, "km_from_start": 260},
+        {"stop_key": "sangmeshwar", "importance": "MINOR", "city_id": 6, "km_from_start": 280},
+        {"stop_key": "devrukh", "importance": "MINOR", "city_id": 6, "km_from_start": 295},
+        {"stop_key": "ratnagiri-bus-stand", "importance": "MAJOR", "city_id": 6, "km_from_start": 330},
+        {"stop_key": "lanja-bus-stand", "importance": "MINOR", "city_id": 6, "km_from_start": 360},
+        {"stop_key": "rajapur", "importance": "MINOR", "city_id": 6, "km_from_start": 390},
+        {"stop_key": "kankavli-bus-stand", "importance": "MAJOR", "city_id": 7, "km_from_start": 430},
+        {"stop_key": "kudal-bus-stand", "importance": "MINOR", "city_id": 7, "km_from_start": 460},
+        {"stop_key": "sawantwadi-bus-stand", "importance": "MAJOR", "city_id": 7, "km_from_start": 500}
+      ]
+    },
+    "NH48_MUMBAI_PUNE": {
+      "name": "Mumbai-Pune Expressway",
+      "highway": "NH48/Expressway",
+      "description": "High-speed expressway connecting Mumbai and Pune",
+      "districts_sequence": [1, 2, 3, 5, 8],
+      "stops_sequence": [
+        {"stop_key": "mumbai-central-bus-stand", "importance": "MAJOR", "city_id": 1, "km_from_start": 0},
+        {"stop_key": "dadar", "importance": "MINOR", "city_id": 1, "km_from_start": 8},
+        {"stop_key": "vashi-bs-depo", "importance": "MINOR", "city_id": 2, "km_from_start": 25},
+        {"stop_key": "panvel-bus-stand", "importance": "MAJOR", "city_id": 5, "km_from_start": 45},
+        {"stop_key": "khopoli", "importance": "MINOR", "city_id": 5, "km_from_start": 70},
+        {"stop_key": "lonavala", "importance": "MAJOR", "city_id": 8, "km_from_start": 95},
+        {"stop_key": "khandala", "importance": "MINOR", "city_id": 8, "km_from_start": 100},
+        {"stop_key": "talegaon", "importance": "MINOR", "city_id": 8, "km_from_start": 120},
+        {"stop_key": "pimpri-chinchwad-bus-stand", "importance": "MINOR", "city_id": 8, "km_from_start": 135},
+        {"stop_key": "pune-swargate-bus-stand", "importance": "MAJOR", "city_id": 8, "km_from_start": 150}
+      ]
+    },
+    "NH48_PUNE_KOLHAPUR": {
+      "name": "Pune-Kolhapur Highway",
+      "highway": "NH48",
+      "description": "Highway connecting Pune to Kolhapur via Satara and Sangli",
+      "districts_sequence": [8, 9, 10, 11],
+      "stops_sequence": [
+        {"stop_key": "pune-swargate-bus-stand", "importance": "MAJOR", "city_id": 8, "km_from_start": 0},
+        {"stop_key": "katraj", "importance": "MINOR", "city_id": 8, "km_from_start": 8},
+        {"stop_key": "shirwal", "importance": "MINOR", "city_id": 8, "km_from_start": 45},
+        {"stop_key": "satara-bus-stand", "importance": "MAJOR", "city_id": 9, "km_from_start": 110},
+        {"stop_key": "karad-bus-stand", "importance": "MAJOR", "city_id": 9, "km_from_start": 150},
+        {"stop_key": "umbraj", "importance": "MINOR", "city_id": 9, "km_from_start": 165},
+        {"stop_key": "islampur", "importance": "MINOR", "city_id": 10, "km_from_start": 185},
+        {"stop_key": "sangli-bus-stand", "importance": "MAJOR", "city_id": 10, "km_from_start": 210},
+        {"stop_key": "jaysingpur", "importance": "MINOR", "city_id": 10, "km_from_start": 225},
+        {"stop_key": "ichalkaranji", "importance": "MINOR", "city_id": 11, "km_from_start": 240},
+        {"stop_key": "kolhapur-cbs", "importance": "MAJOR", "city_id": 11, "km_from_start": 260}
+      ]
+    },
+    "NH3_MUMBAI_NASHIK": {
+      "name": "Mumbai-Nashik Highway",
+      "highway": "NH3",
+      "description": "Highway connecting Mumbai to Nashik via Thane",
+      "districts_sequence": [1, 3, 4, 13],
+      "stops_sequence": [
+        {"stop_key": "mumbai-central-bus-stand", "importance": "MAJOR", "city_id": 1, "km_from_start": 0},
+        {"stop_key": "thane-bus-stand", "importance": "MAJOR", "city_id": 3, "km_from_start": 30},
+        {"stop_key": "bhiwandi", "importance": "MINOR", "city_id": 3, "km_from_start": 50},
+        {"stop_key": "shahapur", "importance": "MINOR", "city_id": 3, "km_from_start": 75},
+        {"stop_key": "kasara", "importance": "MINOR", "city_id": 3, "km_from_start": 100},
+        {"stop_key": "igatpuri", "importance": "MAJOR", "city_id": 13, "km_from_start": 130},
+        {"stop_key": "ghoti", "importance": "MINOR", "city_id": 13, "km_from_start": 150},
+        {"stop_key": "nashik-bus-stand", "importance": "MAJOR", "city_id": 13, "km_from_start": 180}
+      ]
+    },
+    "NH52_NASHIK_AURANGABAD": {
+      "name": "Nashik-Aurangabad Highway",
+      "highway": "NH52",
+      "description": "Highway connecting Nashik to Aurangabad via Shirdi",
+      "districts_sequence": [13, 14, 18],
+      "stops_sequence": [
+        {"stop_key": "nashik-bus-stand", "importance": "MAJOR", "city_id": 13, "km_from_start": 0},
+        {"stop_key": "sinnar", "importance": "MINOR", "city_id": 13, "km_from_start": 30},
+        {"stop_key": "shirdi", "importance": "MAJOR", "city_id": 14, "km_from_start": 75},
+        {"stop_key": "ahmednagar-bus-stand", "importance": "MAJOR", "city_id": 14, "km_from_start": 120},
+        {"stop_key": "shevgaon", "importance": "MINOR", "city_id": 14, "km_from_start": 155},
+        {"stop_key": "vaijapur", "importance": "MINOR", "city_id": 18, "km_from_start": 190},
+        {"stop_key": "aurangabad-bus-stand", "importance": "MAJOR", "city_id": 18, "km_from_start": 220}
+      ]
+    },
+    "NH60_PUNE_AURANGABAD": {
+      "name": "Pune-Aurangabad Highway",
+      "highway": "NH60",
+      "description": "Highway connecting Pune to Aurangabad via Ahmednagar",
+      "districts_sequence": [8, 14, 18],
+      "stops_sequence": [
+        {"stop_key": "pune-swargate-bus-stand", "importance": "MAJOR", "city_id": 8, "km_from_start": 0},
+        {"stop_key": "shirur", "importance": "MINOR", "city_id": 8, "km_from_start": 55},
+        {"stop_key": "ahmednagar-bus-stand", "importance": "MAJOR", "city_id": 14, "km_from_start": 120},
+        {"stop_key": "shevgaon", "importance": "MINOR", "city_id": 14, "km_from_start": 160},
+        {"stop_key": "aurangabad-bus-stand", "importance": "MAJOR", "city_id": 18, "km_from_start": 230}
+      ]
+    },
+    "NH65_PUNE_SOLAPUR": {
+      "name": "Pune-Solapur Highway",
+      "highway": "NH65",
+      "description": "Highway connecting Pune to Solapur",
+      "districts_sequence": [8, 12],
+      "stops_sequence": [
+        {"stop_key": "pune-swargate-bus-stand", "importance": "MAJOR", "city_id": 8, "km_from_start": 0},
+        {"stop_key": "hadapsar", "importance": "MINOR", "city_id": 8, "km_from_start": 12},
+        {"stop_key": "indapur", "importance": "MINOR", "city_id": 8, "km_from_start": 80},
+        {"stop_key": "pandharpur", "importance": "MAJOR", "city_id": 12, "km_from_start": 150},
+        {"stop_key": "sangola", "importance": "MINOR", "city_id": 12, "km_from_start": 190},
+        {"stop_key": "solapur-bus-stand", "importance": "MAJOR", "city_id": 12, "km_from_start": 250}
+      ]
+    },
+    "NH6_NAGPUR_AKOLA": {
+      "name": "Nagpur-Akola Highway",
+      "highway": "NH6",
+      "description": "Highway connecting Nagpur to Akola via Amravati",
+      "districts_sequence": [26, 27, 32, 33],
+      "stops_sequence": [
+        {"stop_key": "nagpur-bus-stand", "importance": "MAJOR", "city_id": 26, "km_from_start": 0},
+        {"stop_key": "wardha-bus-stand", "importance": "MAJOR", "city_id": 27, "km_from_start": 75},
+        {"stop_key": "arvi", "importance": "MINOR", "city_id": 27, "km_from_start": 95},
+        {"stop_key": "amravati-bus-stand", "importance": "MAJOR", "city_id": 32, "km_from_start": 155},
+        {"stop_key": "badnera", "importance": "MINOR", "city_id": 32, "km_from_start": 165},
+        {"stop_key": "murtizapur", "importance": "MINOR", "city_id": 33, "km_from_start": 200},
+        {"stop_key": "akola-bus-stand", "importance": "MAJOR", "city_id": 33, "km_from_start": 250}
+      ]
+    }
+  },
+  "city_corridor_map": {
+    "1": ["NH66_KONKAN", "NH48_MUMBAI_PUNE", "NH3_MUMBAI_NASHIK"],
+    "3": ["NH3_MUMBAI_NASHIK"],
+    "4": ["NH3_MUMBAI_NASHIK"],
+    "5": ["NH66_KONKAN", "NH48_MUMBAI_PUNE"],
+    "6": ["NH66_KONKAN"],
+    "7": ["NH66_KONKAN"],
+    "8": ["NH48_MUMBAI_PUNE", "NH48_PUNE_KOLHAPUR", "NH60_PUNE_AURANGABAD", "NH65_PUNE_SOLAPUR"],
+    "9": ["NH48_PUNE_KOLHAPUR"],
+    "10": ["NH48_PUNE_KOLHAPUR"],
+    "11": ["NH48_PUNE_KOLHAPUR"],
+    "12": ["NH65_PUNE_SOLAPUR"],
+    "13": ["NH3_MUMBAI_NASHIK", "NH52_NASHIK_AURANGABAD"],
+    "14": ["NH52_NASHIK_AURANGABAD", "NH60_PUNE_AURANGABAD"],
+    "18": ["NH52_NASHIK_AURANGABAD", "NH60_PUNE_AURANGABAD"],
+    "26": ["NH6_NAGPUR_AKOLA"],
+    "27": ["NH6_NAGPUR_AKOLA"],
+    "32": ["NH6_NAGPUR_AKOLA"],
+    "33": ["NH6_NAGPUR_AKOLA"]
+  },
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-12-27",
+    "stop_importance_levels": {
+      "MAJOR": "Main ST stands and depots - always shown",
+      "MINOR": "Smaller stops and phatas - shown on expand"
+    },
+    "disclaimer": "Stop sequences are indicative based on highway geography. Actual bus routes and halts may vary by service type."
+  }
+}
