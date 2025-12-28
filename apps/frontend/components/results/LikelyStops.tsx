@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp, MapPin, Info, Loader2, Route } from 'lucide-react'
+import { ChevronDown, ChevronUp, MapPin, Loader2, Route } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 
 interface LikelyStopsProps {
@@ -63,10 +63,11 @@ export default function LikelyStops({ fromCity, toCity }: LikelyStopsProps) {
   const hasMajorStops = data && data.major_stops.length > 0
   const hasMinorStops = data && data.minor_stops.length > 0
   const hasAnyStops = hasMajorStops || hasMinorStops
+  const hasCorridorData = data && data.source === 'corridor'
 
   return (
     <div className="border-t border-gray-100 pt-3 mt-3">
-      {/* Toggle Button */}
+      {/* Toggle Button - 2️⃣ Improved label */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-800 transition w-full"
@@ -78,6 +79,9 @@ export default function LikelyStops({ fromCity, toCity }: LikelyStopsProps) {
           <ChevronDown className="h-4 w-4" />
         )}
         <span className="font-medium">Likely Stops</span>
+        {expanded && hasAnyStops && (
+          <span className="text-xs text-gray-500 font-normal">(Indicative)</span>
+        )}
       </button>
 
       {/* Expanded Content */}
@@ -91,26 +95,30 @@ export default function LikelyStops({ fromCity, toCity }: LikelyStopsProps) {
             </div>
           )}
 
-          {/* Error State */}
+          {/* Error State - 2️⃣ Friendly messaging */}
           {error && !loading && (
             <div className="text-sm text-gray-500 py-2">
-              <span>Could not load stops for this route.</span>
+              <p>This route may follow multiple internal roads.</p>
+              <p className="text-xs mt-1">Stops vary by operator and service.</p>
             </div>
           )}
 
           {/* Data Loaded */}
           {data && !loading && (
             <>
-              {/* No corridor found */}
-              {data.source === 'no_corridor' && (
-                <p className="text-sm text-gray-500">Direct route - no corridor data available</p>
+              {/* 2️⃣ No corridor found - Friendly + Trust-Building */}
+              {data.source === 'no_corridor' && !hasAnyStops && (
+                <div className="text-sm text-gray-600 py-1">
+                  <p>This route may follow multiple internal roads.</p>
+                  <p className="text-xs text-gray-500 mt-1">Stops vary by operator and service.</p>
+                </div>
               )}
 
               {/* Has stops */}
               {hasAnyStops && (
                 <>
-                  {/* Header */}
-                  <p className="text-xs text-gray-500 mb-2">Likely stops (indicative):</p>
+                  {/* 2️⃣ Indicative messaging - Subject line */}
+                  <p className="text-xs text-gray-500 mb-2">Subject to operator route & service type</p>
                   
                   {/* MAJOR Stops - Always shown */}
                   {hasMajorStops && (
@@ -159,23 +167,26 @@ export default function LikelyStops({ fromCity, toCity }: LikelyStopsProps) {
                 </>
               )}
 
-              {/* No stops found but corridor exists */}
-              {!hasAnyStops && data.source === 'corridor' && (
-                <p className="text-sm text-gray-500">Direct route - no intermediate stops</p>
+              {/* No stops found but corridor exists - 2️⃣ Friendly messaging */}
+              {!hasAnyStops && hasCorridorData && (
+                <div className="text-sm text-gray-600 py-1">
+                  <p>Direct route via highway</p>
+                  <p className="text-xs text-gray-500 mt-1">Stops vary by operator and service.</p>
+                </div>
               )}
 
-              {/* Disclaimer */}
-              <div className="flex items-start gap-1.5 mt-3 p-2 bg-amber-50 rounded text-xs text-amber-700">
-                <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
-                <span>{data.note}</span>
-              </div>
+              {/* 2️⃣ Disclaimer - Neutral informational tone (NO yellow warning box) */}
+              <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                Stops are indicative and may vary by service type and operator.
+              </p>
             </>
           )}
 
-          {/* No data loaded yet */}
+          {/* No data loaded yet - 2️⃣ Friendly fallback */}
           {!data && !loading && !error && (
             <div className="text-sm text-gray-500 py-2">
-              <span>Route information not available.</span>
+              <p>This route may follow multiple internal roads.</p>
+              <p className="text-xs mt-1">Stops vary by operator and service.</p>
             </div>
           )}
         </div>
