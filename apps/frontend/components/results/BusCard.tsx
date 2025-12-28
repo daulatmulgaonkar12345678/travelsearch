@@ -57,6 +57,7 @@ interface BusOffer {
 
 interface BusCardProps {
   offer: BusOffer
+  index?: number  // For stagger animation
 }
 
 // Button label mapping for each partner
@@ -70,7 +71,7 @@ const getPartnerButtonLabel = (partnerName: string): string => {
   return labels[partnerName] || `🔍 Open ${partnerName}`
 }
 
-export default function BusCard({ offer }: BusCardProps) {
+export default function BusCard({ offer, index = 0 }: BusCardProps) {
   const [showDetails, setShowDetails] = useState(false)
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [showFareTooltip, setShowFareTooltip] = useState(false)
