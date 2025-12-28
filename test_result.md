@@ -8,6 +8,25 @@ test_sequence: 12
 run_ui: true
 ```
 
+## Current Focus: Bus Search Destination Overwrite Fix
+
+- task: "Bus Search Destination Overwrite Fix - Satara → Karad Validation"
+  implemented: true
+  working: true
+  file: "/app/apps/backend/app/routers/bus_autocomplete.py, /app/apps/backend/app/routers/buses.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ BUS SEARCH DESTINATION OVERWRITE FIX VALIDATED (6/6 TESTS PASSED): CRITICAL BUG FIXED - Satara and Karad now have distinct place IDs preventing destination overwrite. 1) Autocomplete Health: ✅ 1259 stops and 36 cities loaded correctly, 2) Autocomplete Satara: ✅ Found with ID 'stop_420' and label_en 'Satara Bus Stand', 3) Autocomplete Karad: ✅ Found with ID 'stop_421' and label_en 'Karad Bus Stand' (CRITICAL: Expected stop_421 confirmed), 4) Unique IDs Validation: ✅ Confirmed Satara (stop_420) and Karad (stop_421) have different place IDs - destination overwrite bug is FIXED, 5) Bus Search Satara→Karad: ✅ Successfully returns 1 bus offer for Satara→Karad route without 'same origin/destination' error, 6) Route Stops Corridor: ✅ API correctly handles unknown city pairs. Additional validation: Same city validation working (Satara→Satara correctly rejected), multiple autocomplete queries consistent. The destination overwrite bug where Karad selection would overwrite to Satara is completely resolved."
+  test_requirements:
+    - "Test GET /api/autocomplete/bus?q=satara - should return Satara with unique place_id"
+    - "Test GET /api/autocomplete/bus?q=karad - should return Karad with stop_421 ID and different place_id from Satara"
+    - "Test GET /api/search/buses?origin=Satara&destination=Karad - should NOT return 'same origin/destination' error"
+    - "Verify Satara and Karad have distinct IDs to prevent frontend destination overwrite"
+
 ## Current Focus: Likely Stops on Route Feature
 
 - task: "Likely Stops on Route - Enhanced Corridor Detection"
