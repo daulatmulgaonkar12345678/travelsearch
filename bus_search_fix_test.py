@@ -333,24 +333,25 @@ class BusSearchFixTester:
             
             data = response.json()
             
-            # Check response structure
-            if "status" not in data or data["status"] != "success":
+            # Check response structure - the API returns offers directly
+            if "offers" not in data:
                 self.log_result(
                     "Bus Search Satara→Karad",
                     False,
-                    f"Expected status='success', got: {data.get('status')}",
+                    "Missing 'offers' in response",
                     data
                 )
                 return False
             
             # Check route information
-            route = data.get("route", {})
-            if route.get("origin_city") != "Satara" or route.get("destination_city") != "Karad":
+            origin_city = data.get("origin_city")
+            destination_city = data.get("destination_city")
+            if origin_city != "Satara" or destination_city != "Karad":
                 self.log_result(
                     "Bus Search Satara→Karad",
                     False,
-                    f"Route mismatch - Origin: {route.get('origin_city')}, Destination: {route.get('destination_city')}",
-                    route
+                    f"Route mismatch - Origin: {origin_city}, Destination: {destination_city}",
+                    data
                 )
                 return False
             
