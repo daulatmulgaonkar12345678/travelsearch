@@ -55,9 +55,40 @@ interface SearchBarV3Props {
 }
 
 export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
   // SSR-safe state initialization
   const [mounted, setMounted] = useState(false)
-  const [searchType, setSearchType] = useState<SearchType>(defaultTab)
+  
+  // Get active tab from URL or default
+  const getTabFromUrl = (): SearchType => {
+    const tabParam = searchParams.get('tab') as SearchType | null
+    if (tabParam && ['flights', 'trains', 'buses', 'hotels'].includes(tabParam)) {
+      return tabParam
+    }
+    return defaultTab
+  }
+  
+  const [searchType, setSearchTypeState] = useState<SearchType>(getTabFromUrl)
+  
+  // Sync with URL changes (browser back/forward, navigation clicks)
+  useEffect(() => {
+    const urlTab = getTabFromUrl()
+    if (urlTab !== searchType) {
+      setSearchTypeState(urlTab)
+    }
+  }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Update URL when tab changes
+  const setSearchType = (newType: SearchType) => {
+    setSearchTypeState(newType)
+    
+    // Update URL param
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', newType)
+    router.push(`/?${params.toString()}`, { scroll: false })
+  }
   
   // Get deterministic default dates (SSR-safe)
   const getTodayDate = () => {
