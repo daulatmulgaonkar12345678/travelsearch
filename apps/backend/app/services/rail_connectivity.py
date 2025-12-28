@@ -1,10 +1,11 @@
-"""Rail Connectivity Resolver Service
+"""Rail Connectivity Resolver Service v2.0
 
-Flight-like hub-based routing for Indian Railways.
-Works even when no direct train exists by using:
-1. Direct connectivity (same line/corridor)
-2. Hub-based routing (via junctions)
-3. Local catchment (nearby stations)
+Production-grade Indian Railway connectivity system with:
+- City-first search (like redBus)
+- Multi-station metro support
+- Alias-based intelligent search
+- Hub-based routing for connections
+- Booking partner deep links
 
 Does NOT depend on live IRCTC APIs - uses static graph.
 """
@@ -12,8 +13,8 @@ Does NOT depend on live IRCTC APIs - uses static graph.
 import json
 import logging
 import os
-from typing import List, Dict, Optional, Tuple, Set
-from dataclasses import dataclass
+from typing import List, Dict, Optional, Tuple, Union
+from dataclasses import dataclass, field
 from enum import Enum
 from collections import deque
 import math
@@ -31,44 +32,44 @@ class RouteType(str, Enum):
     NOT_FOUND = "NOT_FOUND"
 
 class Confidence(str, Enum):
-    HIGH = "HIGH"       # Direct line or single hub
-    MEDIUM = "MEDIUM"   # Two hubs or regional
-    LOW = "LOW"         # Complex routing
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+
+class SearchResultType(str, Enum):
+    CITY = "city"
+    STATION = "station"
 
 @dataclass
 class Station:
     station_id: str
-    station_code: str
     station_name: str
     city: str
-    district: str
     state: str
     zone: str
-    latitude: float
-    longitude: float
-    station_type: str  # MAJOR, JUNCTION, LOCAL
-    aliases: List[str]
+    is_major: bool
+    trains_passing: int = 0
 
 @dataclass
-class RailHub:
-    hub_code: str
-    hub_name: str
-    hub_type: str  # MEGA_HUB, MAJOR_HUB, REGIONAL_HUB
-    zone: str
-    city: str
+class City:
+    city_id: str
+    city_name: str
     state: str
-    importance_score: int
-    connected_zones: List[str]
-    is_zonal_hq: bool
-    is_capital: bool
+    station_codes: List[str]
+    primary_station: str
+    is_metro: bool
+    population_rank: int = 100
 
 @dataclass
-class RailEdge:
-    from_station: str
-    to_station: str
-    distance_km: int
-    importance: str  # PRIMARY, SECONDARY
-    line: str
+class SearchResult:
+    result_type: SearchResultType
+    display_name: str
+    subtitle: str
+    station_codes: List[str]  # For city: all stations, For station: single code
+    city_id: Optional[str] = None
+    station_code: Optional[str] = None
+    is_metro: bool = False
+    score: int = 0
 
 @dataclass
 class ConnectivityResult:
@@ -77,21 +78,27 @@ class ConnectivityResult:
     confidence: Confidence
     note: str
     total_distance_km: Optional[int] = None
-    via_hubs: List[str] = None
+    via_hubs: List[str] = field(default_factory=list)
     zone_changes: int = 0
+    from_stations: List[str] = field(default_factory=list)
+    to_stations: List[str] = field(default_factory=list)
+
+# ============================================================
+# GLOBAL DATA STORES
+# ============================================================
+
+_stations: Dict[str, Station] = {}
+_cities: Dict[str, City] = {}
+_aliases: Dict[str, Dict] = {}  # alias -> {resolves_to_station, resolves_to_city, city}
+_hubs: Dict[str, Dict] = {}
+_graph: Dict[str, List[Tuple[str, int, str]]] = {}
+_corridors: List[Dict] = []
+_station_to_city: Dict[str, str] = {}  # station_code -> city_id
+_loaded = False
 
 # ============================================================
 # DATA LOADING
 # ============================================================
-
-_stations: Dict[str, Station] = {}
-_hubs: Dict[str, RailHub] = {}
-_edges: List[RailEdge] = []
-_graph: Dict[str, List[Tuple[str, int, str]]] = {}  # adjacency list
-_station_to_city: Dict[str, str] = {}
-_city_to_stations: Dict[str, List[str]] = {}
-_corridors: List[Dict] = []
-_loaded = False
 
 def _get_data_path(filename: str) -> str:
     """Get path to railway data file"""
@@ -110,7 +117,7 @@ def _get_data_path(filename: str) -> str:
 
 def _load_data():
     """Load all railway data files"""
-    global _stations, _hubs, _edges, _graph, _station_to_city, _city_to_stations, _corridors, _loaded
+    global _stations, _cities, _aliases, _hubs, _graph, _corridors, _station_to_city, _loaded
     
     if _loaded:
         return
@@ -122,189 +129,265 @@ def _load_data():
             for s in data.get("stations", []):
                 station = Station(
                     station_id=s["station_id"],
-                    station_code=s["station_code"],
                     station_name=s["station_name"],
                     city=s["city"],
-                    district=s["district"],
                     state=s["state"],
-                    zone=s["zone"],
-                    latitude=s["latitude"],
-                    longitude=s["longitude"],
-                    station_type=s["station_type"],
-                    aliases=s.get("aliases", [])
+                    zone=s.get("zone", ""),
+                    is_major=s.get("is_major", False),
+                    trains_passing=s.get("trains_passing", 0)
                 )
-                _stations[station.station_code] = station
-                _station_to_city[station.station_code] = station.city
+                _stations[station.station_id] = station
+        
+        logger.info(f"✅ Loaded {len(_stations)} stations")
+        
+        # Load cities
+        with open(_get_data_path("cities.json"), "r") as f:
+            data = json.load(f)
+            for c in data.get("cities", []):
+                city = City(
+                    city_id=c["city_id"],
+                    city_name=c["city_name"],
+                    state=c["state"],
+                    station_codes=c["station_codes"],
+                    primary_station=c["primary_station"],
+                    is_metro=c.get("is_metro", False),
+                    population_rank=c.get("population_rank", 100)
+                )
+                _cities[city.city_id] = city
                 
-                # Build city to stations mapping
-                city_key = station.city.lower()
-                if city_key not in _city_to_stations:
-                    _city_to_stations[city_key] = []
-                _city_to_stations[city_key].append(station.station_code)
+                # Build station to city mapping
+                for station_code in city.station_codes:
+                    _station_to_city[station_code] = city.city_id
+        
+        logger.info(f"✅ Loaded {len(_cities)} cities")
+        
+        # Load aliases
+        with open(_get_data_path("station_aliases.json"), "r") as f:
+            data = json.load(f)
+            for a in data.get("station_aliases", []):
+                alias_key = a["alias"].lower()
+                _aliases[alias_key] = {
+                    "resolves_to_station": a.get("resolves_to_station"),
+                    "resolves_to_city": a.get("resolves_to_city"),
+                    "city": a.get("city")
+                }
+        
+        logger.info(f"✅ Loaded {len(_aliases)} aliases")
         
         # Load hubs
-        with open(_get_data_path("rail_hubs.json"), "r") as f:
-            data = json.load(f)
-            for h in data.get("hubs", []):
-                hub = RailHub(
-                    hub_code=h["hub_code"],
-                    hub_name=h["hub_name"],
-                    hub_type=h["hub_type"],
-                    zone=h["zone"],
-                    city=h["city"],
-                    state=h["state"],
-                    importance_score=h["importance_score"],
-                    connected_zones=h.get("connected_zones", []),
-                    is_zonal_hq=h.get("is_zonal_hq", False),
-                    is_capital=h.get("is_capital", False)
-                )
-                _hubs[hub.hub_code] = hub
+        try:
+            with open(_get_data_path("rail_hubs.json"), "r") as f:
+                data = json.load(f)
+                for h in data.get("hubs", []):
+                    _hubs[h["hub_code"]] = h
+            logger.info(f"✅ Loaded {len(_hubs)} hubs")
+        except Exception:
+            logger.warning("⚠️ rail_hubs.json not found, skipping")
         
         # Load edges and build graph
-        with open(_get_data_path("rail_edges.json"), "r") as f:
-            data = json.load(f)
-            _corridors = data.get("corridors", [])
+        try:
+            with open(_get_data_path("rail_edges.json"), "r") as f:
+                data = json.load(f)
+                _corridors.extend(data.get("corridors", []))
+                
+                for e in data.get("edges", []):
+                    from_st = e["from"]
+                    to_st = e["to"]
+                    dist = e["distance_km"]
+                    line = e["line"]
+                    
+                    if from_st not in _graph:
+                        _graph[from_st] = []
+                    if to_st not in _graph:
+                        _graph[to_st] = []
+                    
+                    _graph[from_st].append((to_st, dist, line))
+                    _graph[to_st].append((from_st, dist, line))
             
-            for e in data.get("edges", []):
-                edge = RailEdge(
-                    from_station=e["from"],
-                    to_station=e["to"],
-                    distance_km=e["distance_km"],
-                    importance=e["importance"],
-                    line=e["line"]
-                )
-                _edges.append(edge)
-                
-                # Build bidirectional graph
-                if edge.from_station not in _graph:
-                    _graph[edge.from_station] = []
-                if edge.to_station not in _graph:
-                    _graph[edge.to_station] = []
-                
-                _graph[edge.from_station].append((edge.to_station, edge.distance_km, edge.line))
-                _graph[edge.to_station].append((edge.from_station, edge.distance_km, edge.line))
+            logger.info(f"✅ Loaded {len(_corridors)} corridors, graph has {len(_graph)} nodes")
+        except Exception:
+            logger.warning("⚠️ rail_edges.json not found, skipping")
         
         _loaded = True
-        logger.info(f"✅ Loaded {len(_stations)} stations, {len(_hubs)} hubs, {len(_edges)} edges")
         
     except Exception as e:
         logger.error(f"❌ Failed to load railway data: {e}")
         raise
 
 # ============================================================
-# HELPER FUNCTIONS
+# SEARCH FUNCTIONS (CITY-FIRST)
 # ============================================================
 
-def _normalize_station_code(input_str: str) -> Optional[str]:
-    """Convert city name or station code to standard station code"""
+def search_stations_cities(query: str, limit: int = 10) -> List[SearchResult]:
+    """
+    Search for cities and stations with city-first results.
+    
+    When user types "Pune" -> return City result with all stations
+    When user types "Shivaji Nagar" -> return specific station
+    """
     _load_data()
     
-    input_upper = input_str.upper().strip()
+    query_lower = query.lower().strip()
+    results: List[SearchResult] = []
+    seen_cities = set()
+    seen_stations = set()
+    
+    # 1. Check aliases first (handles old names, spellings)
+    if query_lower in _aliases:
+        alias_info = _aliases[query_lower]
+        
+        if alias_info.get("resolves_to_city"):
+            city_id = alias_info["resolves_to_city"]
+            if city_id in _cities:
+                city = _cities[city_id]
+                results.append(SearchResult(
+                    result_type=SearchResultType.CITY,
+                    display_name=city.city_name,
+                    subtitle=f"{city.state} • {len(city.station_codes)} stations",
+                    station_codes=city.station_codes,
+                    city_id=city.city_id,
+                    is_metro=city.is_metro,
+                    score=200 - city.population_rank
+                ))
+                seen_cities.add(city_id)
+        
+        elif alias_info.get("resolves_to_station"):
+            station_code = alias_info["resolves_to_station"]
+            if station_code in _stations:
+                station = _stations[station_code]
+                results.append(SearchResult(
+                    result_type=SearchResultType.STATION,
+                    display_name=f"{station.station_name} ({station_code})",
+                    subtitle=f"{station.city}, {station.state}",
+                    station_codes=[station_code],
+                    station_code=station_code,
+                    score=150
+                ))
+                seen_stations.add(station_code)
+    
+    # 2. Search cities by name (exact and prefix match)
+    for city_id, city in _cities.items():
+        if city_id in seen_cities:
+            continue
+        
+        score = 0
+        city_name_lower = city.city_name.lower()
+        
+        if query_lower == city_name_lower:
+            score = 200 - city.population_rank  # Exact match
+        elif city_name_lower.startswith(query_lower):
+            score = 150 - city.population_rank  # Prefix match
+        elif query_lower in city_name_lower:
+            score = 100 - city.population_rank  # Contains
+        
+        if score > 0:
+            results.append(SearchResult(
+                result_type=SearchResultType.CITY,
+                display_name=city.city_name,
+                subtitle=f"{city.state} • {len(city.station_codes)} station{'s' if len(city.station_codes) > 1 else ''}",
+                station_codes=city.station_codes,
+                city_id=city.city_id,
+                is_metro=city.is_metro,
+                score=score
+            ))
+            seen_cities.add(city_id)
+    
+    # 3. Search stations by code and name
+    for station_code, station in _stations.items():
+        if station_code in seen_stations:
+            continue
+        
+        # Skip if already covered by city
+        city_id = _station_to_city.get(station_code)
+        if city_id in seen_cities:
+            continue
+        
+        score = 0
+        station_name_lower = station.station_name.lower()
+        code_lower = station_code.lower()
+        
+        if query_lower == code_lower:
+            score = 180  # Exact code match
+        elif code_lower.startswith(query_lower):
+            score = 140  # Code prefix
+        elif station_name_lower.startswith(query_lower):
+            score = 120  # Name prefix
+        elif query_lower in station_name_lower:
+            score = 80  # Name contains
+        
+        # Boost major stations
+        if station.is_major:
+            score += 10
+        
+        if score > 0:
+            results.append(SearchResult(
+                result_type=SearchResultType.STATION,
+                display_name=f"{station.station_name} ({station_code})",
+                subtitle=f"{station.city}, {station.state}",
+                station_codes=[station_code],
+                station_code=station_code,
+                score=score
+            ))
+            seen_stations.add(station_code)
+    
+    # Sort by score descending
+    results.sort(key=lambda x: x.score, reverse=True)
+    
+    return results[:limit]
+
+def resolve_to_station_codes(input_str: str) -> Tuple[str, List[str]]:
+    """
+    Resolve a user input to station code(s).
+    
+    Returns: (input_type, station_codes)
+    - For city input: ("city", [all station codes])
+    - For station input: ("station", [single code])
+    """
+    _load_data()
+    
     input_lower = input_str.lower().strip()
+    input_upper = input_str.upper().strip()
     
-    # Direct station code match
+    # 1. Check if it's a direct station code
     if input_upper in _stations:
-        return input_upper
+        return ("station", [input_upper])
     
-    # City name match - return primary station
-    if input_lower in _city_to_stations:
-        stations = _city_to_stations[input_lower]
-        # Prefer MAJOR > JUNCTION > LOCAL
-        for station_code in stations:
-            if _stations[station_code].station_type == "MAJOR":
-                return station_code
-        for station_code in stations:
-            if _stations[station_code].station_type == "JUNCTION":
-                return station_code
-        return stations[0] if stations else None
+    # 2. Check aliases
+    if input_lower in _aliases:
+        alias_info = _aliases[input_lower]
+        
+        if alias_info.get("resolves_to_city"):
+            city_id = alias_info["resolves_to_city"]
+            if city_id in _cities:
+                return ("city", _cities[city_id].station_codes)
+        
+        if alias_info.get("resolves_to_station"):
+            station_code = alias_info["resolves_to_station"]
+            if station_code in _stations:
+                return ("station", [station_code])
     
-    # Alias match
-    for code, station in _stations.items():
-        if input_lower in [a.lower() for a in station.aliases]:
-            return code
+    # 3. Check city names
+    for city_id, city in _cities.items():
+        if input_lower == city.city_name.lower() or input_lower == city_id:
+            return ("city", city.station_codes)
+    
+    # 4. Check station names
+    for station_code, station in _stations.items():
         if input_lower == station.station_name.lower():
-            return code
-        if input_lower == station.city.lower():
-            return code
+            return ("station", [station_code])
     
-    return None
+    # 5. Fallback - try partial match on city
+    for city_id, city in _cities.items():
+        if input_lower in city.city_name.lower():
+            return ("city", city.station_codes)
+    
+    return ("unknown", [])
 
-def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Calculate distance between two coordinates in km"""
-    R = 6371  # Earth's radius in km
-    
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
-    
-    return R * c
+# ============================================================
+# CONNECTIVITY RESOLVER
+# ============================================================
 
-def _get_nearby_stations(station_code: str, radius_km: float = 50) -> List[str]:
-    """Find stations within radius (for local catchment)"""
-    _load_data()
-    
-    if station_code not in _stations:
-        return []
-    
-    origin = _stations[station_code]
-    nearby = []
-    
-    for code, station in _stations.items():
-        if code == station_code:
-            continue
-        
-        dist = _haversine_distance(
-            origin.latitude, origin.longitude,
-            station.latitude, station.longitude
-        )
-        
-        if dist <= radius_km:
-            nearby.append((code, dist))
-    
-    # Sort by distance
-    nearby.sort(key=lambda x: x[1])
-    return [s[0] for s in nearby]
-
-def _find_nearest_hub(station_code: str) -> Optional[str]:
-    """Find the nearest railway hub to a station"""
-    _load_data()
-    
-    if station_code in _hubs:
-        return station_code
-    
-    if station_code not in _stations:
-        return None
-    
-    origin = _stations[station_code]
-    nearest_hub = None
-    min_dist = float('inf')
-    
-    for hub_code, hub in _hubs.items():
-        if hub_code not in _stations:
-            continue
-        
-        hub_station = _stations[hub_code]
-        dist = _haversine_distance(
-            origin.latitude, origin.longitude,
-            hub_station.latitude, hub_station.longitude
-        )
-        
-        # Weight by hub importance (prefer MEGA > MAJOR > REGIONAL)
-        if hub.hub_type == "MEGA_HUB":
-            dist *= 0.7
-        elif hub.hub_type == "MAJOR_HUB":
-            dist *= 0.85
-        
-        if dist < min_dist:
-            min_dist = dist
-            nearest_hub = hub_code
-    
-    return nearest_hub
-
-def _bfs_find_path(start: str, end: str, max_depth: int = 6) -> Optional[List[str]]:
+def _bfs_find_path(start: str, end: str, max_depth: int = 10) -> Optional[List[str]]:
     """BFS to find shortest path in graph"""
     _load_data()
     
@@ -333,100 +416,186 @@ def _bfs_find_path(start: str, end: str, max_depth: int = 6) -> Optional[List[st
     
     return None
 
-def _is_on_same_corridor(station1: str, station2: str) -> Optional[str]:
-    """Check if two stations are on the same corridor"""
+def _find_nearest_hub(station_code: str) -> Optional[str]:
+    """Find nearest hub to a station"""
     _load_data()
     
-    for corridor in _corridors:
-        stations = corridor.get("stations", [])
-        if station1 in stations and station2 in stations:
-            return corridor.get("corridor_name")
+    if station_code in _hubs:
+        return station_code
+    
+    # BFS to find nearest hub
+    queue = deque([(station_code, 0)])
+    visited = {station_code}
+    
+    while queue:
+        current, dist = queue.popleft()
+        
+        if current in _hubs:
+            return current
+        
+        if dist > 5:  # Max 5 hops to find hub
+            continue
+        
+        for neighbor, _, _ in _graph.get(current, []):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, dist + 1))
+    
+    # Fallback: return station's city primary if it's a hub
+    city_id = _station_to_city.get(station_code)
+    if city_id and city_id in _cities:
+        primary = _cities[city_id].primary_station
+        if primary in _hubs:
+            return primary
     
     return None
 
-def _calculate_path_distance(path: List[str]) -> int:
-    """Calculate total distance of a path"""
+def resolve_connectivity(from_input: str, to_input: str) -> ConnectivityResult:
+    """
+    Resolve connectivity between two inputs (city or station).
+    
+    Handles:
+    - City → City: Expands to all station pairs
+    - Station → City: Single origin, multiple destinations
+    - Station → Station: Direct lookup
+    """
     _load_data()
     
-    total = 0
-    for i in range(len(path) - 1):
-        from_st = path[i]
-        to_st = path[i + 1]
+    # Resolve inputs to station codes
+    from_type, from_stations = resolve_to_station_codes(from_input)
+    to_type, to_stations = resolve_to_station_codes(to_input)
+    
+    if not from_stations:
+        return ConnectivityResult(
+            route_type=RouteType.NOT_FOUND,
+            path=[],
+            confidence=Confidence.LOW,
+            note=f"Origin not found: {from_input}",
+            from_stations=[],
+            to_stations=[]
+        )
+    
+    if not to_stations:
+        return ConnectivityResult(
+            route_type=RouteType.NOT_FOUND,
+            path=[],
+            confidence=Confidence.LOW,
+            note=f"Destination not found: {to_input}",
+            from_stations=from_stations,
+            to_stations=[]
+        )
+    
+    # Try to find best route among all station pairs
+    best_result = None
+    best_path_length = float('inf')
+    
+    for origin in from_stations:
+        for dest in to_stations:
+            if origin == dest:
+                continue
+            
+            result = _find_single_route(origin, dest)
+            
+            if result.route_type != RouteType.NOT_FOUND:
+                path_len = len(result.path)
+                
+                # Prefer DIRECT over HUB_BASED
+                if result.route_type == RouteType.DIRECT and best_result and best_result.route_type != RouteType.DIRECT:
+                    best_result = result
+                    best_path_length = path_len
+                elif path_len < best_path_length:
+                    best_result = result
+                    best_path_length = path_len
+    
+    if best_result:
+        best_result.from_stations = from_stations
+        best_result.to_stations = to_stations
         
-        for neighbor, dist, line in _graph.get(from_st, []):
-            if neighbor == to_st:
-                total += dist
-                break
+        # Add context to note
+        if from_type == "city" or to_type == "city":
+            origin_name = _get_location_display_name(from_input, from_type, from_stations)
+            dest_name = _get_location_display_name(to_input, to_type, to_stations)
+            
+            if len(from_stations) > 1 or len(to_stations) > 1:
+                best_result.note += f" Multiple station options available."
+        
+        return best_result
     
-    return total
+    # No route found - create estimated
+    return _create_estimated_route(from_stations, to_stations, from_input, to_input)
 
-# ============================================================
-# MAIN CONNECTIVITY RESOLVER
-# ============================================================
+def _get_location_display_name(input_str: str, loc_type: str, station_codes: List[str]) -> str:
+    """Get display name for a location"""
+    if loc_type == "city":
+        input_lower = input_str.lower()
+        for city_id, city in _cities.items():
+            if input_lower == city.city_name.lower() or input_lower == city_id:
+                return city.city_name
+    
+    if station_codes and station_codes[0] in _stations:
+        return _stations[station_codes[0]].station_name
+    
+    return input_str
 
-def resolve_connectivity(from_station: str, to_station: str) -> ConnectivityResult:
-    """
-    Main entry point for resolving rail connectivity.
+def _find_single_route(origin: str, destination: str) -> ConnectivityResult:
+    """Find route between two specific stations"""
     
-    Strategy:
-    1. Direct connectivity (same line/corridor)
-    2. Hub-based routing (max 2 hubs)
-    3. Local catchment (nearby stations)
-    """
-    _load_data()
-    
-    # Normalize inputs
-    origin_code = _normalize_station_code(from_station)
-    dest_code = _normalize_station_code(to_station)
-    
-    if not origin_code:
-        return ConnectivityResult(
-            route_type=RouteType.NOT_FOUND,
-            path=[],
-            confidence=Confidence.LOW,
-            note=f"Origin station not found: {from_station}"
-        )
-    
-    if not dest_code:
-        return ConnectivityResult(
-            route_type=RouteType.NOT_FOUND,
-            path=[],
-            confidence=Confidence.LOW,
-            note=f"Destination station not found: {to_station}"
-        )
-    
-    if origin_code == dest_code:
+    # Direct path
+    path = _bfs_find_path(origin, destination, max_depth=8)
+    if path:
         return ConnectivityResult(
             route_type=RouteType.DIRECT,
-            path=[_build_path_node(origin_code, "ORIGIN")],
+            path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "VIA") for s in path],
             confidence=Confidence.HIGH,
-            note="Same station"
+            note="Direct trains available on this route.",
+            via_hubs=[]
         )
     
-    # Strategy 1: Direct connectivity
-    direct_result = _check_direct_connectivity(origin_code, dest_code)
-    if direct_result.route_type == RouteType.DIRECT:
-        return direct_result
+    # Hub-based routing
+    origin_hub = _find_nearest_hub(origin)
+    dest_hub = _find_nearest_hub(destination)
     
-    # Strategy 2: Hub-based routing
-    hub_result = _check_hub_routing(origin_code, dest_code)
-    if hub_result.route_type == RouteType.HUB_BASED:
-        return hub_result
+    if origin_hub and dest_hub:
+        # Try via origin hub
+        to_hub = _bfs_find_path(origin, origin_hub, max_depth=6)
+        from_hub = _bfs_find_path(origin_hub, destination, max_depth=10)
+        
+        if to_hub and from_hub:
+            full_path = to_hub + from_hub[1:]
+            hub_name = _hubs.get(origin_hub, {}).get("hub_name", origin_hub)
+            return ConnectivityResult(
+                route_type=RouteType.HUB_BASED,
+                path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "HUB" if s == origin_hub else "VIA") for s in full_path],
+                confidence=Confidence.HIGH,
+                note=f"Most trains travel via {hub_name}. Change of trains may be required.",
+                via_hubs=[origin_hub]
+            )
+        
+        # Try via destination hub
+        to_hub = _bfs_find_path(origin, dest_hub, max_depth=10)
+        from_hub = _bfs_find_path(dest_hub, destination, max_depth=6)
+        
+        if to_hub and from_hub:
+            full_path = to_hub + from_hub[1:]
+            hub_name = _hubs.get(dest_hub, {}).get("hub_name", dest_hub)
+            return ConnectivityResult(
+                route_type=RouteType.HUB_BASED,
+                path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "HUB" if s == dest_hub else "VIA") for s in full_path],
+                confidence=Confidence.HIGH,
+                note=f"Most trains travel via {hub_name}. Change of trains may be required.",
+                via_hubs=[dest_hub]
+            )
     
-    # Strategy 3: Local catchment
-    catchment_result = _check_local_catchment(origin_code, dest_code)
-    if catchment_result.route_type == RouteType.LOCAL_CATCHMENT:
-        return catchment_result
-    
-    # Fallback: Estimate possible route
-    return _create_estimated_route(origin_code, dest_code)
+    return ConnectivityResult(
+        route_type=RouteType.NOT_FOUND,
+        path=[],
+        confidence=Confidence.LOW,
+        note="No direct route found in graph."
+    )
 
 def _build_path_node(station_code: str, node_type: str) -> Dict:
-    """Build a path node for the response"""
-    _load_data()
-    
+    """Build a path node for response"""
     station = _stations.get(station_code)
-    hub = _hubs.get(station_code)
     
     return {
         "station": station_code,
@@ -434,216 +603,109 @@ def _build_path_node(station_code: str, node_type: str) -> Dict:
         "station_name": station.station_name if station else station_code,
         "city": station.city if station else None,
         "zone": station.zone if station else None,
-        "is_hub": hub is not None,
-        "hub_type": hub.hub_type if hub else None
+        "is_hub": station_code in _hubs
     }
 
-def _check_direct_connectivity(origin: str, destination: str) -> ConnectivityResult:
-    """Check for direct connectivity via BFS"""
-    
-    # Check if on same corridor first
-    corridor = _is_on_same_corridor(origin, destination)
-    if corridor:
-        path = _bfs_find_path(origin, destination, max_depth=8)
-        if path:
-            distance = _calculate_path_distance(path)
-            return ConnectivityResult(
-                route_type=RouteType.DIRECT,
-                path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "VIA") for s in path],
-                confidence=Confidence.HIGH,
-                note=f"Direct route via {corridor}. Trains run daily.",
-                total_distance_km=distance,
-                via_hubs=[],
-                zone_changes=0
-            )
-    
-    # Try BFS for direct path
-    path = _bfs_find_path(origin, destination, max_depth=4)
-    if path:
-        distance = _calculate_path_distance(path)
-        return ConnectivityResult(
-            route_type=RouteType.DIRECT,
-            path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "VIA") for s in path],
-            confidence=Confidence.HIGH,
-            note="Direct rail route available. Multiple trains operate on this line.",
-            total_distance_km=distance,
-            via_hubs=[],
-            zone_changes=0
-        )
-    
-    return ConnectivityResult(
-        route_type=RouteType.NOT_FOUND,
-        path=[],
-        confidence=Confidence.LOW,
-        note="No direct route found"
-    )
-
-def _check_hub_routing(origin: str, destination: str) -> ConnectivityResult:
-    """Check for hub-based routing (max 2 hubs)"""
-    
-    # Find nearest hubs to origin and destination
-    origin_hub = _find_nearest_hub(origin)
-    dest_hub = _find_nearest_hub(destination)
-    
-    if not origin_hub or not dest_hub:
-        return ConnectivityResult(
-            route_type=RouteType.NOT_FOUND,
-            path=[],
-            confidence=Confidence.LOW,
-            note="Could not find suitable hubs"
-        )
-    
-    # Case 1: Same hub
-    if origin_hub == dest_hub:
-        path = [origin, origin_hub, destination] if origin != origin_hub else [origin, destination]
-        return ConnectivityResult(
-            route_type=RouteType.HUB_BASED,
-            path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "HUB") for s in path],
-            confidence=Confidence.HIGH,
-            note=f"Both stations connect through {_hubs[origin_hub].hub_name}.",
-            via_hubs=[origin_hub],
-            zone_changes=0
-        )
-    
-    # Case 2: Try routing via one hub (with longer max_depth for long routes)
-    for hub in [origin_hub, dest_hub]:
-        origin_to_hub = _bfs_find_path(origin, hub, max_depth=8)
-        hub_to_dest = _bfs_find_path(hub, destination, max_depth=8)
-        
-        if origin_to_hub and hub_to_dest:
-            full_path = origin_to_hub + hub_to_dest[1:]  # Avoid duplicate hub
-            distance = _calculate_path_distance(full_path)
-            
-            hub_info = _hubs[hub]
-            return ConnectivityResult(
-                route_type=RouteType.HUB_BASED,
-                path=[_build_path_node(s, "ORIGIN" if s == origin else "DESTINATION" if s == destination else "HUB" if s == hub else "VIA") for s in full_path],
-                confidence=Confidence.HIGH,
-                note=f"Most trains travel via {hub_info.hub_name}. Change of trains may be required.",
-                total_distance_km=distance,
-                via_hubs=[hub],
-                zone_changes=1 if _stations[origin].zone != _stations[destination].zone else 0
-            )
-    
-    # Case 3: Try routing via two hubs (with longer path search)
-    hub_to_hub = _bfs_find_path(origin_hub, dest_hub, max_depth=10)
-    if hub_to_hub:
-        origin_to_hub = _bfs_find_path(origin, origin_hub, max_depth=6)
-        hub_to_dest = _bfs_find_path(dest_hub, destination, max_depth=6)
-        
-        if origin_to_hub and hub_to_dest:
-            # Build full path avoiding duplicates
-            full_path = origin_to_hub.copy()
-            for s in hub_to_hub[1:]:
-                if s not in full_path:
-                    full_path.append(s)
-            for s in hub_to_dest[1:]:
-                if s not in full_path:
-                    full_path.append(s)
-            
-            distance = _calculate_path_distance(full_path)
-            
-            return ConnectivityResult(
-                route_type=RouteType.HUB_BASED,
-                path=[_build_path_node(s, 
-                    "ORIGIN" if s == origin else 
-                    "DESTINATION" if s == destination else 
-                    "HUB" if s in [origin_hub, dest_hub] else "VIA"
-                ) for s in full_path],
-                confidence=Confidence.MEDIUM,
-                note=f"Travel via {_hubs[origin_hub].hub_name} and {_hubs[dest_hub].hub_name}. Multiple train changes likely.",
-                total_distance_km=distance,
-                via_hubs=[origin_hub, dest_hub],
-                zone_changes=2
-            )
-    
-    return ConnectivityResult(
-        route_type=RouteType.NOT_FOUND,
-        path=[],
-        confidence=Confidence.LOW,
-        note="No hub-based route found"
-    )
-
-def _check_local_catchment(origin: str, destination: str) -> ConnectivityResult:
-    """Check nearby stations for connectivity"""
-    
-    # Try nearby origin stations
-    nearby_origins = _get_nearby_stations(origin, radius_km=50)
-    for nearby in nearby_origins[:3]:  # Check top 3
-        result = _check_direct_connectivity(nearby, destination)
-        if result.route_type == RouteType.DIRECT:
-            # Prepend origin to path
-            result.path.insert(0, _build_path_node(origin, "ORIGIN"))
-            result.route_type = RouteType.LOCAL_CATCHMENT
-            result.note = f"Travel to nearby station {_stations[nearby].station_name} ({_stations[nearby].city}) for connectivity. " + result.note
-            return result
-    
-    # Try nearby destination stations
-    nearby_dests = _get_nearby_stations(destination, radius_km=50)
-    for nearby in nearby_dests[:3]:
-        result = _check_direct_connectivity(origin, nearby)
-        if result.route_type == RouteType.DIRECT:
-            # Append destination to path
-            result.path.append(_build_path_node(destination, "DESTINATION"))
-            result.route_type = RouteType.LOCAL_CATCHMENT
-            result.note += f" Then travel to {_stations[destination].station_name} ({_stations[destination].city})."
-            return result
-    
-    return ConnectivityResult(
-        route_type=RouteType.NOT_FOUND,
-        path=[],
-        confidence=Confidence.LOW,
-        note="No local catchment options found"
-    )
-
-def _create_estimated_route(origin: str, destination: str) -> ConnectivityResult:
+def _create_estimated_route(from_stations: List[str], to_stations: List[str], from_input: str, to_input: str) -> ConnectivityResult:
     """Create estimated route when no graph path exists"""
     
-    origin_hub = _find_nearest_hub(origin)
-    dest_hub = _find_nearest_hub(destination)
+    origin = from_stations[0] if from_stations else None
+    destination = to_stations[0] if to_stations else None
     
     path = []
-    path.append(_build_path_node(origin, "ORIGIN"))
+    if origin:
+        path.append(_build_path_node(origin, "ORIGIN"))
     
+    origin_hub = _find_nearest_hub(origin) if origin else None
+    dest_hub = _find_nearest_hub(destination) if destination else None
+    
+    via_hubs = []
     if origin_hub and origin_hub != origin:
         path.append(_build_path_node(origin_hub, "HUB"))
+        via_hubs.append(origin_hub)
     
     if dest_hub and dest_hub != destination and dest_hub != origin_hub:
         path.append(_build_path_node(dest_hub, "HUB"))
+        via_hubs.append(dest_hub)
     
-    path.append(_build_path_node(destination, "DESTINATION"))
+    if destination:
+        path.append(_build_path_node(destination, "DESTINATION"))
     
-    # Estimate distance
-    if origin in _stations and destination in _stations:
-        dist = _haversine_distance(
-            _stations[origin].latitude, _stations[origin].longitude,
-            _stations[destination].latitude, _stations[destination].longitude
-        )
-        rail_dist = int(dist * 1.3)  # Rail distance is typically 30% more than direct
-    else:
-        rail_dist = None
-    
-    hubs = []
-    if origin_hub and origin_hub != origin:
-        hubs.append(origin_hub)
-    if dest_hub and dest_hub != destination and dest_hub != origin_hub:
-        hubs.append(dest_hub)
-    
-    if hubs:
-        hub_names = [_hubs[h].hub_name for h in hubs if h in _hubs]
+    note = "Trains likely available. Check booking partners for schedules."
+    if via_hubs:
+        hub_names = [_hubs.get(h, {}).get("hub_name", h) for h in via_hubs]
         note = f"Possible route via {' and '.join(hub_names)}. Check booking partners for exact trains."
-    else:
-        note = "No common rail route found. Try nearby stations or major junctions."
     
     return ConnectivityResult(
-        route_type=RouteType.HUB_BASED if hubs else RouteType.NOT_FOUND,
+        route_type=RouteType.HUB_BASED if via_hubs else RouteType.NOT_FOUND,
         path=path,
         confidence=Confidence.LOW,
         note=note,
-        total_distance_km=rail_dist,
-        via_hubs=hubs,
-        zone_changes=len(hubs)
+        via_hubs=via_hubs,
+        from_stations=from_stations,
+        to_stations=to_stations
     )
+
+# ============================================================
+# BOOKING PARTNER DEEP LINKS
+# ============================================================
+
+BOOKING_PARTNERS = [
+    {
+        "name": "IRCTC",
+        "priority": 1,
+        "url_template": "https://www.irctc.co.in/nget/train-search",
+        "is_official": True,
+        "description": "Official Indian Railways booking"
+    },
+    {
+        "name": "RailYatri",
+        "priority": 2,
+        "url_template": "https://www.railyatri.in/trains-between-stations?fromStation={from_code}&toStation={to_code}&journeyDate={date}",
+        "is_official": False,
+        "description": "Seat availability & predictions"
+    },
+    {
+        "name": "ConfirmTkt",
+        "priority": 3,
+        "url_template": "https://www.confirmtkt.com/train-between-stations/{from_code}/{to_code}",
+        "is_official": False,
+        "description": "Confirmation predictions"
+    },
+    {
+        "name": "Paytm",
+        "priority": 4,
+        "url_template": "https://tickets.paytm.com/railways",
+        "is_official": False,
+        "description": "Easy booking with cashback"
+    }
+]
+
+def generate_booking_links(from_station: str, to_station: str, date: Optional[str] = None) -> List[Dict]:
+    """Generate booking partner deep links"""
+    links = []
+    
+    for partner in BOOKING_PARTNERS:
+        url = partner["url_template"]
+        
+        if "{from_code}" in url:
+            url = url.replace("{from_code}", from_station)
+        if "{to_code}" in url:
+            url = url.replace("{to_code}", to_station)
+        if "{date}" in url and date:
+            url = url.replace("{date}", date)
+        elif "{date}" in url:
+            url = url.split("?")[0]  # Remove date param if not provided
+        
+        links.append({
+            "name": partner["name"],
+            "url": url,
+            "priority": partner["priority"],
+            "is_official": partner["is_official"],
+            "description": partner["description"]
+        })
+    
+    return links
 
 # ============================================================
 # PUBLIC API FUNCTIONS
@@ -653,25 +715,80 @@ def get_station_info(station_code: str) -> Optional[Dict]:
     """Get station information"""
     _load_data()
     
-    code = _normalize_station_code(station_code)
-    if not code or code not in _stations:
-        return None
+    # Try direct lookup
+    if station_code.upper() in _stations:
+        station = _stations[station_code.upper()]
+        city_id = _station_to_city.get(station_code.upper())
+        city = _cities.get(city_id) if city_id else None
+        
+        return {
+            "station_code": station_code.upper(),
+            "station_name": station.station_name,
+            "city": station.city,
+            "state": station.state,
+            "zone": station.zone,
+            "is_major": station.is_major,
+            "trains_passing": station.trains_passing,
+            "is_hub": station_code.upper() in _hubs,
+            "city_has_multiple_stations": len(city.station_codes) > 1 if city else False,
+            "other_stations_in_city": [s for s in city.station_codes if s != station_code.upper()] if city else []
+        }
     
-    station = _stations[code]
-    hub = _hubs.get(code)
+    return None
+
+def get_city_info(city_id: str) -> Optional[Dict]:
+    """Get city information with all stations"""
+    _load_data()
     
-    return {
-        "station_code": code,
-        "station_name": station.station_name,
-        "city": station.city,
-        "district": station.district,
-        "state": station.state,
-        "zone": station.zone,
-        "station_type": station.station_type,
-        "is_hub": hub is not None,
-        "hub_type": hub.hub_type if hub else None,
-        "aliases": station.aliases
-    }
+    city_key = city_id.lower()
+    if city_key in _cities:
+        city = _cities[city_key]
+        
+        stations_info = []
+        for code in city.station_codes:
+            if code in _stations:
+                s = _stations[code]
+                stations_info.append({
+                    "station_code": code,
+                    "station_name": s.station_name,
+                    "is_major": s.is_major,
+                    "trains_passing": s.trains_passing,
+                    "is_primary": code == city.primary_station
+                })
+        
+        # Sort: primary first, then by trains_passing
+        stations_info.sort(key=lambda x: (not x["is_primary"], -x["trains_passing"]))
+        
+        return {
+            "city_id": city.city_id,
+            "city_name": city.city_name,
+            "state": city.state,
+            "is_metro": city.is_metro,
+            "primary_station": city.primary_station,
+            "station_count": len(city.station_codes),
+            "stations": stations_info
+        }
+    
+    return None
+
+def get_all_cities() -> List[Dict]:
+    """Get all cities sorted by population rank"""
+    _load_data()
+    
+    cities_list = []
+    for city in _cities.values():
+        cities_list.append({
+            "city_id": city.city_id,
+            "city_name": city.city_name,
+            "state": city.state,
+            "is_metro": city.is_metro,
+            "station_count": len(city.station_codes),
+            "primary_station": city.primary_station,
+            "population_rank": city.population_rank
+        })
+    
+    cities_list.sort(key=lambda x: x["population_rank"])
+    return cities_list
 
 def get_all_hubs() -> List[Dict]:
     """Get all railway hubs"""
@@ -679,69 +796,13 @@ def get_all_hubs() -> List[Dict]:
     
     return [
         {
-            "hub_code": h.hub_code,
-            "hub_name": h.hub_name,
-            "hub_type": h.hub_type,
-            "city": h.city,
-            "state": h.state,
-            "zone": h.zone,
-            "importance_score": h.importance_score,
-            "is_zonal_hq": h.is_zonal_hq,
-            "is_capital": h.is_capital
+            "hub_code": code,
+            "hub_name": h.get("hub_name", code),
+            "hub_type": h.get("hub_type"),
+            "city": h.get("city"),
+            "state": h.get("state"),
+            "zone": h.get("zone"),
+            "importance_score": h.get("importance_score", 0)
         }
-        for h in _hubs.values()
+        for code, h in _hubs.items()
     ]
-
-def search_stations(query: str, limit: int = 10) -> List[Dict]:
-    """Search stations by name, code, or city"""
-    _load_data()
-    
-    query_lower = query.lower().strip()
-    results = []
-    
-    for code, station in _stations.items():
-        score = 0
-        
-        # Exact code match
-        if query_lower == code.lower():
-            score = 100
-        # Code starts with
-        elif code.lower().startswith(query_lower):
-            score = 80
-        # City exact match
-        elif query_lower == station.city.lower():
-            score = 75
-        # City starts with
-        elif station.city.lower().startswith(query_lower):
-            score = 70
-        # Station name contains
-        elif query_lower in station.station_name.lower():
-            score = 60
-        # Alias match
-        elif any(query_lower in alias.lower() for alias in station.aliases):
-            score = 50
-        
-        if score > 0:
-            # Boost for hubs and major stations
-            if code in _hubs:
-                score += 20
-            if station.station_type == "MAJOR":
-                score += 10
-            elif station.station_type == "JUNCTION":
-                score += 5
-            
-            results.append({
-                "station_code": code,
-                "station_name": station.station_name,
-                "city": station.city,
-                "state": station.state,
-                "zone": station.zone,
-                "station_type": station.station_type,
-                "is_hub": code in _hubs,
-                "score": score
-            })
-    
-    # Sort by score descending
-    results.sort(key=lambda x: x["score"], reverse=True)
-    
-    return results[:limit]
