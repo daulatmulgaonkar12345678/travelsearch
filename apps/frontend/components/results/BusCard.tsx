@@ -79,6 +79,7 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
   const [showFareTooltip, setShowFareTooltip] = useState(false)
   const [showRedirectTransition, setShowRedirectTransition] = useState(false)
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
+  const [redirectError, setRedirectError] = useState<string | null>(null)
 
   const formatTime = (iso: string) => {
     if (!iso || iso === '0001-01-01T00:00:00') return '--:--'
@@ -89,14 +90,44 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
     })
   }
 
-  const formatDuration = (minutes: number) => {
-    if (!minutes) return 'Duration varies'
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
+  /**
+   * Calculate duration from departure and arrival times
+   * CRITICAL: Duration must be calculated as arrival_time - departure_time
+   * NOT static estimates or city-to-city averages
+   */
+  const calculateDuration = (departure: string, arrival: string): string => {
+    if (!departure || !arrival || 
+        departure === '0001-01-01T00:00:00' || 
+        arrival === '0001-01-01T00:00:00') {
+      return '' // Hide duration if times are missing
+    }
+    
+    const depTime = new Date(departure)
+    const arrTime = new Date(arrival)
+    
+    // Handle overnight journeys
+    let diffMs = arrTime.getTime() - depTime.getTime()
+    if (diffMs < 0) {
+      diffMs += 24 * 60 * 60 * 1000 // Add 24 hours
+    }
+    
+    const hours = Math.floor(diffMs / (1000 * 60 * 60))
+    const mins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
     return `${hours}h ${mins}m`
   }
 
   const handleBookingClick = (partner: BusOffer['booking_partners'][0]) => {
+    // MANDATORY: Validate URL before redirect
+    const validation = validatePartnerUrl(partner.url)
+    
+    if (!validation.isValid) {
+      logInvalidRedirect(partner.name, partner.url, validation.error || 'Unknown error')
+      setRedirectError(`We couldn't open ${partner.name}. Please try another option.`)
+      setTimeout(() => setRedirectError(null), 5000)
+      return
+    }
+    
     setRedirecting(partner.name)
     setPendingRedirectUrl(partner.url)
     setShowRedirectTransition(true)
