@@ -1,245 +1,126 @@
 /**
- * Centralized API Helper
+ * Centralized API Configuration
  * 
- * Provides robust API communication with:
- * - Automatic URL construction from environment variable
- * - 5-second timeout on all requests
- * - Retry logic for transient network errors
- * - Detailed error logging
+ * Single source of truth for API base URL across the application.
  * 
  * Usage:
- *   import { apiFetch, apiUrl } from '@/lib/api'
- *   
- *   const response = await apiFetch('/api/search/flights?origin=LAX')
- *   const url = apiUrl('/api/airports')
+ * - Import { getApiBase, apiFetch } from '@/lib/api'
+ * - Use apiFetch('/api/search/flights', options) for all API calls
+ * 
+ * Environment:
+ * - Local: Empty NEXT_PUBLIC_API_BASE uses Next.js rewrites (localhost:8001)
+ * - Production: NEXT_PUBLIC_API_BASE = https://travelsearch-backend.onrender.com
  */
 
 /**
- * Get the API base URL from environment
- * Returns empty string for production (uses relative paths via Kubernetes ingress)
- * Defaults to localhost for local development if explicitly set
+ * Get the API base URL
+ * - Returns empty string for local development (uses Next.js rewrites)
+ * - Returns production URL in deployed environment
  */
-export function getApiBaseUrl(): string {
-  const envBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_BASE_URL
-  
-  // If environment variable is explicitly set and not empty, use it
-  if (envBase && envBase.trim() !== '') {
-    return envBase
-  }
-  
-  // In production/preview, use empty string (relative paths)
-  // Kubernetes ingress will route /api/* to backend
-  if (typeof window !== 'undefined') {
-    // Browser: use relative paths
-    return ''
-  }
-  
-  // Server-side rendering: use localhost for build time
-  return 'http://localhost:8001'
+export function getApiBase(): string {
+  return process.env.NEXT_PUBLIC_API_BASE || ''
 }
 
 /**
- * Construct full API URL from a path
- * 
- * @param path - API path (e.g., '/api/search/flights' or 'api/airports')
- * @returns Full URL with base URL prepended, or relative path for production
- * 
- * @example
- * // Production (empty base): apiUrl('/api/airports?query=NYC') => '/api/airports?query=NYC'
- * // Development: apiUrl('/api/airports?query=NYC') => 'http://localhost:8001/api/airports?query=NYC'
+ * Build a full API URL
  */
-export function apiUrl(path: string): string {
-  const baseUrl = getApiBaseUrl()
-  
+export function buildApiUrl(path: string): string {
+  const base = getApiBase()
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  
-  // If no base URL (production), return relative path
-  if (!baseUrl || baseUrl === '') {
-    return normalizedPath
-  }
-  
-  // Remove trailing slash from base URL if present
-  const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
-  
-  return `${normalizedBase}${normalizedPath}`
+  return `${base}${normalizedPath}`
 }
 
 /**
- * Enhanced fetch with timeout
- * 
- * @param url - URL to fetch
- * @param options - Fetch options
- * @param timeoutMs - Timeout in milliseconds (default: 5000)
- * @returns Response or throws timeout error
+ * Type-safe fetch wrapper for API calls
+ * Handles:
+ * - Base URL configuration
+ * - Default headers
+ * - Error handling
+ * - Response parsing
  */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit = {},
-  timeoutMs: number = 5000
-): Promise<Response> {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+export async function apiFetch<T = any>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const url = buildApiUrl(path)
+  
+  const defaultHeaders: HeadersInit = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
+  
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  })
+  
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`)
+  }
+  
+  return response.json()
+}
+
+/**
+ * Autocomplete-specific fetch with timeout and fallback
+ */
+export async function autocompleteSearch<T = any>(
+  endpoint: string,
+  query: string,
+  options: {
+    limit?: number
+    mode?: string
+    timeout?: number
+  } = {}
+): Promise<T[]> {
+  const { limit = 15, mode, timeout = 5000 } = options
+  
+  if (!query || query.length < 2) {
+    return []
+  }
+  
+  const params = new URLSearchParams({ q: query, limit: String(limit) })
+  if (mode) params.set('mode', mode)
+  
+  const url = buildApiUrl(`${endpoint}?${params.toString()}`)
   
   try {
-    // Merge abort signal with existing one if provided
-    const signal = options.signal || controller.signal
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
     
     const response = await fetch(url, {
-      ...options,
-      signal,
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal,
     })
     
     clearTimeout(timeoutId)
-    return response
-  } catch (error: any) {
-    clearTimeout(timeoutId)
     
-    // Convert abort to timeout error for clarity
-    if (error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs}ms: ${url}`)
+    if (!response.ok) {
+      console.warn(`Autocomplete API returned ${response.status}`)
+      return []
     }
     
-    throw error
-  }
-}
-
-/**
- * Check if an error is retryable
- * 
- * Retries are attempted for:
- * - Network errors (no response received)
- * - 5xx server errors (except 501 Not Implemented)
- * - 429 Rate Limit (with exponential backoff)
- * - Timeout errors
- */
-function isRetryableError(error: any, response?: Response): boolean {
-  // Network errors (no response)
-  if (!response && error instanceof Error) {
-    return true
-  }
-  
-  // Server errors
-  if (response) {
-    const status = response.status
-    return status === 429 || (status >= 500 && status !== 501)
-  }
-  
-  return false
-}
-
-/**
- * Sleep for specified milliseconds
- */
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-/**
- * Robust API fetch with retry logic
- * 
- * @param path - API path (e.g., '/api/search/flights')
- * @param options - Fetch options (headers, method, body, etc.)
- * @param config - Configuration for timeout and retries
- * @returns Response object
- * 
- * @example
- * // Simple GET
- * const response = await apiFetch('/api/airports?query=NYC')
- * 
- * // POST with body
- * const response = await apiFetch('/api/search/flights', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify({ origin: 'LAX', destination: 'JFK' })
- * })
- * 
- * // With custom timeout and retries
- * const response = await apiFetch('/api/search/flights', {}, {
- *   timeoutMs: 10000,
- *   maxRetries: 3
- * })
- */
-export async function apiFetch(
-  path: string,
-  options: RequestInit = {},
-  config: { timeoutMs?: number; maxRetries?: number } = {}
-): Promise<Response> {
-  const { timeoutMs = 5000, maxRetries = 2 } = config
-  
-  // Construct full URL
-  const url = apiUrl(path)
-  
-  let lastError: any
-  let lastResponse: Response | undefined
-  
-  // Attempt request with retries
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      // Log the request (helpful for debugging)
-      if (attempt === 0) {
-        console.log(`[API] ${options.method || 'GET'} ${url}`)
-      } else {
-        console.log(`[API] Retry ${attempt}/${maxRetries}: ${url}`)
-      }
-      
-      const response = await fetchWithTimeout(url, options, timeoutMs)
-      
-      // If successful or non-retryable error, return immediately
-      if (response.ok || !isRetryableError(lastError, response)) {
-        if (!response.ok) {
-          console.warn(
-            `[API] ${response.status} ${response.statusText} from ${url}`
-          )
-        }
-        return response
-      }
-      
-      // Store for potential retry
-      lastResponse = response
-      lastError = new Error(`HTTP ${response.status}: ${response.statusText}`)
-      
-    } catch (error: any) {
-      lastError = error
-      lastResponse = undefined
-      
-      // Don't retry if it's not a retryable error
-      if (!isRetryableError(error)) {
-        console.error(`[API] Non-retryable error for ${url}:`, error.message)
-        throw error
-      }
-      
-      console.warn(`[API] Retryable error for ${url}:`, error.message)
+    const data = await response.json()
+    
+    // Handle different response formats
+    if (Array.isArray(data)) {
+      return data
+    }
+    if (data.results && Array.isArray(data.results)) {
+      return data.results
     }
     
-    // If we haven't returned yet, we need to retry
-    if (attempt < maxRetries) {
-      // Exponential backoff: 500ms, 1000ms, 2000ms
-      const backoffMs = 500 * Math.pow(2, attempt)
-      console.log(`[API] Waiting ${backoffMs}ms before retry...`)
-      await sleep(backoffMs)
+    return []
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn('Autocomplete request timed out')
+    } else {
+      console.error('Autocomplete fetch error:', error)
     }
+    return []
   }
-  
-  // All retries exhausted
-  console.error(
-    `[API] All ${maxRetries + 1} attempts failed for ${url}:`,
-    lastError
-  )
-  
-  // If we have a response, return it (even if not ok)
-  if (lastResponse) {
-    return lastResponse
-  }
-  
-  // Otherwise throw the last error
-  throw lastError || new Error(`Failed to fetch ${url} after ${maxRetries + 1} attempts`)
-}
-
-/**
- * Development helper to log current API configuration
- */
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.log('[API Config] Base URL:', getApiBaseUrl())
-  console.log('[API Config] Environment:', process.env.NODE_ENV)
 }
