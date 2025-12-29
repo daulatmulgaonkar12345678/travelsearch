@@ -465,25 +465,26 @@ export function PopularFlightRoutes({ currentRoute }: { currentRoute?: string })
 
 /**
  * Popular Hotel Destinations Section
- * Displays 6 destinations max with images and CTAs
  * 
- * SEO: Uses semantic section/h2/article structure
+ * BEHAVIOR: Simulates manual typing - updates form state directly
+ * ✅ Updates search form state
+ * ❌ Does NOT change URL
+ * ❌ Does NOT trigger API call
+ * ❌ Does NOT navigate
  */
 export function PopularHotelDestinations({ currentCity }: { currentCity?: string }) {
   const destinations = POPULAR_HOTEL_DESTINATIONS
     .filter(dest => dest.slug !== currentCity)
     .slice(0, 6)
-  const router = useRouter()
   
   const handlePrefill = (city: string) => {
-    // GUARD: Only prefill, never auto-search
-    const prefillUrl = buildPrefillUrl({
+    // HARD GUARD: Update state only, no navigation
+    dispatchPrefillEvent({
       service: 'hotels',
       city: city,
     })
-    
-    // Update URL without navigation - triggers prefill in SearchBarV3
-    router.push(prefillUrl, { scroll: false })
+    // STOP HERE — no navigation, no URL mutation
+    return
   }
 
   return (
