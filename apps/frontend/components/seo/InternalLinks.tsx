@@ -210,41 +210,41 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
 ]
 
 // Popular train routes data (static for now)
-// CRITICAL: Use CITY_ALL tokens for multi-station cities
-// Backend requires station codes or _ALL tokens (NOT city names)
+// CRITICAL: Use city_id_ALL tokens (city_id from railways/cities.json)
+// Backend requires: {city_id}_ALL format (e.g., BENGALURU_ALL, not BANGALORE_ALL)
 export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'mumbai-delhi', 
     label: 'Mumbai → Delhi',
-    origin: 'MUMBAI_ALL',        // Backend-compatible token
-    destination: 'DELHI_ALL',     // Backend-compatible token
-    originCity: 'Mumbai',         // Display name
-    destinationCity: 'Delhi',     // Display name
+    origin: 'MUMBAI_ALL',         // city_id: mumbai
+    destination: 'DELHI_ALL',     // city_id: delhi
+    originCity: 'Mumbai',
+    destinationCity: 'Delhi',
     description: 'One of India\'s busiest rail corridors'
   },
   { 
     slug: 'delhi-jaipur', 
     label: 'Delhi → Jaipur',
-    origin: 'DELHI_ALL',
-    destination: 'JAIPUR_ALL',
+    origin: 'DELHI_ALL',          // city_id: delhi
+    destination: 'JAIPUR_ALL',    // city_id: jaipur
     originCity: 'Delhi',
     destinationCity: 'Jaipur',
     description: 'Popular tourist route to the Pink City'
   },
   { 
-    slug: 'bangalore-chennai', 
-    label: 'Bangalore → Chennai',
-    origin: 'BANGALORE_ALL',
-    destination: 'CHENNAI_ALL',
-    originCity: 'Bangalore',
+    slug: 'bengaluru-chennai', 
+    label: 'Bengaluru → Chennai',
+    origin: 'BENGALURU_ALL',      // city_id: bengaluru (NOT bangalore)
+    destination: 'CHENNAI_ALL',   // city_id: chennai
+    originCity: 'Bengaluru',      // UI shows "Bengaluru"
     destinationCity: 'Chennai',
     description: 'Connect two South Indian metro cities'
   },
   { 
     slug: 'mumbai-pune', 
     label: 'Mumbai → Pune',
-    origin: 'MUMBAI_ALL',
-    destination: 'PUNE_ALL',      // Fixed: Added _ALL suffix
+    origin: 'MUMBAI_ALL',         // city_id: mumbai
+    destination: 'PUNE_ALL',      // city_id: pune
     originCity: 'Mumbai',
     destinationCity: 'Pune',
     description: 'Frequent trains on this short route'
@@ -252,17 +252,17 @@ export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'kolkata-delhi', 
     label: 'Kolkata → Delhi',
-    origin: 'KOLKATA_ALL',
-    destination: 'DELHI_ALL',
+    origin: 'KOLKATA_ALL',        // city_id: kolkata
+    destination: 'DELHI_ALL',     // city_id: delhi
     originCity: 'Kolkata',
     destinationCity: 'Delhi',
     description: 'Major East-North corridor'
   },
   { 
-    slug: 'hyderabad-bangalore', 
-    label: 'Hyderabad → Bangalore',
-    origin: 'HYDERABAD_ALL',
-    destination: 'BANGALORE_ALL',
+    slug: 'hyderabad-bengaluru', 
+    label: 'Hyderabad → Bengaluru',
+    origin: 'HYDERABAD_ALL',      // city_id: hyderabad
+    destination: 'BENGALURU_ALL', // city_id: bengaluru (NOT bangalore)
     originCity: 'Hyderabad',
     destinationCity: 'Bangalore',
     description: 'Connect Deccan and South India'
