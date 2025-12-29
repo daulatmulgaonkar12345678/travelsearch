@@ -116,7 +116,7 @@ export default function BusLocationAutocomplete({
         const data = await response.json()
         
         // Convert API response to BusPlace format
-115|        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
+        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
 116|        // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
 117|        // BUT: cityName is ALWAYS the parent city for redBus URLs
         const busPlaces: BusPlace[] = data.results.map((r: any) => {
