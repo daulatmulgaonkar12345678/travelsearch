@@ -196,7 +196,10 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
             </div>
             
             <div className="flex-1 flex flex-col items-center px-4">
-              <p className="text-sm text-gray-500">{formatDuration(offer.duration_minutes)}</p>
+              {/* Duration - calculated from actual times, hidden if missing */}
+              {calculateDuration(offer.departure_time, offer.arrival_time) && (
+                <p className="text-sm text-gray-500">{calculateDuration(offer.departure_time, offer.arrival_time)}</p>
+              )}
               <div className="w-full h-0.5 bg-gray-200 my-1 relative">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
