@@ -229,9 +229,9 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
             </div>
             
             <div className="flex-1 flex flex-col items-center px-4">
-              {/* Duration - calculated from actual times, hidden if missing */}
-              {calculateDuration(offer.departure_time, offer.arrival_time) && (
-                <p className="text-sm text-gray-500">{calculateDuration(offer.departure_time, offer.arrival_time)}</p>
+              {/* Duration - ONLY show if computeSafeDuration returns a value */}
+              {computeSafeDuration(offer.departure_time, offer.arrival_time) && (
+                <p className="text-sm text-gray-500">{computeSafeDuration(offer.departure_time, offer.arrival_time)}</p>
               )}
               <div className="w-full h-0.5 bg-gray-200 my-1 relative">
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
@@ -243,7 +243,12 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
             </div>
             
             <div className="flex-1 text-right">
-              <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
+              {/* Arrival time - ONLY show if different from departure (known arrival) */}
+              {computeSafeDuration(offer.departure_time, offer.arrival_time) ? (
+                <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
+              ) : (
+                <p className="text-lg text-gray-400">Arr. varies</p>
+              )}
               <p className="text-sm text-gray-600">{offer.to_station}</p>
               <p className="text-xs text-gray-400">{offer.to_city}</p>
             </div>
