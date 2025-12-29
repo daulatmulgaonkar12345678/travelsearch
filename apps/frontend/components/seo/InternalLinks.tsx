@@ -28,6 +28,7 @@ export interface PrefillEventData {
   origin?: string       // For buses/trains
   destination?: string  // For buses/trains  
   city?: string         // For hotels
+  scrollToForm?: boolean // Auto-scroll to search form after prefill
 }
 
 // Custom event name for prefill communication
@@ -36,12 +37,13 @@ export const PREFILL_SEARCH_EVENT = 'prefill-search-state'
 /**
  * Dispatch prefill event - SearchBarV3 listens and updates its state directly
  * NO URL changes, NO navigation - just state updates like manual typing
+ * Optionally scrolls to search form after prefill
  */
 export function dispatchPrefillEvent(data: PrefillEventData): void {
   // HARD GUARD: This function ONLY dispatches state update event
   // It must NEVER trigger navigation or URL changes
   const event = new CustomEvent(PREFILL_SEARCH_EVENT, { 
-    detail: data,
+    detail: { ...data, scrollToForm: true }, // Always scroll on popular card click
     bubbles: true 
   })
   window.dispatchEvent(event)
