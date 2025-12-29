@@ -170,11 +170,10 @@ def estimate_fare(distance_km: int, bus_type: str = "ordinary") -> int:
     return max(fare, min_fare)
 
 
-def estimate_duration_minutes(distance_km: int) -> int:
-    """Estimate travel duration based on distance."""
-    # Average speed: 40 km/h for buses (accounting for stops)
-    # Plus 30 min buffer for boarding/traffic
-    return int((distance_km / 40) * 60) + 30
+# REMOVED: estimate_duration_minutes function
+# Duration must ONLY come from real schedule data (departure_time, arrival_time)
+# Estimated durations destroy user trust - a missing duration is better than a wrong one
+# See: PRODUCT PRINCIPLE - "Wrong time destroys trust faster than missing time ever will"
 
 
 def estimate_distance(origin: str, destination: str) -> int:
