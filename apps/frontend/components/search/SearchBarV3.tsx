@@ -260,8 +260,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
    * 
    * When a popular card is clicked, it dispatches a custom event.
    * This listener updates the search form state directly (like manual typing).
+   * Then scrolls to the search form so user can see the prefilled values.
    * 
    * ✅ Updates form state (same as typing in input)
+   * ✅ Scrolls to search form after prefill
    * ❌ Does NOT change URL
    * ❌ Does NOT trigger API call
    * ❌ Does NOT navigate
@@ -312,6 +314,18 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         country: 'India',
         display: `${data.city}, India`,
       })
+    }
+    
+    // AUTO-SCROLL: Scroll search form into view after prefill
+    // This helps user see the prefilled values without manual scrolling
+    if (data.scrollToForm && searchFormRef.current) {
+      // Small delay to allow state update to render
+      setTimeout(() => {
+        searchFormRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        })
+      }, 100)
     }
     
     // STOP HERE — no navigation, no URL mutation, no API calls
