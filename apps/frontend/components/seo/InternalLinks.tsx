@@ -246,8 +246,9 @@ export const POPULAR_TRAIN_ROUTES = [
   },
 ]
 
-// Popular bus routes data (static for now)
-// CRITICAL: Use CITY NAMES only - no stations, no pickup points
+// Popular bus routes data - MAHARASHTRA STATE ONLY
+// Reason: Bus services are permit-based and region-specific
+// This improves trust and conversion
 export const POPULAR_BUS_ROUTES = [
   { 
     slug: 'pune-mumbai', 
@@ -257,39 +258,39 @@ export const POPULAR_BUS_ROUTES = [
     description: 'Most frequent bus route in Maharashtra'
   },
   { 
-    slug: 'bangalore-chennai', 
-    label: 'Bangalore → Chennai',
-    originCity: 'Bangalore',
-    destinationCity: 'Chennai',
-    description: 'Overnight buses available'
-  },
-  { 
-    slug: 'delhi-jaipur', 
-    label: 'Delhi → Jaipur',
-    originCity: 'Delhi',
-    destinationCity: 'Jaipur',
-    description: 'Popular weekend getaway route'
-  },
-  { 
-    slug: 'hyderabad-bangalore', 
-    label: 'Hyderabad → Bangalore',
-    originCity: 'Hyderabad',
-    destinationCity: 'Bangalore',
-    description: 'Multiple operators, sleeper and seater'
-  },
-  { 
-    slug: 'mumbai-goa', 
-    label: 'Mumbai → Goa',
+    slug: 'mumbai-pune', 
+    label: 'Mumbai → Pune',
     originCity: 'Mumbai',
-    destinationCity: 'Goa',
-    description: 'Beach getaway overnight buses'
+    destinationCity: 'Pune',
+    description: 'Express buses every 15 minutes'
   },
   { 
-    slug: 'chennai-bangalore', 
-    label: 'Chennai → Bangalore',
-    originCity: 'Chennai',
-    destinationCity: 'Bangalore',
-    description: 'Frequent services both ways'
+    slug: 'pune-kolhapur', 
+    label: 'Pune → Kolhapur',
+    originCity: 'Pune',
+    destinationCity: 'Kolhapur',
+    description: 'Direct buses via Satara'
+  },
+  { 
+    slug: 'pune-satara', 
+    label: 'Pune → Satara',
+    originCity: 'Pune',
+    destinationCity: 'Satara',
+    description: 'Frequent MSRTC services'
+  },
+  { 
+    slug: 'mumbai-nashik', 
+    label: 'Mumbai → Nashik',
+    originCity: 'Mumbai',
+    destinationCity: 'Nashik',
+    description: 'Shirdi pilgrimage route'
+  },
+  { 
+    slug: 'pune-nagpur', 
+    label: 'Pune → Nagpur',
+    originCity: 'Pune',
+    destinationCity: 'Nagpur',
+    description: 'Overnight Vidarbha express'
   },
 ]
 
