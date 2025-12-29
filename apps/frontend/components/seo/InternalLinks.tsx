@@ -511,28 +511,24 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
 /**
  * Popular Train Routes Section
  * 
- * PREFILL-ONLY CONTRACT (LOCKED):
- * - Click ONLY prefills the search form
- * - Does NOT navigate to results page
- * - Does NOT trigger any API call
- * - User must click Search button manually
- * 
- * UX: Prefills origin_city and destination_city, focuses date picker
+ * BEHAVIOR: Simulates manual typing - updates form state directly
+ * ✅ Updates search form state
+ * ❌ Does NOT change URL
+ * ❌ Does NOT trigger API call
+ * ❌ Does NOT navigate
  */
 export function PopularTrainRoutes() {
   const routes = POPULAR_TRAIN_ROUTES.slice(0, 6)
-  const router = useRouter()
   
   const handleCardClick = (route: typeof POPULAR_TRAIN_ROUTES[0]) => {
-    // GUARD: Only prefill, never auto-search
-    const prefillUrl = buildPrefillUrl({
+    // HARD GUARD: Update state only, no navigation
+    dispatchPrefillEvent({
       service: 'trains',
-      origin: route.origin,      // e.g., "MUMBAI_ALL"
-      destination: route.destination,  // e.g., "DELHI_ALL"
+      origin: route.origin,           // e.g., "MUMBAI_ALL"
+      destination: route.destination, // e.g., "DELHI_ALL"
     })
-    
-    // Update URL without navigation - triggers prefill in SearchBarV3
-    router.push(prefillUrl, { scroll: false })
+    // STOP HERE — no navigation, no URL mutation
+    return
   }
 
   return (
@@ -573,28 +569,24 @@ export function PopularTrainRoutes() {
 /**
  * Popular Bus Routes Section
  * 
- * PREFILL-ONLY CONTRACT (LOCKED):
- * - Click ONLY prefills the search form
- * - Does NOT navigate to results page
- * - Does NOT trigger any API call
- * - User must click Search button manually
- * 
- * UX: Prefills origin and destination, focuses date picker
+ * BEHAVIOR: Simulates manual typing - updates form state directly
+ * ✅ Updates search form state
+ * ❌ Does NOT change URL
+ * ❌ Does NOT trigger API call
+ * ❌ Does NOT navigate
  */
 export function PopularBusRoutes() {
   const routes = POPULAR_BUS_ROUTES.slice(0, 6)
-  const router = useRouter()
   
   const handleCardClick = (route: typeof POPULAR_BUS_ROUTES[0]) => {
-    // GUARD: Only prefill, never auto-search
-    const prefillUrl = buildPrefillUrl({
+    // HARD GUARD: Update state only, no navigation
+    dispatchPrefillEvent({
       service: 'buses',
-      origin: route.originCity,      // e.g., "Pune"
-      destination: route.destinationCity,  // e.g., "Mumbai"
+      origin: route.originCity,           // e.g., "Pune"
+      destination: route.destinationCity, // e.g., "Mumbai"
     })
-    
-    // Update URL without navigation - triggers prefill in SearchBarV3
-    router.push(prefillUrl, { scroll: false })
+    // STOP HERE — no navigation, no URL mutation
+    return
   }
 
   return (
