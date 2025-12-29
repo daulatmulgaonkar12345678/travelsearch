@@ -161,19 +161,23 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
 ]
 
 // Popular train routes data (static for now)
-// CRITICAL: Use CITY NAMES, not station codes
-// Backend will expand city to all stations
+// CRITICAL: Use CITY_ALL tokens for multi-station cities
+// Backend requires station codes or _ALL tokens (NOT city names)
 export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'mumbai-delhi', 
     label: 'Mumbai → Delhi',
-    originCity: 'Mumbai',
-    destinationCity: 'Delhi',
+    origin: 'MUMBAI_ALL',        // Backend-compatible token
+    destination: 'DELHI_ALL',     // Backend-compatible token
+    originCity: 'Mumbai',         // Display name
+    destinationCity: 'Delhi',     // Display name
     description: 'One of India\'s busiest rail corridors'
   },
   { 
     slug: 'delhi-jaipur', 
     label: 'Delhi → Jaipur',
+    origin: 'DELHI_ALL',
+    destination: 'JAIPUR_ALL',
     originCity: 'Delhi',
     destinationCity: 'Jaipur',
     description: 'Popular tourist route to the Pink City'
@@ -181,6 +185,8 @@ export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'bangalore-chennai', 
     label: 'Bangalore → Chennai',
+    origin: 'BANGALORE_ALL',
+    destination: 'CHENNAI_ALL',
     originCity: 'Bangalore',
     destinationCity: 'Chennai',
     description: 'Connect two South Indian metro cities'
@@ -188,6 +194,8 @@ export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'mumbai-pune', 
     label: 'Mumbai → Pune',
+    origin: 'MUMBAI_ALL',
+    destination: 'PUNE',
     originCity: 'Mumbai',
     destinationCity: 'Pune',
     description: 'Frequent trains on this short route'
@@ -195,6 +203,8 @@ export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'kolkata-delhi', 
     label: 'Kolkata → Delhi',
+    origin: 'KOLKATA_ALL',
+    destination: 'DELHI_ALL',
     originCity: 'Kolkata',
     destinationCity: 'Delhi',
     description: 'Major East-North corridor'
@@ -202,6 +212,8 @@ export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'hyderabad-bangalore', 
     label: 'Hyderabad → Bangalore',
+    origin: 'HYDERABAD_ALL',
+    destination: 'BANGALORE_ALL',
     originCity: 'Hyderabad',
     destinationCity: 'Bangalore',
     description: 'Connect Deccan and South India'
