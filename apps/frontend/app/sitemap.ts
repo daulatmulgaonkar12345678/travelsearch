@@ -4,23 +4,30 @@
  * Generates XML sitemap for search engine indexing.
  * Includes only static, indexable pages.
  * Dynamic results pages are excluded (noindex).
+ * 
+ * INDEXED: Homepage, popular routes, popular destinations, info pages
+ * EXCLUDED: Results pages, pages with date/filter params
  */
 
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://travelsearch.com' // Replace with actual domain
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.com'
   const lastModified = new Date()
 
   // Static pages
   const staticPages = [
-    '',
-    '/about-us',
-    '/affiliate-disclosure',
-    '/service-disclaimer',
-    '/privacy-policy',
-    '/terms-and-conditions',
-    '/contact',
+    { path: '', priority: 1.0, changeFrequency: 'daily' as const },
+    { path: '/flights', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/trains', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/buses', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/hotels', priority: 0.9, changeFrequency: 'daily' as const },
+    { path: '/about-us', priority: 0.5, changeFrequency: 'monthly' as const },
+    { path: '/affiliate-disclosure', priority: 0.3, changeFrequency: 'monthly' as const },
+    { path: '/service-disclaimer', priority: 0.3, changeFrequency: 'monthly' as const },
+    { path: '/privacy-policy', priority: 0.3, changeFrequency: 'monthly' as const },
+    { path: '/terms-and-conditions', priority: 0.3, changeFrequency: 'monthly' as const },
+    { path: '/contact', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
 
   // Flight route pages (20 India routes)
@@ -62,13 +69,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/hotels/kochi',
   ]
 
-  // Combine all URLs
-  const allUrls = [...staticPages, ...flightRoutes, ...hotelCities]
+  // Build sitemap entries
+  const entries: MetadataRoute.Sitemap = [
+    // Static pages with custom priorities
+    ...staticPages.map(({ path, priority, changeFrequency }) => ({
+      url: `${baseUrl}${path}`,
+      lastModified,
+      changeFrequency,
+      priority,
+    })),
+    // Flight routes
+    ...flightRoutes.map((path) => ({
+      url: `${baseUrl}${path}`,
+      lastModified,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
+    // Hotel cities
+    ...hotelCities.map((path) => ({
+      url: `${baseUrl}${path}`,
+      lastModified,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
+  ]
 
-  return allUrls.map((path) => ({
-    url: `${baseUrl}${path}`,
-    lastModified,
-    changeFrequency: path === '' ? 'daily' : 'weekly',
-    priority: path === '' ? 1.0 : path.startsWith('/flights/') || path.startsWith('/hotels/') ? 0.8 : 0.6,
-  }))
+  return entries
 }
