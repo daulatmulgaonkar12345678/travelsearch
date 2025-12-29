@@ -447,6 +447,10 @@ if __name__ == "__main__":
         ("Ratnagiri Bus Station", "ratnagiri"),
         ("Nashik CBS", "nashik"),
         ("Ajanta Caves", "aurangabad"),
+        # NEW: Stop name with area suffix
+        ("Nagpur Bus Stand – Mor Bhavan", "nagpur"),
+        ("Pune - Swargate", "pune"),
+        ("Kolhapur (CBS)", "kolhapur"),
         ("", None),
     ]
     
@@ -462,6 +466,9 @@ if __name__ == "__main__":
         ("Mumbai Central", "Nashik CBS"),
         ("Satara", "Karad"),
         ("Chhatrapati Sambhaji Nagar", "Mumbai"),
+        # NEW: Stop names with area suffixes
+        ("Nagpur Bus Stand – Mor Bhavan", "Pune"),
+        ("Pune - Shivajinagar", "Mumbai Central"),
     ]
     
     for from_city, to_city in routes:
