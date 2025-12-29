@@ -478,11 +478,11 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
  * 
  * NAVIGATION CONTRACT:
  * - Navigate directly to /trains/results
- * - Use CITY NAMES (backend expands to stations)
+ * - Use STATION CODES or _ALL tokens (backend requirement)
  * - Auto-fill departure_date = tomorrow
  * - passengers = 1
  * 
- * URL FORMAT: /trains/results?origin={city}&destination={city}&departure_date=YYYY-MM-DD&passengers=1
+ * URL FORMAT: /trains/results?origin={STATION_CODE}&destination={STATION_CODE}&departure_date=YYYY-MM-DD&passengers=1
  */
 export function PopularTrainRoutes() {
   const routes = POPULAR_TRAIN_ROUTES.slice(0, 6)
@@ -506,8 +506,8 @@ export function PopularTrainRoutes() {
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {routes.map((route) => {
           // Build complete URL with all required params
-          // CRITICAL: Use city names, not station codes
-          const searchUrl = `/trains/results?origin=${encodeURIComponent(route.originCity)}&destination=${encodeURIComponent(route.destinationCity)}&departure_date=${getTomorrowDate()}&passengers=1`
+          // CRITICAL: Use station codes/ALL tokens (NOT city names)
+          const searchUrl = `/trains/results?origin=${encodeURIComponent(route.origin)}&destination=${encodeURIComponent(route.destination)}&departure_date=${getTomorrowDate()}&passengers=1`
           
           return (
             <Link
