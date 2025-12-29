@@ -116,8 +116,9 @@ export default function BusLocationAutocomplete({
         const data = await response.json()
         
         // Convert API response to BusPlace format
-        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
-        // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
+115|        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
+116|        // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
+117|        // BUT: cityName is ALWAYS the parent city for redBus URLs
         const busPlaces: BusPlace[] = data.results.map((r: any) => {
           // For tourist destinations, use the destination name directly
           if (r.type === 'tourist_destination') {
@@ -130,6 +131,9 @@ export default function BusLocationAutocomplete({
               state: r.state || 'Maharashtra',
               operator: undefined,
               is_depot: false,
+              // CRITICAL: cityName for booking URLs - use parent city, not destination
+              cityName: r.cityName || r.city,
+              cityId: r.cityId,
               is_tourist: true,
               destination_type: r.destination_type,
               description: r.description,
@@ -156,6 +160,10 @@ export default function BusLocationAutocomplete({
             state: r.state || 'Maharashtra',
             operator: r.operator || undefined,
             is_depot: r.is_search_surface || false,
+            // CRITICAL: cityName for booking partner URLs
+            // redBus only supports CITY → CITY, not STOP → STOP
+            cityName: r.cityName || r.city,  // Parent city for URLs
+            cityId: r.cityId,
           }
         })
         
