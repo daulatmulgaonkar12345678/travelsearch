@@ -602,7 +602,7 @@ export function PopularTrainRoutes() {
  * Popular Bus Routes Section
  * 
  * BEHAVIOR: Simulates manual typing - updates form state directly
- * ✅ Updates search form state
+ * ✅ Updates search form state (label for UI, token for backend)
  * ❌ Does NOT change URL
  * ❌ Does NOT trigger API call
  * ❌ Does NOT navigate
@@ -612,10 +612,17 @@ export function PopularBusRoutes() {
   
   const handleCardClick = (route: typeof POPULAR_BUS_ROUTES[0]) => {
     // HARD GUARD: Update state only, no navigation
+    // For buses, label and token are same (city names)
     dispatchPrefillEvent({
       service: 'buses',
-      origin: route.originCity,           // e.g., "Pune"
-      destination: route.destinationCity, // e.g., "Mumbai"
+      origin: {
+        label: route.originCity,  // UI: "Pune"
+        token: route.originCity,  // Backend: "Pune" (same for buses)
+      },
+      destination: {
+        label: route.destinationCity,  // UI: "Mumbai"
+        token: route.destinationCity,  // Backend: "Mumbai" (same for buses)
+      },
     })
     // STOP HERE — no navigation, no URL mutation
     return
