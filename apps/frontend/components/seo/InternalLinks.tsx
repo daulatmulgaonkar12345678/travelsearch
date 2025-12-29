@@ -223,7 +223,7 @@ export const POPULAR_TRAIN_ROUTES = [
     slug: 'mumbai-pune', 
     label: 'Mumbai → Pune',
     origin: 'MUMBAI_ALL',
-    destination: 'PUNE',
+    destination: 'PUNE_ALL',      // Fixed: Added _ALL suffix
     originCity: 'Mumbai',
     destinationCity: 'Pune',
     description: 'Frequent trains on this short route'
