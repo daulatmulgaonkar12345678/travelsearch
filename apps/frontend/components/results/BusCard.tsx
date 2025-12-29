@@ -251,11 +251,11 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
             </div>
             
             <div className="flex-1 flex flex-col items-center px-4">
-              {/* Duration - MUST be calculated from actual times, not estimates */}
-              {calculateDuration(offer.departure_time, offer.arrival_time) && (
+              {/* Duration - ONLY show if computeSafeDuration returns a value */}
+              {computeSafeDuration(offer.departure_time, offer.arrival_time) && (
                 <div className="flex items-center gap-1 text-sm text-gray-500">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{calculateDuration(offer.departure_time, offer.arrival_time)}</span>
+                  <span>{computeSafeDuration(offer.departure_time, offer.arrival_time)}</span>
                 </div>
               )}
               <div className="w-full h-0.5 bg-gray-200 my-1 relative">
@@ -265,7 +265,12 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
             </div>
             
             <div className="flex-1 text-right">
-              <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
+              {/* Arrival time - ONLY show if different from departure (known arrival) */}
+              {computeSafeDuration(offer.departure_time, offer.arrival_time) ? (
+                <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
+              ) : (
+                <p className="text-lg text-gray-400">Arr. varies</p>
+              )}
               <p className="text-sm text-gray-600">{offer.to_city}</p>
               <p className="text-xs text-gray-400 truncate">{offer.to_station_name}</p>
             </div>
