@@ -521,22 +521,28 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
 /**
  * Popular Train Routes Section
  * 
- * NAVIGATION CONTRACT:
- * - Navigate directly to /trains/results
- * - Use STATION CODES or _ALL tokens (backend requirement)
- * - Auto-fill departure_date = tomorrow
- * - passengers = 1
+ * PREFILL-ONLY CONTRACT (LOCKED):
+ * - Click ONLY prefills the search form
+ * - Does NOT navigate to results page
+ * - Does NOT trigger any API call
+ * - User must click Search button manually
  * 
- * URL FORMAT: /trains/results?origin={STATION_CODE}&destination={STATION_CODE}&departure_date=YYYY-MM-DD&passengers=1
+ * UX: Prefills origin_city and destination_city, focuses date picker
  */
 export function PopularTrainRoutes() {
   const routes = POPULAR_TRAIN_ROUTES.slice(0, 6)
+  const router = useRouter()
   
-  // Get tomorrow's date for default departure
-  const getTomorrowDate = () => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
+  const handleCardClick = (route: typeof POPULAR_TRAIN_ROUTES[0]) => {
+    // GUARD: Only prefill, never auto-search
+    const prefillUrl = buildPrefillUrl({
+      service: 'trains',
+      origin: route.origin,      // e.g., "MUMBAI_ALL"
+      destination: route.destination,  // e.g., "DELHI_ALL"
+    })
+    
+    // Update URL without navigation - triggers prefill in SearchBarV3
+    router.push(prefillUrl, { scroll: false })
   }
 
   return (
@@ -549,31 +555,26 @@ export function PopularTrainRoutes() {
       </h2>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {routes.map((route) => {
-          // Build complete URL with all required params
-          // CRITICAL: Use station codes/ALL tokens (NOT city names)
-          const searchUrl = `/trains/results?origin=${encodeURIComponent(route.origin)}&destination=${encodeURIComponent(route.destination)}&departure_date=${getTomorrowDate()}&passengers=1`
-          
-          return (
-            <Link
-              key={route.slug}
-              href={searchUrl}
-              className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V6M5 12l7-7 7 7" />
-                  </svg>
-                </div>
-                <span className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {route.label}
-                </span>
+        {routes.map((route) => (
+          <button
+            key={route.slug}
+            onClick={() => handleCardClick(route)}
+            className="group p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left w-full"
+            aria-label={`Prefill search for ${route.originCity} to ${route.destinationCity} trains`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V6M5 12l7-7 7 7" />
+                </svg>
               </div>
-              <p className="text-sm text-gray-600">{route.description}</p>
-            </Link>
-          )
-        })}
+              <span className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {route.label}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600">{route.description}</p>
+          </button>
+        ))}
       </div>
     </section>
   )
