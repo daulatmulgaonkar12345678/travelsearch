@@ -507,3 +507,29 @@ test_priority: "high_first"
     - working: true
       agent: "testing"
       comment: "✅ TAB ORDER FUNCTIONALITY VERIFIED: All 4 tabs (Flights, Buses, Trains, Hotels) are present in correct order and switch properly when clicked. Each tab shows active state with blue background and text color. Tab switching functionality working perfectly."
+
+## Current Focus: Popular Cards Prefill-Only Behavior (P0)
+
+- task: "Implement prefill-only behavior for Popular Bus/Train/Hotel cards"
+  implemented: true
+  working: pending_testing
+  file: "/app/apps/frontend/components/seo/InternalLinks.tsx, /app/apps/frontend/components/search/SearchBarV3.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented prefill-only behavior for Popular Bus, Train, Hotel cards. Cards now only update URL params which trigger prefill in SearchBarV3, without navigating to results page. Tests needed to validate acceptance criteria."
+  test_requirements:
+    - "TEST BUS: Click 'Pune → Mumbai' popular card, verify: 1) Form fields prefilled with Pune and Mumbai, 2) URL stays at /?tab=buses (NOT /buses/results), 3) Date field unchanged, 4) Search button enabled, 5) No API call until Search clicked"
+    - "TEST TRAIN: Click 'Mumbai → Delhi' popular card, verify: 1) Form fields prefilled with MUMBAI_ALL and DELHI_ALL (display as 'Mumbai (All Stations)'), 2) URL stays at /?tab=trains, 3) Date field unchanged, 4) Search button enabled, 5) No API call until Search clicked"
+    - "TEST HOTEL: Click any 'Find Hotels' card, verify: 1) Destination field prefilled with city name, 2) URL stays at /?tab=hotels (NOT /hotels/results), 3) Check-in/Check-out dates unchanged, 4) Search button enabled, 5) No API call until Search clicked"
+    - "TEST E2E: After prefill, user must be able to select dates, then click Search to execute search successfully"
+    - "Verify NO 'Missing required search parameters' errors"
+    - "Verify cards use button elements (not Link/a tags) for prefill-only behavior"
+
+## Incorporate User Feedback
+- User requirement: Popular cards must ONLY prefill form, NOT navigate or auto-search
+- Search button is the only authority for executing searches
+- Date fields should remain untouched after prefill (user selects dates manually)
