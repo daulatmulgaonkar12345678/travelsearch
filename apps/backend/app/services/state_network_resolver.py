@@ -395,8 +395,9 @@ def create_state_network_offers(
     for bt in bus_types:
         # Stagger departure times
         dep_time = dep_date.replace(hour=6) + timedelta(hours=bt["offset_hours"])
-        # NO arrival time estimation - set to departure time to indicate unknown arrival
-        arr_time = dep_time
+        # NO arrival time estimation - set equal to departure to signal unknown
+        # Frontend will detect this and hide duration/arrival display
+        arr_time = dep_time  # Same as departure = unknown arrival
         
         # Add slight fare variation
         fare_with_var = int(bt["fare"] * random.uniform(0.95, 1.05))
