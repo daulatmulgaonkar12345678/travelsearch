@@ -202,13 +202,14 @@ def normalize_city_slug(city_name: str) -> Optional[str]:
     
     RULES:
     1. Convert to lowercase
-    2. Remove suffixes like "bus stand", "depot", etc.
-    3. Remove special characters (keep only alphanumeric and spaces)
-    4. Replace spaces with hyphens
-    5. Resolve aliases to canonical names
+    2. Remove stop-specific suffixes (e.g., " – Mor Bhavan")
+    3. Remove general suffixes like "bus stand", "depot", etc.
+    4. Remove special characters (keep only alphanumeric and spaces)
+    5. Replace spaces with hyphens
+    6. Resolve aliases to canonical names
     
     Args:
-        city_name: Raw city name from search
+        city_name: Raw city name from search (may include stop names)
     
     Returns:
         Normalized slug or None if invalid
@@ -218,12 +219,17 @@ def normalize_city_slug(city_name: str) -> Optional[str]:
         "Kolhapur Bus Stand" -> "kolhapur"
         "Chhatrapati Sambhaji Nagar" -> "aurangabad"
         "Mumbai Central" -> "mumbai"
+        "Nagpur Bus Stand – Mor Bhavan" -> "nagpur"
     """
     if not city_name:
         return None
     
     # Step 1: Lowercase
     slug = city_name.lower().strip()
+    
+    # Step 1.5: Remove stop-specific patterns (e.g., " – Mor Bhavan")
+    for pattern in STOP_NAME_PATTERNS:
+        slug = re.sub(pattern, '', slug, flags=re.IGNORECASE)
     
     # Step 2: Remove suffixes (case insensitive)
     for suffix in SUFFIXES_TO_REMOVE:
