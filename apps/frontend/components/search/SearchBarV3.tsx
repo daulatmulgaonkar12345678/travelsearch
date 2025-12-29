@@ -73,16 +73,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   
   const [searchType, setSearchTypeState] = useState<SearchType>(getTabFromUrl)
   
-  // Track if we've processed prefill params (to avoid re-processing on every render)
-  const [prefillProcessed, setPrefillProcessed] = useState(false)
-  
   // Sync with URL changes (browser back/forward, navigation clicks)
   useEffect(() => {
     const urlTab = getTabFromUrl()
     if (urlTab !== searchType) {
       setSearchTypeState(urlTab)
-      // Reset prefill processed flag when tab changes via URL
-      setPrefillProcessed(false)
     }
   }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
   
@@ -90,7 +85,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const setSearchType = (newType: SearchType) => {
     setSearchTypeState(newType)
     
-    // Update URL param, removing prefill params
+    // Update URL param
     const params = new URLSearchParams()
     params.set('tab', newType)
     router.push(`/?${params.toString()}`, { scroll: false })
