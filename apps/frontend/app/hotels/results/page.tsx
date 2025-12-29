@@ -402,23 +402,26 @@ function HotelResultsContent() {
         ))}
       </div>
     </div>
+    </div>
   )
 }
 
+/**
+ * Hotel Results Page
+ * 
+ * Architecture aligned with Flights/Trains/Buses:
+ * - Suspense wrapper only provides loading fallback
+ * - Navigation is rendered ONCE inside HotelResultsContent
+ * - No duplicate Header or TrustStrip
+ */
 export default function HotelResultsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <TrustStrip />
-      <main className="container mx-auto px-4 py-8">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-          </div>
-        }>
-          <HotelResultsContent />
-        </Suspense>
-      </main>
-    </div>
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
+    }>
+      <HotelResultsContent />
+    </Suspense>
   )
 }
