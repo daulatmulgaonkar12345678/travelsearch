@@ -4,7 +4,7 @@
  * Single source of truth for API base URL across the application.
  * 
  * Usage:
- * - Import { getApiBase, apiFetch } from '@/lib/api'
+ * - Import { getApiBase, apiFetch, apiUrl } from '@/lib/api'
  * - Use apiFetch('/api/search/flights', options) for all API calls
  * 
  * Environment:
@@ -21,6 +21,9 @@ export function getApiBase(): string {
   return process.env.NEXT_PUBLIC_API_BASE || ''
 }
 
+// Alias for backward compatibility
+export const getApiBaseUrl = getApiBase
+
 /**
  * Build a full API URL
  */
@@ -30,6 +33,9 @@ export function buildApiUrl(path: string): string {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
   return `${base}${normalizedPath}`
 }
+
+// Alias for backward compatibility
+export const apiUrl = buildApiUrl
 
 /**
  * Type-safe fetch wrapper for API calls
