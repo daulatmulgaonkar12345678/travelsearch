@@ -504,6 +504,10 @@ async def bus_autocomplete(
                 "label_en": r.get("label_en", r["label"]),  # CRITICAL: Include English name
                 "city": r["city"],
                 "state": r["state"],
+                # CRITICAL: cityName and cityId for redBus URL generation
+                # redBus only supports CITY → CITY searches, NOT stop → stop
+                "cityName": r["city"],  # Parent city name for booking URLs
+                "cityId": r.get("city_id") or r["id"],  # City ID for future use
             }
             
             # Add optional fields
