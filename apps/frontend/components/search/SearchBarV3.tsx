@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Plane, Hotel, Calendar, Users, Train, Bus } from 'lucide-react'
 import TripTypeSelector from './TripTypeSelector'
@@ -16,6 +16,7 @@ import TrainStationAutocomplete, { TrainStationOption } from './TrainStationAuto
 import HotelLocationAutocomplete, { HotelCity } from './HotelLocationAutocomplete'
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
+import { PREFILL_SEARCH_EVENT, PrefillEventData } from '@/components/seo/InternalLinks'
 
 type SearchType = 'flights' | 'hotels' | 'trains' | 'buses'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
