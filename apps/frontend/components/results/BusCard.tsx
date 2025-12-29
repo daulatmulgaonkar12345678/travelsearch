@@ -91,30 +91,63 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
   }
 
   /**
-   * Calculate duration from departure and arrival times
-   * CRITICAL: Duration must be calculated as arrival_time - departure_time
-   * NOT static estimates or city-to-city averages
+   * STRICT DURATION GUARD
+   * 
+   * Duration must ONLY be shown when we have REAL times.
+   * NO fallbacks, NO estimates, NO defaults.
+   * 
+   * PRODUCT PRINCIPLE: "Wrong time destroys trust faster than missing time ever will"
+   * 
+   * Returns null if duration cannot be computed safely.
    */
-  const calculateDuration = (departure: string, arrival: string): string => {
-    if (!departure || !arrival || 
-        departure === '0001-01-01T00:00:00' || 
-        arrival === '0001-01-01T00:00:00') {
-      return '' // Hide duration if times are missing
+  const computeSafeDuration = (departure: string, arrival: string): string | null => {
+    // Guard 1: Check for missing times
+    if (!departure || !arrival) {
+      console.warn("[Duration] Hidden: Missing times", { departure, arrival })
+      return null
+    }
+    
+    // Guard 2: Check for invalid placeholder times
+    const invalidTimes = ['0001-01-01T00:00:00', '0001-01-01', '1970-01-01']
+    if (invalidTimes.some(t => departure.includes(t) || arrival.includes(t))) {
+      console.warn("[Duration] Hidden: Invalid placeholder times", { departure, arrival })
+      return null
     }
     
     const depTime = new Date(departure)
     const arrTime = new Date(arrival)
     
-    // Handle overnight journeys
+    // Guard 3: Check for invalid dates
+    if (isNaN(depTime.getTime()) || isNaN(arrTime.getTime())) {
+      console.warn("[Duration] Hidden: Invalid date parsing", { departure, arrival })
+      return null
+    }
+    
+    // Guard 4: Check if arrival equals departure (signals unknown arrival)
+    if (depTime.getTime() === arrTime.getTime()) {
+      console.warn("[Duration] Hidden: Arrival equals departure (unknown)", { departure, arrival })
+      return null
+    }
+    
+    // Calculate duration with next-day handling
     let diffMs = arrTime.getTime() - depTime.getTime()
+    
+    // Handle next-day arrival (overnight journeys)
     if (diffMs < 0) {
       diffMs += 24 * 60 * 60 * 1000 // Add 24 hours
     }
     
-    const hours = Math.floor(diffMs / (1000 * 60 * 60))
-    const mins = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    // Guard 5: Sanity check - reject unrealistic durations (> 48 hours or < 15 mins)
+    const hours = diffMs / (1000 * 60 * 60)
+    if (hours > 48 || hours < 0.25) {
+      console.warn("[Duration] Hidden: Unrealistic duration", { hours, departure, arrival })
+      return null
+    }
     
-    return `${hours}h ${mins}m`
+    const h = Math.floor(diffMs / (1000 * 60 * 60))
+    const m = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
+    return `${h}h ${m}m`
   }
 
   const handleBookingClick = (partner: BusOffer['booking_partners'][0]) => {
