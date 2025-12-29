@@ -320,26 +320,37 @@ function FlightRouteCard({ route }: { route: FlightRouteData }) {
 /**
  * Hotel Destination Card with Image
  * 
- * UX PRINCIPLE: Prefill, don't auto-search. Let users confirm intent.
+ * UX PRINCIPLE: Popular cards should provide a frictionless experience.
  * 
- * Instead of navigating to results (which causes "Missing parameters" error),
- * clicking this card will:
- * 1. Navigate to homepage with ?tab=hotels&prefill_city={city}
- * 2. SearchBarV3 will read this and prefill the hotel city field
- * 3. User selects check-in/check-out dates
- * 4. User clicks "Search Hotels" to execute search
+ * When user clicks a popular hotel destination:
+ * 1. Auto-assign check-in = today + 1, check-out = today + 2
+ * 2. Navigate directly to results page with complete params
+ * 3. NEVER navigate without dates (breaks the page)
  * 
  * Image path: /images/hotels/{city}.webp
  * Alt text: "Hotels in {City}"
  */
 function HotelDestinationCard({ destination }: { destination: HotelDestinationData }) {
   // Image path: /images/hotels/{city}.webp
-  // Images are now available in public/images/hotels/
   const hasImage = true
   const imageSrc = `/images/hotels/${destination.slug}.webp`
   
-  // Build prefill URL instead of direct search URL
-  const prefillUrl = `/?tab=hotels&prefill_city=${encodeURIComponent(destination.city)}`
+  // Auto-calculate dates: check-in = tomorrow, check-out = day after
+  const getCheckInDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 1)
+    return date.toISOString().split('T')[0]
+  }
+  
+  const getCheckOutDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 2)
+    return date.toISOString().split('T')[0]
+  }
+  
+  // Build complete search URL with all required params
+  // MANDATORY: city, check_in, check_out, rooms, adults
+  const searchUrl = `/hotels/results?city=${encodeURIComponent(destination.city)}&check_in=${getCheckInDate()}&check_out=${getCheckOutDate()}&rooms=1&room_0_adults=2`
   
   return (
     <article className="group relative overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -377,9 +388,9 @@ function HotelDestinationCard({ destination }: { destination: HotelDestinationDa
         </div>
       </div>
       
-      {/* CTA - Navigate to homepage with prefill, NOT to results */}
+      {/* CTA - Navigate directly to results with complete params */}
       <Link 
-        href={prefillUrl}
+        href={searchUrl}
         className="block p-3 text-center text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors"
         aria-label={`Search hotels in ${destination.city}`}
       >
