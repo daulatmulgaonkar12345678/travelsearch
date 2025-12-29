@@ -161,93 +161,96 @@ export const POPULAR_HOTEL_DESTINATIONS: HotelDestinationData[] = [
 ]
 
 // Popular train routes data (static for now)
+// CRITICAL: Use CITY NAMES, not station codes
+// Backend will expand city to all stations
 export const POPULAR_TRAIN_ROUTES = [
   { 
     slug: 'mumbai-delhi', 
     label: 'Mumbai → Delhi',
-    origin: 'MUMBAI_ALL',
-    destination: 'NDLS',
+    originCity: 'Mumbai',
+    destinationCity: 'Delhi',
     description: 'One of India\'s busiest rail corridors'
   },
   { 
     slug: 'delhi-jaipur', 
     label: 'Delhi → Jaipur',
-    origin: 'NDLS',
-    destination: 'JP',
+    originCity: 'Delhi',
+    destinationCity: 'Jaipur',
     description: 'Popular tourist route to the Pink City'
   },
   { 
     slug: 'bangalore-chennai', 
     label: 'Bangalore → Chennai',
-    origin: 'SBC',
-    destination: 'MAS',
+    originCity: 'Bangalore',
+    destinationCity: 'Chennai',
     description: 'Connect two South Indian metro cities'
   },
   { 
     slug: 'mumbai-pune', 
     label: 'Mumbai → Pune',
-    origin: 'MUMBAI_ALL',
-    destination: 'PUNE',
+    originCity: 'Mumbai',
+    destinationCity: 'Pune',
     description: 'Frequent trains on this short route'
   },
   { 
     slug: 'kolkata-delhi', 
     label: 'Kolkata → Delhi',
-    origin: 'HWH',
-    destination: 'NDLS',
+    originCity: 'Kolkata',
+    destinationCity: 'Delhi',
     description: 'Major East-North corridor'
   },
   { 
     slug: 'hyderabad-bangalore', 
     label: 'Hyderabad → Bangalore',
-    origin: 'SC',
-    destination: 'SBC',
+    originCity: 'Hyderabad',
+    destinationCity: 'Bangalore',
     description: 'Connect Deccan and South India'
   },
 ]
 
 // Popular bus routes data (static for now)
+// CRITICAL: Use CITY NAMES only - no stations, no pickup points
 export const POPULAR_BUS_ROUTES = [
   { 
     slug: 'pune-mumbai', 
     label: 'Pune → Mumbai',
-    origin: 'Pune',
-    destination: 'Mumbai',
+    originCity: 'Pune',
+    destinationCity: 'Mumbai',
     description: 'Most frequent bus route in Maharashtra'
   },
   { 
     slug: 'bangalore-chennai', 
     label: 'Bangalore → Chennai',
-    origin: 'Bangalore',
-    destination: 'Chennai',
+    originCity: 'Bangalore',
+    destinationCity: 'Chennai',
     description: 'Overnight buses available'
   },
   { 
     slug: 'delhi-jaipur', 
     label: 'Delhi → Jaipur',
-    origin: 'Delhi',
-    destination: 'Jaipur',
+    originCity: 'Delhi',
+    destinationCity: 'Jaipur',
     description: 'Popular weekend getaway route'
   },
   { 
     slug: 'hyderabad-bangalore', 
     label: 'Hyderabad → Bangalore',
-    origin: 'Hyderabad',
-    destination: 'Bangalore',
+    originCity: 'Hyderabad',
+    destinationCity: 'Bangalore',
     description: 'Multiple operators, sleeper and seater'
   },
   { 
     slug: 'mumbai-goa', 
     label: 'Mumbai → Goa',
-    origin: 'Mumbai',
-    destination: 'Goa',
+    originCity: 'Mumbai',
+    destinationCity: 'Goa',
     description: 'Beach getaway overnight buses'
   },
   { 
     slug: 'chennai-bangalore', 
     label: 'Chennai → Bangalore',
-    origin: 'Chennai',
-    destination: 'Bangalore',
+    originCity: 'Chennai',
+    destinationCity: 'Bangalore',
     description: 'Frequent services both ways'
   },
 ]
