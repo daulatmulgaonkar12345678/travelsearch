@@ -325,8 +325,9 @@ def create_state_network_offers(
     fare_sleeper = estimate_fare(distance_km, "ac_sleeper")
     fare_volvo = estimate_fare(distance_km, "volvo")
     
-    # Estimate duration
-    duration_minutes = estimate_duration_minutes(distance_km)
+    # NO DURATION ESTIMATION - Duration must come from real schedule data only
+    # Setting to 0 signals frontend to hide duration/arrival time
+    duration_minutes = 0
     
     # Build via text for display
     via_text = ""
