@@ -12,7 +12,7 @@ from datetime import datetime
 import sys
 
 # Backend URL from frontend environment
-BACKEND_URL = "https://stationapi.preview.emergentagent.com"
+BACKEND_URL = "https://travelapp-prefill.preview.emergentagent.com"
 
 class AmadeusSpecificTest:
     def __init__(self):
