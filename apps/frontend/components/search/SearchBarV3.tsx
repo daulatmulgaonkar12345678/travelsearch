@@ -693,7 +693,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+    <div ref={searchFormRef} className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
       {/* Tab Selector - Order: Flights → Buses → Trains → Hotels */}
       <div className="flex border-b border-gray-200 overflow-x-auto">
         <button
