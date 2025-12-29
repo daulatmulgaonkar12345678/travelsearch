@@ -368,6 +368,28 @@ test_priority: "high_first"
     - "Validate ALL booking partner URLs do NOT contain: 'undefined', 'null', 'mor-bhavan', 'swargate', 'bus-stand', 'depot' in URL path"
     - "Validate URLs follow {city}-to-{city} format for redBus, AbhiBus, and Paytm"
 
+## Current Focus: Popular Cards Prefill-Only Behavior Testing
+
+- task: "Popular Cards Prefill-Only Behavior Testing"
+  implemented: true
+  working: true
+  file: "/app/apps/frontend/components/seo/InternalLinks.tsx, /app/apps/frontend/components/search/SearchBarV3.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL POPULAR CARDS PREFILL-ONLY BEHAVIOR TESTS PASSED (5/5): Complete validation of new prefill-only behavior successfully completed. CRITICAL VALIDATIONS: 1) Bus Prefill Test (Pune → Mumbai): ✅ URL stays at /?tab=buses (NOT /buses/results), 'From' field shows 'Pune', 'To' field shows 'Mumbai', date field unchanged, 'Search Buses' button enabled (orange), NO API request fired, 2) Train Prefill Test (Mumbai → Delhi): ✅ URL stays at /?tab=trains (NOT /trains/results), form fields prefilled with station codes/ALL tokens, date field unchanged, 'Search Trains' button enabled (blue), NO API request fired, 3) Hotel Prefill Test (Mumbai): ✅ URL stays at /?tab=hotels (NOT /hotels/results), 'Destination' field shows 'Mumbai, India', check-in/check-out dates unchanged, 'Search Hotels' button enabled (blue), NO API request fired, 4) End-to-End Flow Test: ✅ Pune → Mumbai card prefills form, user sets date to tomorrow, clicks 'Search Buses', navigation occurs to /buses/results with correct parameters (origin=Pune&destination=Mumbai&departure_date=2025-12-30&passengers=1), results page loads successfully, NO 'Missing required search parameters' error, 5) Acceptance Criteria Summary: ✅ Clicking any popular card updates form inputs ONLY, ✅ NO API request fired until Search is clicked, ✅ NO 'Missing required search parameters' error, ✅ Search works normally after user selects dates and clicks Search, ✅ URL does not change to results page on card click, ✅ Popular cards are buttons, not links. PREFILL-ONLY CONTRACT FULLY IMPLEMENTED: Cards are helpers not shortcuts, Search button is the only authority, user must explicitly click Search after selecting dates. All popular cards (buses, trains, hotels) implement correct prefill-only behavior without auto-navigation or auto-submission."
+  test_requirements:
+    - "Test Bus Prefill: Navigate to /?tab=buses, click 'Pune → Mumbai' card, verify URL stays at /?tab=buses, verify form fields prefilled, verify NO navigation to results"
+    - "Test Train Prefill: Navigate to /?tab=trains, click 'Mumbai → Delhi' card, verify URL stays at /?tab=trains, verify form fields prefilled, verify NO navigation to results"
+    - "Test Hotel Prefill: Navigate to /?tab=hotels, click Mumbai 'Find Hotels' button, verify URL stays at /?tab=hotels, verify destination field prefilled, verify NO navigation to results"
+    - "Test End-to-End Flow: Click bus card, set date, click Search, verify navigation to results page with correct parameters"
+    - "Verify NO 'Missing required search parameters' error appears"
+    - "Verify popular cards are buttons not links"
+    - "Verify NO API calls fired on card click"
+
 ## Agent Communication
 - agent: "main"
   message: "Implemented recent searches and saved searches features. Recent searches use localStorage with automatic saving, FIFO management, and 7-day expiry. Saved searches use backend MongoDB storage with email consent modal. Both features include last known price tracking for future price alerts."
