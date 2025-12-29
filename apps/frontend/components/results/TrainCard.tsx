@@ -287,6 +287,15 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
         {/* Booking Partners */}
         <div className="border-t pt-4">
           <p className="text-xs text-gray-500 mb-2">Check availability:</p>
+          
+          {/* Redirect Error Fallback UI */}
+          {redirectError && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{redirectError}</p>
+            </div>
+          )}
+          
           <div className="flex flex-wrap gap-2">
             {sortedPartners.map(partner => (
               <button
