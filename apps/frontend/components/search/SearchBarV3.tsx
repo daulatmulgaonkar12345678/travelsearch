@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Plane, Hotel, Calendar, Users, Train, Bus } from 'lucide-react'
 import TripTypeSelector from './TripTypeSelector'
