@@ -118,6 +118,19 @@ SUFFIXES_TO_REMOVE = [
     "station",
     "(msrtc)",
     "(st)",
+    # Specific stop name suffixes that should be removed
+    "mor bhavan",  # Nagpur Bus Stand – Mor Bhavan
+    "shivaji nagar",  # Common area suffix
+    "swargate",  # Pune Swargate
+    "pimpri",  # Pimpri area
+    "chinchwad",  # Chinchwad area
+]
+
+# Stop name patterns to remove (regex)
+STOP_NAME_PATTERNS = [
+    r'\s*–\s*[\w\s]+$',  # " – Mor Bhavan" style suffixes
+    r'\s*-\s*[\w\s]+$',   # " - Area Name" style suffixes
+    r'\s*\([\w\s]+\)$',   # "(Area Name)" style suffixes
 ]
 
 
