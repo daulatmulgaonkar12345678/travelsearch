@@ -264,7 +264,7 @@ export const POPULAR_TRAIN_ROUTES = [
     origin: 'HYDERABAD_ALL',      // city_id: hyderabad
     destination: 'BENGALURU_ALL', // city_id: bengaluru (NOT bangalore)
     originCity: 'Hyderabad',
-    destinationCity: 'Bangalore',
+    destinationCity: 'Bengaluru', // Fixed: Changed from 'Bangalore' to 'Bengaluru'
     description: 'Connect Deccan and South India'
   },
 ]
