@@ -631,11 +631,12 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       return
     }
     
-    // Build search params using CITY NAMES from validated places
-    // The backend will normalize these, but we've validated they're different
+    // Build search params using CITY NAMES for booking partner URLs
+    // CRITICAL: redBus only supports CITY → CITY searches
+    // Use cityName (parent city) not name (stop name)
     const params = new URLSearchParams({
-      origin: busOriginPlace.name,
-      destination: busDestinationPlace.name,
+      origin: busOriginPlace.cityName || busOriginPlace.name,
+      destination: busDestinationPlace.cityName || busDestinationPlace.name,
       departure_date: busDate,
       passengers: busPassengers.toString(),
     })
