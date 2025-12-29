@@ -537,7 +537,7 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
  * Popular Train Routes Section
  * 
  * BEHAVIOR: Simulates manual typing - updates form state directly
- * ✅ Updates search form state
+ * ✅ Updates search form state (label for UI, token for backend)
  * ❌ Does NOT change URL
  * ❌ Does NOT trigger API call
  * ❌ Does NOT navigate
@@ -547,10 +547,17 @@ export function PopularTrainRoutes() {
   
   const handleCardClick = (route: typeof POPULAR_TRAIN_ROUTES[0]) => {
     // HARD GUARD: Update state only, no navigation
+    // Pass both label (for UI) and token (for backend)
     dispatchPrefillEvent({
       service: 'trains',
-      origin: route.origin,           // e.g., "MUMBAI_ALL"
-      destination: route.destination, // e.g., "DELHI_ALL"
+      origin: {
+        label: route.originCity,    // UI display: "Bangalore"
+        token: route.origin,        // Backend: "BANGALORE_ALL"
+      },
+      destination: {
+        label: route.destinationCity, // UI display: "Chennai"
+        token: route.destination,     // Backend: "CHENNAI_ALL"
+      },
     })
     // STOP HERE — no navigation, no URL mutation
     return
