@@ -347,6 +347,27 @@ test_priority: "high_first"
     - "Test Bus Search API: GET /api/search/buses?origin=Pune&destination=Mumbai&departure_date=2026-02-15&passengers=1 - verify offers array, booking_partners with redBus/AbhiBus/Paytm"
     - "Test Error Handling: Past dates should return 400 error, missing parameters should return 422 validation error"
 
+## Current Focus: RedBus URL Generation Fix Testing
+
+- task: "RedBus URL Generation Fix - Bus Stop Name Resolution"
+  implemented: true
+  working: true
+  file: "/app/apps/backend/app/utils/deep_links.py, /app/apps/backend/app/services/bus_search.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL REDBUS URL GENERATION FIX TESTS PASSED (13/13): Complete validation of redBus URL generation fix successfully completed. CRITICAL VALIDATIONS: 1) Basic City Search: ✅ Nagpur→Pune returns correct redBus URL 'https://www.redbus.in/bus-tickets/nagpur-to-pune' with proper CITY→CITY format, 2) Stop Name with Area Suffix: ✅ 'Nagpur Bus Stand – Mor Bhavan' → 'Pune Swargate' correctly resolves to 'nagpur-to-pune' URL (NO 'mor-bhavan' or 'swargate' in URL), 3) City Alias Resolution: ✅ 'Mumbai Central' → 'Nashik CBS' correctly resolves to 'mumbai-to-nashik' URL, 4) Renamed City (Aurangabad): ✅ 'Chhatrapati Sambhaji Nagar' → 'Mumbai' correctly resolves to 'aurangabad-to-mumbai' URL, 5) Comprehensive URL Validation: ✅ All test routes (Pune→Mumbai, Satara→Karad, Kolhapur Bus Stand→Pune Swargate, Nashik CBS→Aurangabad Depot) generate valid URLs with proper city name resolution. ACCEPTANCE CRITERIA CONFIRMED: ✅ All redBus URLs follow CITY→CITY format only, ✅ NO 'undefined', 'null', or 'NaN' values in any URLs, ✅ Bus stop names correctly resolved to parent city names, ✅ City aliases (Mumbai Central→mumbai, Aurangabad name changes) work correctly, ✅ Stop-specific suffixes ('Bus Stand', 'CBS', 'Depot', 'Mor Bhavan', 'Swargate') properly stripped from URLs. ALL booking partner URLs across ALL offers validated - redBus, MSRTC Official, AbhiBus, and Paytm all generate clean, valid URLs. RedBus URL generation fix is production-ready and completely resolves the undefined URL issue."
+  test_requirements:
+    - "Test GET /api/search/buses?origin=Nagpur&destination=Pune&departure_date=2026-02-15&passengers=1 - redBus URL should be 'https://www.redbus.in/bus-tickets/nagpur-to-pune'"
+    - "Test GET /api/search/buses?origin=Nagpur%20Bus%20Stand%20%E2%80%93%20Mor%20Bhavan&destination=Pune%20Swargate&departure_date=2026-02-15&passengers=1 - redBus URL should be 'nagpur-to-pune' (NOT containing 'mor-bhavan' or 'swargate')"
+    - "Test GET /api/search/buses?origin=Mumbai%20Central&destination=Nashik%20CBS&departure_date=2026-02-15&passengers=1 - redBus URL should be 'mumbai-to-nashik'"
+    - "Test GET /api/search/buses?origin=Chhatrapati%20Sambhaji%20Nagar&destination=Mumbai&departure_date=2026-02-15&passengers=1 - redBus URL should be 'aurangabad-to-mumbai'"
+    - "Validate ALL booking partner URLs do NOT contain: 'undefined', 'null', 'mor-bhavan', 'swargate', 'bus-stand', 'depot' in URL path"
+    - "Validate URLs follow {city}-to-{city} format for redBus, AbhiBus, and Paytm"
+
 ## Agent Communication
 - agent: "main"
   message: "Implemented recent searches and saved searches features. Recent searches use localStorage with automatic saving, FIFO management, and 7-day expiry. Saved searches use backend MongoDB storage with email consent modal. Both features include last known price tracking for future price alerts."
