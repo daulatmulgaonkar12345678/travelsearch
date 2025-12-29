@@ -10,8 +10,10 @@ import {
   MapPin,
   Utensils,
   Info,
+  AlertCircle,
 } from 'lucide-react'
 import RedirectTransition from '@/components/loading/RedirectTransition'
+import { validatePartnerUrl, logInvalidRedirect } from '@/lib/deepLinkValidator'
 
 interface TrainOffer {
   offer_id: string
