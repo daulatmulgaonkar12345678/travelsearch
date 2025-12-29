@@ -1,71 +1,52 @@
 /**
  * Internal Linking Components for SEO - Enhanced with Images
  * 
- * Features:
- * - Static destination images (WebP preferred)
- * - Lazy loading for performance (LCP-friendly)
- * - Semantic HTML (section, h2, article)
- * - Proper alt text for accessibility/SEO
- * - Smart date handling (tomorrow by default)
- * - Limited to 6-8 items for performance
+ * PRODUCT PRINCIPLE: Popular cards simulate typing — they are NOT navigation links.
+ * When user clicks a Popular card:
+ * ✅ Update the active search form state (same as manual typing)
+ * ✅ Update visible input fields
+ * ❌ Do NOT change the URL
+ * ❌ Do NOT trigger any API call
+ * ❌ Do NOT navigate
  * 
- * UX PRINCIPLE:
- * User clicks route → SEO page with pre-filled search bar → adjust date → search
- * 
- * Image Storage:
- * - Images stored in /public/images/flights/ and /public/images/hotels/
- * - Naming convention: {route-slug}.webp, {city}.webp
- * - Recommended size: 400x300px for cards
+ * The Search button is the only authority for executing searches.
  */
 
 'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
 
 // ============================================================================
-// PREFILL EVENT SYSTEM
+// PREFILL EVENT SYSTEM - Direct State Updates (No URL Changes)
 // ============================================================================
-
-/**
- * PRODUCT PRINCIPLE: Popular cards are helpers, not shortcuts.
- * The Search button is the only authority.
- * 
- * When user clicks a Popular card:
- * ✅ Only update the search form state via URL params
- * ❌ Do NOT navigate to results page
- * ❌ Do NOT trigger any API call
- * ❌ Do NOT auto-submit search
- * 
- * User must explicitly click Search after selecting dates.
- */
 
 export type PrefillService = 'buses' | 'trains' | 'hotels'
 
-export interface PrefillData {
+export interface PrefillEventData {
   service: PrefillService
   origin?: string       // For buses/trains
-  destination?: string  // For buses/trains
+  destination?: string  // For buses/trains  
   city?: string         // For hotels
 }
 
+// Custom event name for prefill communication
+export const PREFILL_SEARCH_EVENT = 'prefill-search-state'
+
 /**
- * Build prefill URL params - updates homepage URL without navigation
- * This triggers the prefill useEffect in SearchBarV3
+ * Dispatch prefill event - SearchBarV3 listens and updates its state directly
+ * NO URL changes, NO navigation - just state updates like manual typing
  */
-export function buildPrefillUrl(data: PrefillData): string {
-  const params = new URLSearchParams()
-  params.set('tab', data.service)
-  
-  if (data.service === 'hotels' && data.city) {
-    params.set('prefill_city', data.city)
-  } else if ((data.service === 'buses' || data.service === 'trains') && data.origin && data.destination) {
-    params.set('prefill_origin', data.origin)
-    params.set('prefill_dest', data.destination)
-  }
-  
-  return `/?${params.toString()}`
+export function dispatchPrefillEvent(data: PrefillEventData): void {
+  // HARD GUARD: This function ONLY dispatches state update event
+  // It must NEVER trigger navigation or URL changes
+  const event = new CustomEvent(PREFILL_SEARCH_EVENT, { 
+    detail: data,
+    bubbles: true 
+  })
+  window.dispatchEvent(event)
+  // STOP HERE — no navigation, no URL mutation
+  return
 }
 
 // ============================================================================
