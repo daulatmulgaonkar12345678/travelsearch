@@ -59,6 +59,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   const router = useRouter()
   const searchParams = useSearchParams()
   
+  // Ref for auto-scroll when popular cards are clicked
+  const searchFormRef = useRef<HTMLDivElement>(null)
+  
   // SSR-safe state initialization
   const [mounted, setMounted] = useState(false)
   
