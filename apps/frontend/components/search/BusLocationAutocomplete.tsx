@@ -20,9 +20,8 @@
  * "Satara → Karad" MUST stay "Satara → Karad", never "Satara → Satara"
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Bus, MapPin, AlertCircle, Check, Loader2 } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
 
 // ============================================================
 // STRICT PLACE OBJECT - ID IS THE SOURCE OF TRUTH
@@ -57,6 +56,65 @@ interface BusLocationAutocompleteProps {
   otherPlaceId?: string | null     // The other field's place_id (to prevent same selection)
 }
 
+/**
+ * Normalize API response to flat array
+ * Handles: response.data, response.results, or raw array
+ */
+function normalizeApiResponse(data: any): any[] {
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data.results)) return data.results
+  if (Array.isArray(data.data)) return data.data
+  return []
+}
+
+/**
+ * Convert raw API result to BusPlace format
+ */
+function toBusPlace(r: any): BusPlace {
+  // For tourist destinations, use the destination name directly
+  if (r.type === 'tourist_destination') {
+    return {
+      place_id: r.id || r.place_id || `tourist_${r.city}`,
+      name: r.label_en || r.name || r.city,
+      name_local: r.city_local || r.label || '',
+      type: 'TOURIST' as const,
+      district: r.city || r.district || '',
+      state: r.state || 'Maharashtra',
+      operator: undefined,
+      is_depot: false,
+      cityName: r.cityName || r.city || '',
+      cityId: r.cityId,
+      is_tourist: true,
+      destination_type: r.destination_type,
+      description: r.description,
+    }
+  }
+  
+  // label_en format: "Karad Bus Stand" -> extract first part as name
+  const labelEn = r.label_en || r.name || ''
+  const stopName = labelEn 
+    ? labelEn.replace(/ Bus Stand$/i, '')
+             .replace(/ Depot$/i, '')
+             .replace(/ ST Stand$/i, '')
+             .replace(/ CBS$/i, '')
+             .trim()
+    : r.city || ''
+  
+  return {
+    place_id: r.id || r.place_id || `place_${stopName}`,
+    name: stopName,
+    name_local: r.label || r.name_local || '',
+    type: r.type === 'bus_stop' ? 'STOP' : 'CITY',
+    district: r.city || r.district || '',
+    state: r.state || 'Maharashtra',
+    operator: r.operator || undefined,
+    is_depot: r.is_search_surface || r.is_depot || false,
+    cityName: r.cityName || r.city || '',
+    cityId: r.cityId,
+  }
+}
+
 export default function BusLocationAutocomplete({
   value,
   selectedPlace,
@@ -72,9 +130,16 @@ export default function BusLocationAutocomplete({
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
+  const [requestCompleted, setRequestCompleted] = useState(false)
+  
   const wrapperRef = useRef<HTMLDivElement>(null)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // CRITICAL: Track latest query to prevent stale response overwrites
+  const latestQueryRef = useRef<string>('')
+  // AbortController for canceling in-flight requests
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   // Sync query with external value
   useEffect(() => {
@@ -95,115 +160,105 @@ export default function BusLocationAutocomplete({
   /**
    * Fetch suggestions from backend API
    * 
-   * IMPORTANT: These are SUGGESTIONS only.
-   * User MUST select from dropdown to set a valid place.
+   * CRITICAL FIX: 
+   * 1. Cancel previous request before starting new one
+   * 2. Track which query this response belongs to
+   * 3. Ignore stale responses that don't match latest query
    */
-  const fetchSuggestions = async (searchQuery: string) => {
+  const fetchSuggestions = useCallback(async (searchQuery: string) => {
+    // Update the latest query ref FIRST
+    latestQueryRef.current = searchQuery
+    
     if (searchQuery.length < 2) {
       setSuggestions([])
+      setRequestCompleted(true)
       return
     }
 
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController()
+    const currentQuery = searchQuery // Capture for closure
+    
     setIsLoading(true)
+    setRequestCompleted(false)
     
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
       const response = await fetch(
-        `${apiBase}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
+        `${apiBase}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`,
+        { signal: abortControllerRef.current.signal }
       )
+      
+      // CRITICAL: Check if this response is for the latest query
+      // If user typed more characters, ignore this stale response
+      if (currentQuery !== latestQueryRef.current) {
+        return // Stale response - ignore
+      }
       
       if (response.ok) {
         const data = await response.json()
         
-        // Convert API response to BusPlace format
-        // IMPORTANT: Use label_en (stop name) as the primary name, not city name
-        // This ensures "Karad Bus Stand" shows as "Karad", not "Satara"
-        // BUT: cityName is ALWAYS the parent city for redBus URLs
-        const busPlaces: BusPlace[] = data.results.map((r: any) => {
-          // For tourist destinations, use the destination name directly
-          if (r.type === 'tourist_destination') {
-            return {
-              place_id: r.id,
-              name: r.label_en || r.city,
-              name_local: r.city_local || '',
-              type: 'TOURIST' as const,
-              district: r.city,
-              state: r.state || 'Maharashtra',
-              operator: undefined,
-              is_depot: false,
-              // CRITICAL: cityName for booking URLs - use parent city, not destination
-              cityName: r.cityName || r.city,
-              cityId: r.cityId,
-              is_tourist: true,
-              destination_type: r.destination_type,
-              description: r.description,
-            }
-          }
-          
-          // label_en format: "Karad Bus Stand" -> extract first part as name
-          // For cities without label_en, use city name
-          const labelEn = r.label_en || ''
-          const stopName = labelEn 
-            ? labelEn.replace(/ Bus Stand$/i, '')
-                     .replace(/ Depot$/i, '')
-                     .replace(/ ST Stand$/i, '')
-                     .replace(/ CBS$/i, '')
-                     .trim()
-            : r.city
-          
-          return {
-            place_id: r.id,              // THIS IS THE KEY - place_id from backend
-            name: stopName,              // Stop name (e.g., "Karad" not "Satara")
-            name_local: r.label || '',   // Marathi name (e.g., "कराड बस स्थानक")
-            type: r.type === 'bus_stop' ? 'STOP' : 'CITY',
-            district: r.city,            // District/parent city (for display)
-            state: r.state || 'Maharashtra',
-            operator: r.operator || undefined,
-            is_depot: r.is_search_surface || false,
-            // CRITICAL: cityName for booking partner URLs
-            // redBus only supports CITY → CITY, not STOP → STOP
-            cityName: r.cityName || r.city,  // Parent city for URLs
-            cityId: r.cityId,
-          }
-        })
+        // CRITICAL: Normalize response - handle data/results/array formats
+        const rawResults = normalizeApiResponse(data)
+        
+        // Convert to BusPlace format
+        const busPlaces: BusPlace[] = rawResults.map(toBusPlace)
         
         // Filter out the "other" place if it's already selected
-        // This prevents selecting same city for both origin AND destination
         const filteredPlaces = otherPlaceId 
           ? busPlaces.filter(p => p.place_id !== otherPlaceId)
           : busPlaces
         
-        setSuggestions(filteredPlaces)
+        // Only update if this is still the latest query
+        if (currentQuery === latestQueryRef.current) {
+          setSuggestions(filteredPlaces)
+          setRequestCompleted(true)
+        }
       } else {
-        setSuggestions([])
+        if (currentQuery === latestQueryRef.current) {
+          setSuggestions([])
+          setRequestCompleted(true)
+        }
       }
     } catch (error) {
+      // Ignore abort errors - they're expected when canceling
+      if (error instanceof Error && error.name === 'AbortError') {
+        return
+      }
       console.error('Bus autocomplete fetch error:', error)
-      setSuggestions([])
+      if (currentQuery === latestQueryRef.current) {
+        setSuggestions([])
+        setRequestCompleted(true)
+      }
     } finally {
-      setIsLoading(false)
+      // Only update loading state if this is the latest query
+      if (currentQuery === latestQueryRef.current) {
+        setIsLoading(false)
+      }
     }
-  }
+  }, [otherPlaceId])
 
   /**
    * Handle input change
    * 
    * CRITICAL: When user types, we CLEAR the selectedPlace.
    * User MUST re-select from dropdown to have a valid place.
-   * 
-   * This prevents text-based resolution which causes bugs like
-   * "Satara → Karad" becoming "Satara → Satara"
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setQuery(newValue)
     setSelectedIndex(-1)
     setShowSuggestions(true)
+    setRequestCompleted(false) // Reset completion state when typing
 
     // CRITICAL: Clear selected place when user types
-    // This forces user to select from dropdown again
     if (selectedPlace) {
-      onChange(newValue, null) // place_id is now NULL
+      onChange(newValue, null)
     }
 
     // Debounce search
@@ -220,7 +275,6 @@ export default function BusLocationAutocomplete({
    * Handle dropdown selection
    * 
    * CRITICAL: This is the ONLY way to set a valid place.
-   * The place_id from this selection is the source of truth.
    */
   const handleSelectPlace = (place: BusPlace) => {
     const displayValue = place.name_local 
@@ -229,9 +283,6 @@ export default function BusLocationAutocomplete({
     
     setQuery(displayValue)
     setShowSuggestions(false)
-    
-    // CRITICAL: Set the place with its place_id
-    // This place_id will be used in the search API call
     onChange(displayValue, place)
   }
 
@@ -268,9 +319,32 @@ export default function BusLocationAutocomplete({
     }
   }
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current)
+      }
+    }
+  }, [])
+
   // Validation state
   const isValid = selectedPlace !== null
   const showValidationHint = query.length >= 2 && !selectedPlace && !showSuggestions
+
+  // CRITICAL: Only show "No cities found" when:
+  // 1. Query length >= 3 (not 2, to reduce false positives)
+  // 2. Request has completed (not in-flight)
+  // 3. Results array is empty
+  // 4. Dropdown should be shown
+  const showNoResults = showSuggestions && 
+    query.length >= 3 && 
+    requestCompleted && 
+    !isLoading && 
+    suggestions.length === 0
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -310,7 +384,7 @@ export default function BusLocationAutocomplete({
         )}
       </div>
 
-      {/* Validation hint - CRITICAL for user awareness */}
+      {/* Validation hint */}
       {showValidationHint && (
         <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
@@ -338,7 +412,6 @@ export default function BusLocationAutocomplete({
               }`}
             >
               <div className="flex items-center gap-3">
-                {/* Icon/Badge */}
                 <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
                   place.type === 'TOURIST' ? 'bg-purple-100' :
                   place.type === 'STOP' && place.is_depot ? 'bg-green-100' :
@@ -396,8 +469,8 @@ export default function BusLocationAutocomplete({
         </div>
       )}
 
-      {/* No results */}
-      {showSuggestions && query.length >= 2 && suggestions.length === 0 && !isLoading && (
+      {/* No results - ONLY show when request completed and results empty */}
+      {showNoResults && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
           <div className="text-center text-gray-500 text-sm">
             No cities found for "{query}"
