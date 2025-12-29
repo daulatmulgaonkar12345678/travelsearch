@@ -23,12 +23,33 @@ import Image from 'next/image'
 
 export type PrefillService = 'buses' | 'trains' | 'hotels'
 
+/**
+ * Prefill data structure that separates UI labels from backend tokens.
+ * 
+ * UI Display Rules:
+ * - Always display `label` (e.g., "Bangalore")
+ * - Never show backend tokens like `_ALL` in UI
+ * 
+ * Backend Token Rules:
+ * - Train: Use `token` field with _ALL suffix (e.g., "BANGALORE_ALL")
+ * - Bus: Use city name (e.g., "Pune")
+ * - Hotel: Use city name (e.g., "Goa")
+ */
 export interface PrefillEventData {
   service: PrefillService
-  origin?: string       // For buses/trains
-  destination?: string  // For buses/trains  
-  city?: string         // For hotels
-  scrollToForm?: boolean // Auto-scroll to search form after prefill
+  // For buses/trains - both label and token
+  origin?: {
+    label: string      // UI display (e.g., "Bangalore")
+    token: string      // Backend token (e.g., "BANGALORE_ALL" for trains, "Pune" for buses)
+  }
+  destination?: {
+    label: string
+    token: string
+  }
+  // For hotels
+  city?: string
+  // Auto-scroll flag
+  scrollToForm?: boolean
 }
 
 // Custom event name for prefill communication
