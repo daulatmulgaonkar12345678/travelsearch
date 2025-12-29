@@ -3,7 +3,6 @@
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import TrustStrip from '@/components/layout/TrustStrip'
 import HotelLoadingState from '@/components/loading/HotelLoadingState'
 import ServiceUnavailable from '@/components/common/ServiceUnavailable'
 import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
