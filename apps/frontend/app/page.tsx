@@ -112,7 +112,7 @@ function HomeContent() {
             Find Your Perfect Journey
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Compare flights, trains, buses, and hotels from multiple providers. Search options instantly.
+            Compare flights, trains, buses, and hotels from verified travel partners. No hidden fees.
           </p>
         </div>
 
