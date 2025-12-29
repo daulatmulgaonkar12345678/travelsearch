@@ -208,7 +208,6 @@ function HotelResultsContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
-        <TrustStrip />
         <ServiceUnavailable 
           service="Hotels"
           onRetry={() => {
@@ -224,7 +223,6 @@ function HotelResultsContent() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
-        <TrustStrip />
         <HotelLoadingState city={city} />
         
         {/* Loading timeout message */}
@@ -275,16 +273,19 @@ function HotelResultsContent() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-12">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-red-900 mb-2">Search Error</h3>
-          <p className="text-red-700">{error}</p>
-          <button
-            onClick={() => router.push('/hotels')}
-            className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Back to Search
-          </button>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="max-w-2xl mx-auto text-center py-12 px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-red-900 mb-2">Search Error</h3>
+            <p className="text-red-700">{error}</p>
+            <button
+              onClick={() => router.push('/hotels')}
+              className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Back to Search
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -292,24 +293,31 @@ function HotelResultsContent() {
 
   if (offers.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-12">
-        <HotelIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No hotels found</h3>
-        <p className="text-gray-600 mb-4">
-          We couldn't find any hotels in {city} for your dates.
-        </p>
-        <button
-          onClick={() => router.push('/hotels')}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Try Another Search
-        </button>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="max-w-2xl mx-auto text-center py-12 px-4">
+          <HotelIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No hotels found</h3>
+          <p className="text-gray-600 mb-4">
+            We couldn't find any hotels in {city} for your dates.
+          </p>
+          <button
+            onClick={() => router.push('/hotels')}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Another Search
+          </button>
+        </div>
       </div>
     )
   }
 
+  // Main results view
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Search Summary */}
       <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
         <div className="flex items-center justify-between flex-wrap gap-4">
