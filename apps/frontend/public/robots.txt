@@ -1,12 +1,20 @@
 # robots.txt for TravelSearch
-# Meta-search travel platform
+# Travel meta-search platform
 
 User-agent: *
 
-# Allow indexing of static SEO pages
+# Allow indexing of main pages
 Allow: /
+Allow: /flights
+Allow: /trains
+Allow: /buses
+Allow: /hotels
+
+# Allow indexing of SEO route pages
 Allow: /flights/*-to-*
 Allow: /hotels/*
+
+# Allow legal and info pages
 Allow: /about-us
 Allow: /affiliate-disclosure
 Allow: /service-disclaimer
@@ -14,11 +22,14 @@ Allow: /privacy-policy
 Allow: /terms-and-conditions
 Allow: /contact
 
-# Disallow dynamic results pages (contain query parameters, user-specific)
+# Disallow dynamic results pages (user-specific, date-dependent)
 Disallow: /flights/results
+Disallow: /trains/results
+Disallow: /buses/results
 Disallow: /hotels/results
-Disallow: /flights/results?*
-Disallow: /hotels/results?*
+Disallow: /*?*departure_date=*
+Disallow: /*?*check_in=*
+Disallow: /*?*passengers=*
 
 # Disallow admin and internal pages
 Disallow: /admin
