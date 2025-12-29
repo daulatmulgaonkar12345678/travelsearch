@@ -256,87 +256,80 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }, [])
 
   /**
-   * PREFILL LOGIC
+   * PREFILL EVENT LISTENER
    * 
-   * UX Principle: Prefill, don't auto-search. Let users confirm intent.
+   * PRODUCT RULE: Popular cards simulate typing — they are NOT navigation links.
    * 
-   * Reads prefill params from URL and populates the appropriate search form:
-   * - Hotels: ?prefill_city=Mumbai → prefills hotel city field
-   * - Trains: ?prefill_origin=MUMBAI_ALL&prefill_dest=PUNE → prefills train fields
-   * - Buses: ?prefill_origin=Pune&prefill_dest=Mumbai → prefills bus fields
+   * When a popular card is clicked, it dispatches a custom event.
+   * This listener updates the search form state directly (like manual typing).
    * 
-   * After prefilling, user must select dates and click Search to execute.
+   * ✅ Updates form state (same as typing in input)
+   * ❌ Does NOT change URL
+   * ❌ Does NOT trigger API call
+   * ❌ Does NOT navigate
    */
-  useEffect(() => {
-    if (!mounted || prefillProcessed) return
-
-    const prefillCity = searchParams.get('prefill_city')
-    const prefillOrigin = searchParams.get('prefill_origin')
-    const prefillDest = searchParams.get('prefill_dest')
-
-    // Hotel prefill
-    if (searchType === 'hotels' && prefillCity) {
-      // Create a HotelCity object to prefill the autocomplete
-      setSelectedHotelCity({
-        city: prefillCity,
-        country: 'India',
-        display: `${prefillCity}, India`,
-      })
-      setPrefillProcessed(true)
-      
-      // Clear prefill params from URL to avoid re-processing
-      const params = new URLSearchParams(searchParams.toString())
-      params.delete('prefill_city')
-      router.replace(`/?${params.toString()}`, { scroll: false })
+  const handlePrefillEvent = useCallback((event: Event) => {
+    const customEvent = event as CustomEvent<PrefillEventData>
+    const data = customEvent.detail
+    
+    // HARD GUARD: This handler ONLY updates state, never navigates
+    if (!data || !data.service) return
+    
+    // Switch to the appropriate tab if needed
+    if (data.service !== searchType) {
+      setSearchTypeState(data.service)
     }
     
-    // Train prefill
-    if (searchType === 'trains' && prefillOrigin && prefillDest) {
-      // Set train origin/destination from prefill params
-      // These are station codes like MUMBAI_ALL or PUNE
+    // Update form state based on service type (exactly like manual typing)
+    if (data.service === 'buses' && data.origin && data.destination) {
+      // BUS: Update origin and destination state
+      setBusOriginText(data.origin)
+      setBusOriginPlace({
+        place_id: `popular_${data.origin.toLowerCase().replace(/\s+/g, '_')}`,
+        name: data.origin,
+        type: 'city'
+      })
+      setBusDestinationText(data.destination)
+      setBusDestinationPlace({
+        place_id: `popular_${data.destination.toLowerCase().replace(/\s+/g, '_')}`,
+        name: data.destination,
+        type: 'city'
+      })
+    } else if (data.service === 'trains' && data.origin && data.destination) {
+      // TRAIN: Update origin_city and destination_city state
       setTrainOrigin({
-        value: prefillOrigin,
-        label: prefillOrigin.replace('_ALL', ' (All Stations)'),
-        type: prefillOrigin.includes('_ALL') ? 'city_all' : 'station'
+        value: data.origin,
+        label: data.origin.replace('_ALL', ' (All Stations)'),
+        type: data.origin.includes('_ALL') ? 'city_all' : 'station'
       })
       setTrainDestination({
-        value: prefillDest,
-        label: prefillDest.replace('_ALL', ' (All Stations)'),
-        type: prefillDest.includes('_ALL') ? 'city_all' : 'station'
+        value: data.destination,
+        label: data.destination.replace('_ALL', ' (All Stations)'),
+        type: data.destination.includes('_ALL') ? 'city_all' : 'station'
       })
-      setPrefillProcessed(true)
-      
-      // Clear prefill params from URL
-      const params = new URLSearchParams(searchParams.toString())
-      params.delete('prefill_origin')
-      params.delete('prefill_dest')
-      router.replace(`/?${params.toString()}`, { scroll: false })
+    } else if (data.service === 'hotels' && data.city) {
+      // HOTEL: Update city state
+      setSelectedHotelCity({
+        city: data.city,
+        country: 'India',
+        display: `${data.city}, India`,
+      })
     }
     
-    // Bus prefill
-    if (searchType === 'buses' && prefillOrigin && prefillDest) {
-      // Set bus origin/destination from prefill params
-      setBusOriginText(prefillOrigin)
-      setBusOriginPlace({
-        place_id: `prefill_${prefillOrigin.toLowerCase()}`,
-        name: prefillOrigin,
-        type: 'city'
-      })
-      setBusDestinationText(prefillDest)
-      setBusDestinationPlace({
-        place_id: `prefill_${prefillDest.toLowerCase()}`,
-        name: prefillDest,
-        type: 'city'
-      })
-      setPrefillProcessed(true)
-      
-      // Clear prefill params from URL
-      const params = new URLSearchParams(searchParams.toString())
-      params.delete('prefill_origin')
-      params.delete('prefill_dest')
-      router.replace(`/?${params.toString()}`, { scroll: false })
+    // STOP HERE — no navigation, no URL mutation, no API calls
+    // Dates remain untouched - user must select manually
+  }, [searchType])
+
+  // Register event listener for prefill events from popular cards
+  useEffect(() => {
+    if (!mounted) return
+    
+    window.addEventListener(PREFILL_SEARCH_EVENT, handlePrefillEvent)
+    
+    return () => {
+      window.removeEventListener(PREFILL_SEARCH_EVENT, handlePrefillEvent)
     }
-  }, [mounted, prefillProcessed, searchType, searchParams, router])
+  }, [mounted, handlePrefillEvent])
 
   const totalPassengers = passengers.adults + passengers.children.length + passengers.infants
   const totalGuests = hotelRooms.rooms.reduce((sum, room) => sum + room.adults + room.children.length, 0)
