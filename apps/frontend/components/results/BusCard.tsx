@@ -350,6 +350,15 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
         {/* 3️⃣ Booking Partners with Improved Button Labels */}
         <div className="border-t pt-4 mt-3">
           <p className="text-xs text-gray-500 mb-2">Book on:</p>
+          
+          {/* Redirect Error Fallback UI */}
+          {redirectError && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{redirectError}</p>
+            </div>
+          )}
+          
           <div className="flex flex-wrap gap-2">
             {sortedPartners.map(partner => (
               <button
