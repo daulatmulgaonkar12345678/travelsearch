@@ -262,6 +262,10 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
    * This listener updates the search form state directly (like manual typing).
    * Then scrolls to the search form so user can see the prefilled values.
    * 
+   * UI Display Rules:
+   * - Always display `label` (e.g., "Bangalore")
+   * - Never show backend tokens like `_ALL` in UI
+   * 
    * ✅ Updates form state (same as typing in input)
    * ✅ Scrolls to search form after prefill
    * ❌ Does NOT change URL
@@ -283,29 +287,39 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     // Update form state based on service type (exactly like manual typing)
     if (data.service === 'buses' && data.origin && data.destination) {
       // BUS: Update origin and destination state
-      setBusOriginText(data.origin)
+      // Use label for display, token for backend (same for buses)
+      setBusOriginText(data.origin.label)
       setBusOriginPlace({
-        place_id: `popular_${data.origin.toLowerCase().replace(/\s+/g, '_')}`,
-        name: data.origin,
+        place_id: `popular_${data.origin.token.toLowerCase().replace(/\s+/g, '_')}`,
+        name: data.origin.label,
         type: 'city'
       })
-      setBusDestinationText(data.destination)
+      setBusDestinationText(data.destination.label)
       setBusDestinationPlace({
-        place_id: `popular_${data.destination.toLowerCase().replace(/\s+/g, '_')}`,
-        name: data.destination,
+        place_id: `popular_${data.destination.token.toLowerCase().replace(/\s+/g, '_')}`,
+        name: data.destination.label,
         type: 'city'
       })
     } else if (data.service === 'trains' && data.origin && data.destination) {
       // TRAIN: Update origin_city and destination_city state
+      // Use label for UI display, token for backend API
+      // TRAIN SEARCH GUARD: Ensure tokens end with _ALL
+      const originToken = data.origin.token.endsWith('_ALL') 
+        ? data.origin.token 
+        : `${data.origin.token}_ALL`
+      const destToken = data.destination.token.endsWith('_ALL') 
+        ? data.destination.token 
+        : `${data.destination.token}_ALL`
+      
       setTrainOrigin({
-        value: data.origin,
-        label: data.origin.replace('_ALL', ' (All Stations)'),
-        type: data.origin.includes('_ALL') ? 'city_all' : 'station'
+        value: originToken,                           // Backend token: "BANGALORE_ALL"
+        label: `${data.origin.label} (All Stations)`, // UI display: "Bangalore (All Stations)"
+        type: 'city_all'
       })
       setTrainDestination({
-        value: data.destination,
-        label: data.destination.replace('_ALL', ' (All Stations)'),
-        type: data.destination.includes('_ALL') ? 'city_all' : 'station'
+        value: destToken,                                  // Backend token: "CHENNAI_ALL"
+        label: `${data.destination.label} (All Stations)`, // UI display: "Chennai (All Stations)"
+        type: 'city_all'
       })
     } else if (data.service === 'hotels' && data.city) {
       // HOTEL: Update city state
