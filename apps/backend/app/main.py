@@ -55,16 +55,22 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:8001",
 
-        # Vercel
+        # Vercel (preview and production)
         "https://travelsearch.vercel.app",
+        "https://travelsearch-*.vercel.app",  # Preview deployments
 
         # Custom domains (IMPORTANT)
         "https://travelsearch.in",
         "https://www.travelsearch.in",
+        
+        # Render backend (for health checks)
+        "https://travelsearch-backend.onrender.com",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=86400,  # Cache preflight for 24 hours
 )
 
 # ============================================================
