@@ -12,9 +12,11 @@ import {
   Snowflake,
   MapPin,
   Users,
+  AlertCircle,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
 import RedirectTransition from '@/components/loading/RedirectTransition'
+import { validatePartnerUrl, logInvalidRedirect } from '@/lib/deepLinkValidator'
 
 interface BusOffer {
   offer_id: string
