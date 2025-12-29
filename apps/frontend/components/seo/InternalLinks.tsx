@@ -22,6 +22,51 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+
+// ============================================================================
+// PREFILL EVENT SYSTEM
+// ============================================================================
+
+/**
+ * PRODUCT PRINCIPLE: Popular cards are helpers, not shortcuts.
+ * The Search button is the only authority.
+ * 
+ * When user clicks a Popular card:
+ * ✅ Only update the search form state via URL params
+ * ❌ Do NOT navigate to results page
+ * ❌ Do NOT trigger any API call
+ * ❌ Do NOT auto-submit search
+ * 
+ * User must explicitly click Search after selecting dates.
+ */
+
+export type PrefillService = 'buses' | 'trains' | 'hotels'
+
+export interface PrefillData {
+  service: PrefillService
+  origin?: string       // For buses/trains
+  destination?: string  // For buses/trains
+  city?: string         // For hotels
+}
+
+/**
+ * Build prefill URL params - updates homepage URL without navigation
+ * This triggers the prefill useEffect in SearchBarV3
+ */
+export function buildPrefillUrl(data: PrefillData): string {
+  const params = new URLSearchParams()
+  params.set('tab', data.service)
+  
+  if (data.service === 'hotels' && data.city) {
+    params.set('prefill_city', data.city)
+  } else if ((data.service === 'buses' || data.service === 'trains') && data.origin && data.destination) {
+    params.set('prefill_origin', data.origin)
+    params.set('prefill_dest', data.destination)
+  }
+  
+  return `/?${params.toString()}`
+}
 
 // ============================================================================
 // DATA STRUCTURES
