@@ -356,6 +356,7 @@ def validate_deep_link(url: str) -> bool:
     - No 'undefined' in URL
     - No city IDs in URL
     - No empty segments
+    - No stop names that should be city names
     """
     if not url:
         return False
@@ -370,15 +371,45 @@ def validate_deep_link(url: str) -> bool:
         'toCityId=',
         'srcId=',
         'destId=',
+        'stopId=',
         '-to-$',  # Missing destination
         '^https?://[^/]+/bus-tickets/-',  # Missing origin
+        'bus-stand-to-',  # Stop name leak
+        '-bus-stand$',    # Stop name leak
+        'depot-to-',      # Depot name leak
+        '-depot$',        # Depot name leak
+        'mor-bhavan',     # Known stop name that shouldn't appear
+        'st-stand',       # ST Stand shouldn't appear
     ]
     
+    url_lower = url.lower()
     for pattern in invalid_patterns:
-        if re.search(pattern, url, re.IGNORECASE):
+        if re.search(pattern, url_lower, re.IGNORECASE):
+            logger.warning(f"Invalid pattern '{pattern}' found in URL: {url}")
             return False
     
     return True
+
+
+def resolve_stop_to_city(stop_name: str) -> str:
+    """
+    Resolve a bus stop name to its parent city.
+    
+    CRITICAL: redBus only supports CITY → CITY searches.
+    This function ensures stop names are converted to city names.
+    
+    Examples:
+        "Nagpur Bus Stand – Mor Bhavan" → "nagpur"
+        "Pune Swargate Bus Stand" → "pune"
+        "Karad ST Stand" → "karad"
+    """
+    # First apply standard normalization
+    slug = normalize_city_slug(stop_name)
+    
+    if not slug:
+        return stop_name.lower().strip()
+    
+    return slug
 
 
 # ============================================================
