@@ -492,6 +492,18 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
   const destinations = POPULAR_HOTEL_DESTINATIONS
     .filter(dest => dest.slug !== currentCity)
     .slice(0, 6)
+  const router = useRouter()
+  
+  const handlePrefill = (city: string) => {
+    // GUARD: Only prefill, never auto-search
+    const prefillUrl = buildPrefillUrl({
+      service: 'hotels',
+      city: city,
+    })
+    
+    // Update URL without navigation - triggers prefill in SearchBarV3
+    router.push(prefillUrl, { scroll: false })
+  }
 
   return (
     <section aria-labelledby="popular-hotels-heading">
@@ -504,7 +516,11 @@ export function PopularHotelDestinations({ currentCity }: { currentCity?: string
       
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {destinations.map((destination) => (
-          <HotelDestinationCard key={destination.slug} destination={destination} />
+          <HotelDestinationCard 
+            key={destination.slug} 
+            destination={destination} 
+            onPrefill={handlePrefill}
+          />
         ))}
       </div>
     </section>
