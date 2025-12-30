@@ -772,3 +772,30 @@ test_priority: "high_first"
     - "Verify current page remains open after clicking any booking button"
     - "Verify NO same-tab navigation occurs for any partner deep-link"
     - "Verify noopener,noreferrer security attributes are applied (check browser dev tools)"
+
+## API Proxy Architecture - STRICT COMPLIANCE VERIFICATION
+
+- task: "Transparent API Proxy Architecture"
+  implemented: true
+  working: "verified"
+  files_fixed:
+    - "/app/apps/frontend/app/api/autocomplete/bus/route.ts" - Removed fallback data, now transparent proxy
+    - "/app/apps/frontend/app/api/autocomplete/route.ts" - Removed fallback data, now transparent proxy
+    - "/app/apps/frontend/app/api/trains/autocomplete/route.ts" - Removed fallback data, now transparent proxy
+    - "/app/apps/frontend/lib/env.ts" - Simplified, no fallback logic
+    - "/app/apps/frontend/lib/api.ts" - Only uses relative URLs
+  architectural_compliance:
+    - "✅ All proxy routes are TRANSPARENT - forward request/response as-is"
+    - "✅ No fallback data in any proxy route"
+    - "✅ No filtering or transformation"
+    - "✅ Frontend uses only relative URLs (/api/...)"
+    - "✅ BACKEND_URL only used server-side in API routes"
+    - "✅ No NEXT_PUBLIC_API_BASE references"
+    - "✅ No direct backend calls from browser"
+  test_requirements:
+    - "Verify /api/airports returns backend data"
+    - "Verify /api/autocomplete/bus returns backend data"
+    - "Verify /api/search/buses returns backend data"
+    - "Verify /api/search/trains returns backend data"
+    - "Verify NO render.com requests in browser Network tab"
+    - "Verify NO CORS errors in console"
