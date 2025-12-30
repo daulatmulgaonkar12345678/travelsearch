@@ -841,7 +841,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       <div className="p-6 animate-tab-content bg-white" key={searchType}>
         {searchType === 'flights' ? (
           <div className="space-y-4">
-            <TripTypeSelector value={tripType} onChange={setTripType} />
+            <TripTypeSelector value={tripType} onChange={setTripType} accentColor={currentColors.accent} />
 
             {/* Cabin Class - ALWAYS VISIBLE for all trip types */}
             <CabinClassSelector value={cabinClass} onChange={setCabinClass} />
