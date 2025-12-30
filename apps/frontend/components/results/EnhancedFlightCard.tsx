@@ -299,37 +299,6 @@ export default function EnhancedFlightCard({
           </div>
         </div>
       )}
-
-      {/* VENDORS */}
-      {showVendors && (
-        <div className="border-t p-4 space-y-2">
-          {FLIGHT_VENDORS.map(v => (
-            <button
-              key={v.id}
-              onClick={() => handleVendorClick(v.id)}
-              disabled={v.type !== 'real' || redirecting === v.id}
-              className={`w-full p-3 rounded border flex justify-between items-center ${
-                v.type === 'real'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 bg-gray-100 opacity-60'
-              }`}
-            >
-              <div>
-                <div className="font-semibold">{v.name}</div>
-                <div className="text-xs text-gray-500">
-                  {v.description}
-                </div>
-              </div>
-
-              {v.type === 'real' ? (
-                <ExternalLink className="text-blue-600" />
-              ) : (
-                <span className="text-xs">Coming Soon</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
