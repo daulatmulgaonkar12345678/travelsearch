@@ -174,7 +174,7 @@ function HotelVendorsContent() {
             ))}
           </div>
 
-          {/* Book Button */}
+          {/* Book Button - Hotels is the ONLY service with "Book Now" */}
           <button
             onClick={() => handleVendorClick(selectedVendor)}
             disabled={redirecting !== null}
@@ -188,13 +188,13 @@ function HotelVendorsContent() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Book on {HOTEL_VENDORS.find(v => v.id === selectedVendor)?.name}
+                Book Now
               </>
             )}
           </button>
 
           <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll be redirected to the partner site to complete your booking.
+            You&apos;ll go directly to the hotel booking page on the partner site.
           </p>
         </div>
       </div>
