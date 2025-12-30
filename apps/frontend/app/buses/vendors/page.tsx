@@ -147,10 +147,10 @@ function BusVendorsContent() {
         {/* Vendor Selection */}
         <div className="bg-white rounded-xl border border-[#E6E1D8] p-6">
           <h2 className="text-lg font-semibold text-[#1A1A1A] mb-4">
-            Choose Booking Partner
+            Choose Bus Search Partner
           </h2>
           <p className="text-sm text-[#6B6B6B] mb-6">
-            Select a partner to search for available buses. You&apos;ll be redirected to their site.
+            Select a partner to view available buses. Seat selection and payment will happen on their site.
           </p>
 
           {/* Vendor List */}
@@ -180,7 +180,7 @@ function BusVendorsContent() {
             ))}
           </div>
 
-          {/* Book Button */}
+          {/* View Buses Button - NOT "Book Now" */}
           <button
             onClick={() => handleVendorClick(selectedVendor)}
             disabled={redirecting !== null}
@@ -194,13 +194,13 @@ function BusVendorsContent() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Search on {BUS_VENDORS.find(v => v.id === selectedVendor)?.name}
+                View Buses on {BUS_VENDORS.find(v => v.id === selectedVendor)?.name}
               </>
             )}
           </button>
 
           <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll be redirected to the partner site to view live availability and book.
+            You&apos;ll see bus search results with your route and date prefilled.
           </p>
         </div>
       </div>
