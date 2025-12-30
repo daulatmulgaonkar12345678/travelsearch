@@ -464,28 +464,19 @@ class AviasalesAdapter:
     ) -> str:
         """
         Build deeplink from date string (YYYY-MM-DD format).
-        Uses path-based format: /search/ORIGIN{DDMM}DEST{passengers}
-        """
-        try:
-            # Parse date
-            dep = datetime.strptime(depart_date, "%Y-%m-%d")
-            ddmm = dep.strftime("%d%m")
-            
-            # Build path
-            path = f"{origin}{ddmm}{destination}"
-            
-            if return_date:
-                ret = datetime.strptime(return_date, "%Y-%m-%d")
-                ret_ddmm = ret.strftime("%d%m")
-                path += ret_ddmm
-            
-            path += "1"  # 1 adult
-            
-            return f"https://www.aviasales.com/search/{path}?marker={self.marker}"
         
-        except Exception as e:
-            logger.error(f"Error building deeplink from date: {e}")
-            return f"https://www.aviasales.com?marker={self.marker}"
+        IMPORTANT: Uses Travelpayouts redirect base URL for proper affiliate tracking.
+        """
+        from app.utils.travelpayouts_deeplinks import generate_flight_deep_link
+        
+        result = generate_flight_deep_link(
+            origin=origin,
+            destination=destination,
+            departure_date=depart_date,
+            return_date=return_date,
+            adults=1
+        )
+        return result["url"]
     
     def _calculate_score_v2(self, flight: Dict) -> float:
         """Calculate score for v2 API response."""
@@ -512,28 +503,34 @@ class AviasalesAdapter:
     ) -> str:
         """
         Build fallback deeplink if API doesn't return one.
-        Uses path-based format: /search/ORIGIN{DDMM}DEST{passengers}
-        """
-        try:
-            # Parse date
-            dep_date = datetime.fromisoformat(departure_at.replace("Z", "+00:00"))
-            ddmm = dep_date.strftime("%d%m")
-            
-            # Build path
-            path = f"{origin}{ddmm}{destination}"
-            
-            if return_at:
-                ret_date = datetime.fromisoformat(return_at.replace("Z", "+00:00"))
-                ret_ddmm = ret_date.strftime("%d%m")
-                path += ret_ddmm
-            
-            path += "1"  # 1 adult
-            
-            return f"https://www.aviasales.com/search/{path}?marker={self.marker}"
         
-        except Exception as e:
-            logger.error(f"Error building fallback deeplink: {e}")
-            return f"https://www.aviasales.com?marker={self.marker}"
+        IMPORTANT: Uses Travelpayouts redirect base URL for proper affiliate tracking.
+        """
+        from app.utils.travelpayouts_deeplinks import generate_flight_deep_link
+        
+        # Parse datetime to date string
+        try:
+            dep_date = datetime.fromisoformat(departure_at.replace("Z", "+00:00"))
+            departure_date = dep_date.strftime("%Y-%m-%d")
+        except ValueError:
+            departure_date = departure_at[:10] if len(departure_at) >= 10 else departure_at
+        
+        return_date = None
+        if return_at:
+            try:
+                ret_date = datetime.fromisoformat(return_at.replace("Z", "+00:00"))
+                return_date = ret_date.strftime("%Y-%m-%d")
+            except ValueError:
+                return_date = return_at[:10] if len(return_at) >= 10 else None
+        
+        result = generate_flight_deep_link(
+            origin=origin,
+            destination=destination,
+            departure_date=departure_date,
+            return_date=return_date,
+            adults=1
+        )
+        return result["url"]
     
     def _calculate_score(self, flight: Dict) -> float:
         """
