@@ -3,17 +3,20 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import { Bus, Clock, ArrowRight, Loader2, ExternalLink, Calendar, Check } from 'lucide-react'
+import { Bus, ArrowRight, Loader2, ExternalLink, Calendar, Check, AlertCircle } from 'lucide-react'
 import { 
   getVendorsForService, 
+  getPrimaryVendor,
   buildBusDeepLink, 
   logAffiliateClick,
   type BusDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
-// Bus-specific vendors only
+// Bus-specific vendors only - redBus is PRIMARY
 const BUS_VENDORS = getVendorsForService('buses')
+const PRIMARY_VENDOR = getPrimaryVendor('buses')
 
 function BusVendorsContent() {
   const searchParams = useSearchParams()
@@ -21,7 +24,7 @@ function BusVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  const [selectedVendor, setSelectedVendor] = useState<string>('redbus')
+  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'redbus')
 
   // Get search details from URL params
   const origin = searchParams.get('origin') || ''
