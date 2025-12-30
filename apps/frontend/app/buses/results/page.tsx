@@ -529,23 +529,30 @@ function BusResultsContent() {
           />
         )}
         
-        {/* Error State */}
+        {/* Error State - User-friendly */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-4" />
-            <p className="text-red-800 font-medium mb-2">Search Error</p>
-            <p className="text-red-600">{error}</p>
-            <button
-              onClick={() => router.push('/')}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Try Again
-            </button>
-          </div>
+          <ServiceError 
+            type={error}
+            onRetry={() => window.location.reload()}
+            onGoBack={() => router.push('/')}
+          />
+        )}
+        
+        {/* No Results State - when search succeeded but empty */}
+        {!loading && !error && results && results.offers.length === 0 && (
+          <NoResultsState
+            service="bus"
+            origin={origin}
+            destination={destination}
+            date={departureDate}
+            onChangeDate={() => router.push(`/?tab=buses&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`)}
+            onModifySearch={() => router.push('/?tab=buses')}
+            onGoBack={() => router.push('/')}
+          />
         )}
         
         {/* Results */}
-        {!loading && !error && results && (
+        {!loading && !error && results && results.offers.length > 0 && (
           <>
             {/* 4️⃣ Improved Fallback Notice - Confidence-based */}
             {results.is_fallback && results.offers.length > 0 && (
