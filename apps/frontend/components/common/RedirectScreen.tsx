@@ -63,7 +63,7 @@ export default function RedirectScreen({
       return
     }
 
-    // Fire-and-forget redirect function
+    // Fire-and-forget redirect function - Opens in NEW TAB for non-disruptive UX
     const performRedirect = () => {
       if (cancelled || hasRedirected.current) return
       
@@ -79,18 +79,17 @@ export default function RedirectScreen({
           }
         }
 
-        // Perform the actual redirect
-        console.log('Redirecting to:', redirectUrl)
-        window.location.href = redirectUrl
+        // Perform the actual redirect - ALWAYS open in new tab for user trust
+        console.log('Opening partner site in new tab:', redirectUrl)
+        window.open(redirectUrl, '_blank', 'noopener,noreferrer')
       } catch (error) {
         console.error('Redirect error:', error)
-        // Last resort - try again
+        // Last resort - try again with new tab
         try {
-          window.location.href = redirectUrl
+          window.open(redirectUrl, '_blank', 'noopener,noreferrer')
         } catch (finalError) {
           console.error('Final redirect attempt failed:', finalError)
-          alert('Redirect failed. Opening in new tab...')
-          window.open(redirectUrl, '_blank')
+          alert('Unable to open partner site. Please try again.')
         }
       }
     }
