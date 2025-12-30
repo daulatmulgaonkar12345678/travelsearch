@@ -112,10 +112,8 @@ export default function EnhancedFlightCard({
   badge,
   searchParams,
 }: EnhancedFlightCardProps) {
+  const router = useRouter()
   const [showVendors, setShowVendors] = useState(false)
-  const [redirecting, setRedirecting] = useState<string | null>(null)
-  const [redirectUrl, setRedirectUrl] = useState('')
-  const [showRedirectScreen, setShowRedirectScreen] = useState(false)
   const [showStopDetails, setShowStopDetails] = useState(false)
 
   const firstSegment = offer.segments[0]
