@@ -474,6 +474,42 @@ function buildSkyscannerFlightUrl(params: FlightDeepLinkParams): string {
 }
 
 /**
+ * Goibibo Flight Deep Link (IATA codes)
+ * Format: https://www.goibibo.com/flights/...
+ */
+function buildGoibiboFlightUrl(params: FlightDeepLinkParams): string {
+  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
+  
+  const dateFormatted = departDate.replace(/-/g, '')
+  
+  return `https://www.goibibo.com/flights/air-${origin.toUpperCase()}-${destination.toUpperCase()}-${dateFormatted}-${adults}-${children}-${infants}-E-D`
+}
+
+/**
+ * EaseMyTrip Flight Deep Link (IATA codes)
+ * Format: https://www.easemytrip.com/flights/...
+ */
+function buildEaseMyTripFlightUrl(params: FlightDeepLinkParams): string {
+  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
+  
+  const dateFormatted = formatDDMMYYYYDash(departDate)
+  
+  return `https://www.easemytrip.com/flights/${origin.toUpperCase()}-${destination.toUpperCase()}-${dateFormatted}/?adults=${adults}&child=${children}&infant=${infants}&class=E&trip=oneway`
+}
+
+/**
+ * Ixigo Flight Deep Link (IATA codes) - Meta search
+ * Format: https://www.ixigo.com/search/result/flight/...
+ */
+function buildIxigoFlightUrl(params: FlightDeepLinkParams): string {
+  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
+  
+  const dateFormatted = formatDDMMYYYY(departDate)
+  
+  return `https://www.ixigo.com/search/result/flight/${origin.toUpperCase()}/${destination.toUpperCase()}/${dateFormatted}/-/${adults}/${children}/${infants}/e/0`
+}
+
+/**
  * Build flight deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
  */
@@ -485,17 +521,24 @@ export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkPara
   
   let url: string
   switch (vendorId) {
-    case 'makemytrip_flights':
-      url = buildMakeMyTripFlightUrl(params)
-      break
-    case 'paytm_flights':
-      url = buildPaytmFlightUrl(params)
-      break
     case 'skyscanner':
       url = buildSkyscannerFlightUrl(params)
       break
-    default:
+    case 'makemytrip_flights':
       url = buildMakeMyTripFlightUrl(params)
+      break
+    case 'goibibo_flights':
+      url = buildGoibiboFlightUrl(params)
+      break
+    case 'easemytrip_flights':
+      url = buildEaseMyTripFlightUrl(params)
+      break
+    case 'ixigo_flights':
+      url = buildIxigoFlightUrl(params)
+      break
+    default:
+      // Skyscanner is PRIMARY for flights
+      url = buildSkyscannerFlightUrl(params)
   }
   
   return { url, error: null }
