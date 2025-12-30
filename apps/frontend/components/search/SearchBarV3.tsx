@@ -289,6 +289,9 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     
     console.log(`[SearchBarV3] Hydrating ${tab} form from localStorage`)
     
+    // Set hydrating flag to prevent date sync from overwriting values
+    setIsHydrating(true)
+    
     // Hydrate based on service type
     switch (tab) {
       case 'flights': {
@@ -430,6 +433,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         break
       }
     }
+    
+    // Clear hydrating flag after a short delay to allow state to settle
+    setTimeout(() => {
+      setIsHydrating(false)
+    }, 100)
   }, [mounted, searchParams])
 
   /**
