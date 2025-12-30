@@ -2,8 +2,8 @@
 Amadeus Hotel Search API Adapter
 Handles hotel search with city lookup and offer normalization
 
-IMPORTANT: Uses Travelpayouts deep links (https://aviasales.tpx.lt/eqOxwsZu) 
-for proper affiliate tracking. Direct Amadeus booking URLs are NOT supported.
+CRITICAL: Each hotel card must have a UNIQUE deep link.
+Uses hotel-specific deep links (not city-level) to enable actual bookings.
 """
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
@@ -11,7 +11,10 @@ import httpx
 import logging
 from app.models.hotel import HotelOffer, HotelSearchRequest
 from app.config import settings
-from app.utils.travelpayouts_deeplinks import generate_hotel_deep_link, generate_hotel_booking_partners
+from app.utils.travelpayouts_deeplinks import (
+    generate_hotel_specific_deep_link,
+    generate_hotel_specific_booking_partners
+)
 
 logger = logging.getLogger(__name__)
 
