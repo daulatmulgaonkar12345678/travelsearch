@@ -21,7 +21,8 @@ function FlightVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  const [selectedVendor, setSelectedVendor] = useState<string>('makemytrip_flights')
+  // Skyscanner is PRIMARY (default)
+  const [selectedVendor, setSelectedVendor] = useState<string>('skyscanner')
 
   // Get offer details from URL params
   const origin = searchParams.get('origin') || ''
