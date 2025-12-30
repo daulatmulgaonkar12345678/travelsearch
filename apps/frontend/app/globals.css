@@ -4,26 +4,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ============================================ */
+    /* TravelSearch Theme - Eye-Friendly Colors    */
+    /* ============================================ */
+    
+    /* Global Base Colors */
+    --page-bg: #FAF9F6;
+    --section-bg: #F3EFEA;
+    --card-bg: #FFFFFF;
+    --text-primary: #2B2B2B;
+    --text-secondary: #6B6B6B;
+    --border-color: #E6E1D8;
+    --shadow-color: rgba(0,0,0,0.04);
+    
+    /* Service Accent Colors */
+    --flights-accent: #6B8F71;
+    --flights-accent-hover: #5A7A60;
+    --flights-accent-light: #E8F0E9;
+    --flights-card-tint: rgba(107,143,113,0.06);
+    
+    --buses-accent: #C47A4A;
+    --buses-accent-hover: #B06A3A;
+    --buses-accent-light: #F9EDE6;
+    --buses-card-tint: rgba(196,122,74,0.06);
+    
+    --trains-accent: #7A8B5C;
+    --trains-accent-hover: #697A4C;
+    --trains-accent-light: #EEF1E8;
+    --trains-card-tint: rgba(122,139,92,0.06);
+    
+    --hotels-accent: #C9A24D;
+    --hotels-accent-hover: #B8923D;
+    --hotels-accent-light: #F9F3E6;
+    --hotels-card-tint: rgba(201,162,77,0.06);
+    
+    /* Neutral Colors */
+    --neutral-inactive: #9CA3AF;
+    --neutral-light: #F3F4F6;
+    
+    /* Legacy shadcn variables - mapped to new system */
+    --background: 40 20% 98%;
+    --foreground: 0 0% 17%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 17%;
+    --primary: 134 15% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 20% 94%;
+    --secondary-foreground: 0 0% 17%;
+    --muted: 30 20% 94%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 30 20% 94%;
+    --accent-foreground: 0 0% 17%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 134 15% 49%;
+    --radius: 0.75rem;
   }
 }
 
@@ -32,7 +71,41 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+  }
+}
+
+/* ============================================ */
+/* Service-Specific Utility Classes            */
+/* ============================================ */
+@layer utilities {
+  /* Flights */
+  .service-flights { --service-accent: var(--flights-accent); --service-accent-hover: var(--flights-accent-hover); --service-light: var(--flights-accent-light); --service-tint: var(--flights-card-tint); }
+  /* Buses */
+  .service-buses { --service-accent: var(--buses-accent); --service-accent-hover: var(--buses-accent-hover); --service-light: var(--buses-accent-light); --service-tint: var(--buses-card-tint); }
+  /* Trains */
+  .service-trains { --service-accent: var(--trains-accent); --service-accent-hover: var(--trains-accent-hover); --service-light: var(--trains-accent-light); --service-tint: var(--trains-card-tint); }
+  /* Hotels */
+  .service-hotels { --service-accent: var(--hotels-accent); --service-accent-hover: var(--hotels-accent-hover); --service-light: var(--hotels-accent-light); --service-tint: var(--hotels-card-tint); }
+  
+  /* Service-aware color classes */
+  .bg-service { background-color: var(--service-accent); }
+  .bg-service-hover:hover { background-color: var(--service-accent-hover); }
+  .bg-service-light { background-color: var(--service-light); }
+  .bg-service-tint { background-color: var(--service-tint); }
+  .text-service { color: var(--service-accent); }
+  .border-service { border-color: var(--service-accent); }
+  
+  /* Section background */
+  .bg-section { background-color: var(--section-bg); }
+  .bg-page { background-color: var(--page-bg); }
+  
+  /* Card with subtle shadow */
+  .card-elevated {
+    background-color: var(--card-bg);
+    box-shadow: 0 1px 3px var(--shadow-color), 0 1px 2px var(--shadow-color);
+    border-radius: var(--radius);
   }
 }
 
