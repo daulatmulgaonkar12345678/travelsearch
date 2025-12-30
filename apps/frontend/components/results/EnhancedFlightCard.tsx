@@ -232,15 +232,15 @@ export default function EnhancedFlightCard({
             currency={offer.currency}
           />
           <button
-            onClick={() => setShowVendors(v => !v)}
+            onClick={handleVendorClick}
             className="mt-2 w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center justify-center gap-1"
           >
-            Continue to booking
-            {showVendors ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            View Flights
+            <ExternalLink size={14} />
           </button>
-          {/* Phase 2: Booking redirect microcopy - "Final price confirmed on partner site" */}
+          {/* Helper text - meta-search redirection */}
           <p className="text-xs text-gray-500 mt-1.5">
-            Final price confirmed on partner site
+            You&apos;ll be redirected to the partner website to complete your booking.
           </p>
         </div>
       </div>
