@@ -170,9 +170,17 @@ export default function RedirectScreen({
             <div className="animate-plane-redirect">
               <Plane className="h-16 w-16 text-blue-600" style={{ transform: 'rotate(90deg)' }} />
             </div>
-          ) : (
+          ) : type === 'hotel' ? (
             <div className="animate-pulse-subtle">
               <Building2 className="h-16 w-16 text-blue-600" />
+            </div>
+          ) : type === 'bus' ? (
+            <div className="animate-bus-redirect">
+              <Bus className="h-16 w-16 text-[#C47A4A]" />
+            </div>
+          ) : (
+            <div className="animate-train-redirect">
+              <Train className="h-16 w-16 text-[#7A8B5C]" />
             </div>
           )}
         </div>
@@ -206,6 +214,36 @@ export default function RedirectScreen({
 
           .animate-pulse-subtle {
             animation: pulse-subtle 2s ease-in-out infinite;
+          }
+
+          @keyframes bus-redirect {
+            0%, 100% {
+              transform: translateX(-8px);
+              opacity: 0.8;
+            }
+            50% {
+              transform: translateX(8px);
+              opacity: 1;
+            }
+          }
+
+          .animate-bus-redirect {
+            animation: bus-redirect 1.2s ease-in-out infinite;
+          }
+
+          @keyframes train-redirect {
+            0%, 100% {
+              transform: translateX(-10px);
+              opacity: 0.85;
+            }
+            50% {
+              transform: translateX(10px);
+              opacity: 1;
+            }
+          }
+
+          .animate-train-redirect {
+            animation: train-redirect 1s ease-in-out infinite;
           }
         `}</style>
 
