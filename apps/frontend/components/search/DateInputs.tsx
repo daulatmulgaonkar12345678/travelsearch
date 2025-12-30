@@ -1,7 +1,7 @@
 "use client"
 
 import { Calendar } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface DateInputsProps {
   checkIn: string
@@ -12,11 +12,11 @@ interface DateInputsProps {
 
 export default function DateInputs({ checkIn, checkOut, onChange, minCheckIn }: DateInputsProps) {
   // Calculate min check-in (today by default)
-  const getMinCheckIn = () => {
+  const getMinCheckIn = useCallback(() => {
     if (minCheckIn) return minCheckIn
     const today = new Date()
     return today.toISOString().split('T')[0]
-  }
+  }, [minCheckIn])
 
   const [ci, setCi] = useState(checkIn || getMinCheckIn())
   const [co, setCo] = useState(() => {
@@ -26,9 +26,22 @@ export default function DateInputs({ checkIn, checkOut, onChange, minCheckIn }: 
     return minCi.toISOString().split('T')[0]
   })
 
+  // Sync internal state with props when they change (for Modify Search hydration)
+  useEffect(() => {
+    if (checkIn && checkIn !== ci) {
+      setCi(checkIn)
+    }
+  }, [checkIn]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (checkOut && checkOut !== co) {
+      setCo(checkOut)
+    }
+  }, [checkOut]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     onChange({ checkIn: ci, checkOut: co })
-  }, [ci, co])
+  }, [ci, co]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCheckInChange = (value: string) => {
     const minAllowed = getMinCheckIn()
