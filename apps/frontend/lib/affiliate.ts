@@ -144,31 +144,31 @@ export const VENDORS: Record<string, Vendor> = {
     id: 'easemytrip_bus',
     name: 'EaseMyTrip',
     services: ['buses'],
+    priority: 3,
   },
-  ixigo_bus: {
-    id: 'ixigo_bus',
-    name: 'Ixigo',
-    services: ['buses'],
-  },
+  // REMOVED: ixigo_bus (unstable deep links)
   
   // ============================================================
-  // TRAIN VENDORS - Ixigo is PRIMARY
+  // TRAIN VENDORS - Ixigo (PRIMARY) - search/schedule page only
   // ============================================================
   ixigo_trains: {
     id: 'ixigo_trains',
     name: 'Ixigo',
     services: ['trains'],
     isPrimary: true,
+    priority: 1,
   },
   makemytrip_railways: {
     id: 'makemytrip_railways',
-    name: 'MakeMyTrip Railways',
+    name: 'MakeMyTrip',
     services: ['trains'],
+    priority: 2,
   },
   goibibo_trains: {
     id: 'goibibo_trains',
-    name: 'Goibibo Trains',
+    name: 'Goibibo',
     services: ['trains'],
+    priority: 3,
   },
 }
 
