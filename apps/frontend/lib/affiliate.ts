@@ -271,7 +271,25 @@ export function buildPaytmFlightUrl(params: FlightDeepLinkParams): string {
 }
 
 /**
+ * Skyscanner Flight Deep Link (Search results page)
+ * Format: https://www.skyscanner.co.in/transport/flights/...
+ */
+export function buildSkyscannerFlightUrl(params: FlightDeepLinkParams): string {
+  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
+  
+  // Skyscanner format: YYMMDD
+  const [year, month, day] = departDate.split('-')
+  const dateFormatted = `${year.slice(2)}${month}${day}`
+  
+  // Skyscanner cabin class: economy, premiumeconomy, business, first
+  const cabinClass = 'economy'
+  
+  return `https://www.skyscanner.co.in/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${dateFormatted}/?adults=${adults}&children=${children}&infants=${infants}&cabinclass=${cabinClass}&preferdirects=false&outboundaltsenabled=false&inboundaltsenabled=false`
+}
+
+/**
  * Build flight deep link for any vendor
+ * NOTE: Search-level links only - no reviewDetails, itineraryId, rKey, or session URLs
  */
 export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkParams): string {
   switch (vendorId) {
@@ -279,6 +297,8 @@ export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkPara
       return buildMakeMyTripFlightUrl(params)
     case 'paytm_flights':
       return buildPaytmFlightUrl(params)
+    case 'skyscanner':
+      return buildSkyscannerFlightUrl(params)
     default:
       return buildMakeMyTripFlightUrl(params)
   }
