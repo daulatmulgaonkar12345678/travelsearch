@@ -286,11 +286,11 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Feeder Routes for Tourist Destinations testing completed successfully - all 11 API test suites passed"
-  - "MSRTC Scraper Implementation testing completed successfully - all 5 API test suites passed"
-  - "MSRTC Frontend Integration completed - variant-level bus cards displaying correctly"
-  - "Tab Order UI Fix verified - tabs correctly ordered as [Flights, Buses, Trains, Hotels]"
-  - "All major backend and frontend features tested and working"
+  - "Bus and Train Autocomplete Filter Removal Fix testing completed successfully - all 5 critical test cases passed"
+  - "ALL results now displayed regardless of is_search_surface or is_major values"
+  - "Items with is_search_surface=false appear faded but remain fully selectable"
+  - "NO race conditions or false 'No cities/stations found' messages detected"
+  - "Filter removal fix is production-ready and fully functional"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
