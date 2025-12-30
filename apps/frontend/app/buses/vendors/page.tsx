@@ -36,14 +36,21 @@ function BusVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // Build deep link for selected vendor
+      // Build deep link for selected vendor with validation
       const params: BusDeepLinkParams = {
         fromCity: origin,
         toCity: destination,
         date: departureDate,
       }
 
-      const finalRedirectUrl = buildBusDeepLink(vendorId, params)
+      const result = buildBusDeepLink(vendorId, params)
+      
+      // BLOCK redirect if validation failed
+      if (!result.url) {
+        alert(`Cannot redirect: ${result.error}`)
+        setRedirecting(null)
+        return
+      }
 
       // Log click asynchronously (fire-and-forget)
       logAffiliateClick(
@@ -54,7 +61,7 @@ function BusVendorsContent() {
       ).catch(() => {})
 
       // Show redirect screen
-      setRedirectUrl(finalRedirectUrl)
+      setRedirectUrl(result.url)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
