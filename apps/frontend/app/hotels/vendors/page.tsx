@@ -123,29 +123,47 @@ function HotelVendorsContent() {
       <Navigation />
       
       <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Hotel Summary */}
+        {/* Hotel Summary with Modify Search */}
         <div className="bg-white rounded-xl border border-[#E6E1D8] p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-[#E6B54A]/10 rounded-lg flex items-center justify-center">
-              <Hotel className="w-6 h-6 text-[#E6B54A]" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold text-[#1A1A1A]">
-                {hotelName || `Hotels in ${city}`}
-              </h1>
-              <div className="flex items-center gap-2 text-[#6B6B6B] mt-1">
-                <MapPin className="w-4 h-4" />
-                <span>{city}</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="w-12 h-12 bg-[#E6B54A]/10 rounded-lg flex items-center justify-center">
+                <Hotel className="w-6 h-6 text-[#E6B54A]" />
               </div>
-              <div className="mt-2 text-sm text-[#6B6B6B]">
-                {checkIn} → {checkOut}
-              </div>
-              {parseFloat(price) > 0 && (
-                <div className="mt-2 text-lg font-semibold text-[#E6B54A]">
-                  {currency} {parseFloat(price).toLocaleString()}
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold text-[#1A1A1A]">
+                  {hotelName || `Hotels in ${city}`}
+                </h1>
+                <div className="flex items-center gap-2 text-[#6B6B6B] mt-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{city}</span>
                 </div>
-              )}
+                <div className="flex items-center gap-2 mt-2 text-sm text-[#6B6B6B]">
+                  <Calendar className="w-4 h-4" />
+                  <span>{checkIn} → {checkOut}</span>
+                </div>
+                {parseFloat(price) > 0 && (
+                  <div className="mt-2">
+                    <span className="text-lg font-semibold text-[#E6B54A]">
+                      {currency} {parseFloat(price).toLocaleString()}
+                    </span>
+                    <span className="text-xs text-[#6B6B6B] ml-2">(estimated)</span>
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {/* Modify Search Button */}
+            <ModifySearchButton 
+              service="hotels"
+              searchParams={{
+                city,
+                check_in: checkIn,
+                check_out: checkOut,
+                adults,
+              }}
+              variant="compact"
+            />
           </div>
         </div>
 
