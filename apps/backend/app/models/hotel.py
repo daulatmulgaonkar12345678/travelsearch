@@ -1,6 +1,15 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, date
+
+class BookingPartner(BaseModel):
+    """Booking partner for redirects"""
+    name: str
+    url: str
+    priority: int = 1
+    is_official: bool = False
+    description: Optional[str] = None
+    is_fallback: bool = False
 
 class HotelOffer(BaseModel):
     """Normalized hotel offer"""
@@ -20,6 +29,7 @@ class HotelOffer(BaseModel):
     cancellation_policy: Optional[str] = None
     images: List[str] = []
     deep_link: str
+    booking_partners: Optional[List[Dict[str, Any]]] = None  # List of booking partner options
     
 class HotelSearchRequest(BaseModel):
     """Hotel search parameters"""
