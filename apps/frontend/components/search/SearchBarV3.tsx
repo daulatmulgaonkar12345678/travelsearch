@@ -17,6 +17,15 @@ import HotelLocationAutocomplete, { HotelCity } from './HotelLocationAutocomplet
 import { Airport, validateFlightSearch, extractIATACodes } from '@/lib/airportValidation'
 import { SearchButtonMicrocopy } from '@/components/trust/Microcopy'
 import { PREFILL_SEARCH_EVENT, PrefillEventData } from '@/components/seo/InternalLinks'
+import { 
+  getModifySearchPayload, 
+  clearModifySearchPayload,
+  FlightSearchPayload,
+  HotelSearchPayload,
+  BusSearchPayload,
+  TrainSearchPayload,
+  ServiceType
+} from '@/lib/modifySearchStore'
 
 type SearchType = 'flights' | 'hotels' | 'trains' | 'buses'
 type TripType = 'oneway' | 'roundtrip' | 'multicity'
