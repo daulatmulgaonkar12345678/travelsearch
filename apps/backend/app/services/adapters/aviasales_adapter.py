@@ -267,17 +267,34 @@ class AviasalesAdapter:
                 duration_to = flight.get("duration_to", flight.get("duration", 0))
                 duration_back = flight.get("duration_back", 0)
                 
-                # Build deeplink URL - use the link from API response
-                # This already contains affiliate marker
-                raw_link = flight.get("link", "")
-                if raw_link:
-                    # Aviasales returns relative URLs, prepend base
-                    deeplink = f"https://www.aviasales.com{raw_link}"
-                else:
-                    # Fallback: build manual deeplink (shouldn't happen normally)
-                    deeplink = self._build_fallback_deeplink(
-                        origin, destination, departure_at, return_at
-                    )
+                # CRITICAL: Always use Travelpayouts redirect gateway
+                # NEVER use aviasales.com/search/* directly (causes CORS errors)
+                from app.utils.travelpayouts_deeplinks import generate_flight_deep_link
+                
+                # Extract date from departure_at
+                try:
+                    dep_date = datetime.fromisoformat(departure_at.replace("Z", "+00:00"))
+                    departure_date = dep_date.strftime("%Y-%m-%d")
+                except ValueError:
+                    departure_date = departure_at[:10] if len(departure_at) >= 10 else departure_at
+                
+                return_date = None
+                if return_at:
+                    try:
+                        ret_date = datetime.fromisoformat(return_at.replace("Z", "+00:00"))
+                        return_date = ret_date.strftime("%Y-%m-%d")
+                    except ValueError:
+                        return_date = return_at[:10] if len(return_at) >= 10 else None
+                
+                # Generate proper Travelpayouts deep link
+                deep_link_result = generate_flight_deep_link(
+                    origin=origin,
+                    destination=destination,
+                    departure_date=departure_date,
+                    return_date=return_date,
+                    adults=request.adults or 1
+                )
+                deeplink = deep_link_result["url"]
                 
                 # Parse departure time
                 try:
