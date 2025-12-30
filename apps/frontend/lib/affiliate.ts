@@ -6,12 +6,25 @@
  * 2. Each vendor only supports specific services
  * 3. Frontend only does: window.open(deepLink, "_blank")
  * 4. Never fetch, proxy, or iframe vendor URLs
+ * 5. If a vendor link is unstable, disable the vendor instead of guessing
  * 
- * VENDOR → SERVICE MAPPING:
- * - Hotels: MakeMyTrip, Agoda, Booking.com
- * - Flights: MakeMyTrip, Paytm
- * - Bus: redBus, Paytm Bus
- * - Train: Paytm Trains, MakeMyTrip Railways
+ * SUPPORTED FLOWS & VENDORS (LOCKED):
+ * 
+ * HOTELS (Direct Booking - "Book Now"):
+ *   - Agoda, MakeMyTrip Hotels, Booking.com
+ *   - Hotel-specific deep links with dates, guests, rooms prefilled
+ * 
+ * FLIGHTS (Search Flow - "View Flights"):
+ *   - MakeMyTrip Flights, Paytm Flights, Skyscanner
+ *   - Search-level deep links only (route, date, passengers, cabin)
+ * 
+ * BUS (Form-Fill Search - "View Buses on {Vendor}"):
+ *   - redBus, Paytm Bus, MakeMyTrip Bus
+ *   - Search-level deep links (source, destination, date)
+ * 
+ * TRAIN (Availability Search - "Check Train Availability"):
+ *   - Paytm Trains, MakeMyTrip Railways
+ *   - Search-level deep links (from, to, date)
  */
 
 // ============================================================
@@ -28,24 +41,24 @@ export interface Vendor {
 }
 
 export const VENDORS: Record<string, Vendor> = {
-  // Hotel vendors
-  makemytrip_hotels: {
-    id: 'makemytrip_hotels',
-    name: 'MakeMyTrip',
-    services: ['hotels'],
-  },
+  // Hotel vendors (ONLY service with "Book Now")
   agoda: {
     id: 'agoda',
     name: 'Agoda',
     services: ['hotels'],
   },
+  makemytrip_hotels: {
+    id: 'makemytrip_hotels',
+    name: 'MakeMyTrip',
+    services: ['hotels'],
+  },
   booking: {
     id: 'booking',
     name: 'Booking.com',
-    services: ['hotels'], // Hotels ONLY
+    services: ['hotels'],
   },
   
-  // Flight vendors
+  // Flight vendors ("View Flights" - Skyscanner-like search flow)
   makemytrip_flights: {
     id: 'makemytrip_flights',
     name: 'MakeMyTrip',
@@ -56,8 +69,13 @@ export const VENDORS: Record<string, Vendor> = {
     name: 'Paytm',
     services: ['flights'],
   },
+  skyscanner: {
+    id: 'skyscanner',
+    name: 'Skyscanner',
+    services: ['flights'],
+  },
   
-  // Bus vendors
+  // Bus vendors ("View Buses on {Vendor}" - Form-fill search only)
   redbus: {
     id: 'redbus',
     name: 'redBus',
@@ -68,8 +86,13 @@ export const VENDORS: Record<string, Vendor> = {
     name: 'Paytm Bus',
     services: ['buses'],
   },
+  makemytrip_bus: {
+    id: 'makemytrip_bus',
+    name: 'MakeMyTrip Bus',
+    services: ['buses'],
+  },
   
-  // Train vendors
+  // Train vendors ("Check Train Availability" - Form-fill availability only)
   paytm_trains: {
     id: 'paytm_trains',
     name: 'Paytm Trains',
