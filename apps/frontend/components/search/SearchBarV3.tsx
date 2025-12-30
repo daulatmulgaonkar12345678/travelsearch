@@ -288,6 +288,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
    * 
    * localStorage is the SINGLE SOURCE OF TRUTH - not URL params.
    * This ensures data persists even if URL gets truncated.
+   * 
+   * NOTE: Payload is cleared AFTER successful form submit, not here.
    */
   useEffect(() => {
     if (!mounted) return
@@ -307,22 +309,24 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       case 'flights': {
         const payload = getModifySearchPayload<FlightSearchPayload>('flights')
         if (payload) {
-          // Create Airport objects for validated inputs
-          if (payload.origin) {
+          // Use FULL airport objects from payload (passes validation)
+          if (payload.origin && typeof payload.origin === 'object') {
             setOrigin({
-              iata: payload.origin,
-              name: payload.origin,
-              city: '',
-              country: ''
+              iata: payload.origin.iata,
+              name: payload.origin.name,
+              city: payload.origin.city,
+              country: payload.origin.country,
             })
+            setOriginValid(true)
           }
-          if (payload.destination) {
+          if (payload.destination && typeof payload.destination === 'object') {
             setDestination({
-              iata: payload.destination,
-              name: payload.destination,
-              city: '',
-              country: ''
+              iata: payload.destination.iata,
+              name: payload.destination.name,
+              city: payload.destination.city,
+              country: payload.destination.country,
             })
+            setDestinationValid(true)
           }
           if (payload.departure_date) {
             setDepartureDate(payload.departure_date)
@@ -330,6 +334,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           if (payload.return_date) {
             setReturnDate(payload.return_date)
             setTripType('roundtrip')
+          } else {
+            setTripType('oneway')
           }
           if (payload.adults) {
             setPassengers(prev => ({ ...prev, adults: payload.adults }))
@@ -340,8 +346,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           if (payload.trip_type) {
             setTripType(payload.trip_type as TripType)
           }
-          // Clear after hydration
-          clearModifySearchPayload('flights')
+          // NOTE: Don't clear here - clear after successful search submit
         }
         break
       }
@@ -349,11 +354,12 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       case 'hotels': {
         const payload = getModifySearchPayload<HotelSearchPayload>('hotels')
         if (payload) {
-          if (payload.city) {
+          // Use full destination object if available
+          if (payload.destination && typeof payload.destination === 'object') {
             setSelectedHotelCity({
-              city: payload.city,
-              country: 'India',
-              display: `${payload.city}, India`
+              city: payload.destination.city,
+              country: payload.destination.country,
+              display: payload.destination.label,
             })
           }
           if (payload.check_in) {
@@ -367,8 +373,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               rooms: [{ adults: payload.adults, children: [], roomType: 'Standard', ac: true }]
             })
           }
-          // Clear after hydration
-          clearModifySearchPayload('hotels')
+          // NOTE: Don't clear here - clear after successful search submit
         }
         break
       }
@@ -401,8 +406,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           if (payload.bus_type) {
             setBusType(payload.bus_type)
           }
-          // Clear after hydration
-          clearModifySearchPayload('buses')
+          // NOTE: Don't clear here - clear after successful search submit
         }
         break
       }
@@ -437,8 +441,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           if (payload.train_class) {
             setTrainClass(payload.train_class)
           }
-          // Clear after hydration
-          clearModifySearchPayload('trains')
+          // NOTE: Don't clear here - clear after successful search submit
         }
         break
       }
