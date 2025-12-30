@@ -14,7 +14,7 @@ import {
 import RedirectScreen from '@/components/common/RedirectScreen'
 import ModifySearchButton from '@/components/search/ModifySearchButton'
 
-// Hotel-specific vendors - Agoda is PRIMARY
+// Hotel-specific vendors - Udchalo is PRIMARY
 const HOTEL_VENDORS = getVendorsForService('hotels')
 const PRIMARY_VENDOR = getPrimaryVendor('hotels')
 
@@ -24,7 +24,7 @@ function HotelVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'agoda')
+  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'udchalo_hotels')
 
   // Get hotel details from URL params
   const hotelName = searchParams.get('hotel_name') || ''
