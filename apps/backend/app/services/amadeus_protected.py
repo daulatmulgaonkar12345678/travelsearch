@@ -288,17 +288,26 @@ def _parse_duration(duration_str: str) -> int:
 
 
 def _build_booking_deeplink(origin: str, destination: str, departure_date: str) -> str:
-    """Build Aviasales deeplink for booking redirect."""
+    """
+    Build Travelpayouts deeplink for booking redirect.
+    
+    CRITICAL: Use ONLY the Travelpayouts redirect gateway.
+    NEVER use aviasales.com/search/* directly (causes CORS errors).
+    """
+    from app.utils.travelpayouts_deeplinks import generate_flight_deep_link
+    
     try:
-        # Parse date to DDMM format
-        date_parts = departure_date.split("-")
-        ddmm = f"{date_parts[2]}{date_parts[1]}"
-        
-        marker = settings.travelpayouts_marker
-        
-        return f"https://www.aviasales.com/search/{origin}{ddmm}{destination}1?marker={marker}"
-    except (ValueError, IndexError, TypeError):
-        return f"https://www.aviasales.com?marker={settings.travelpayouts_marker}"
+        result = generate_flight_deep_link(
+            origin=origin,
+            destination=destination,
+            departure_date=departure_date,
+            return_date=None,
+            adults=1
+        )
+        return result["url"]
+    except Exception:
+        # Fallback to Travelpayouts base (still correct gateway)
+        return "https://aviasales.tpx.lt/eqOxwsZu"
 
 
 def _format_timestamp_for_display(iso_timestamp: str) -> str:
