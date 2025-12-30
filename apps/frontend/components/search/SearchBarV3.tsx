@@ -263,6 +263,170 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }, [])
 
   /**
+   * MODIFY SEARCH HYDRATION
+   * 
+   * When user clicks "Modify Search" on results/vendor page:
+   * 1. ModifySearchButton saves search payload to localStorage
+   * 2. User is navigated to /?tab={service}&modify=true
+   * 3. This effect reads from localStorage and hydrates the form
+   * 
+   * localStorage is the SINGLE SOURCE OF TRUTH - not URL params.
+   * This ensures data persists even if URL gets truncated.
+   */
+  useEffect(() => {
+    if (!mounted) return
+    
+    const isModify = searchParams.get('modify') === 'true'
+    const tab = searchParams.get('tab') as ServiceType | null
+    
+    if (!isModify || !tab) return
+    
+    console.log(`[SearchBarV3] Hydrating ${tab} form from localStorage`)
+    
+    // Hydrate based on service type
+    switch (tab) {
+      case 'flights': {
+        const payload = getModifySearchPayload<FlightSearchPayload>('flights')
+        if (payload) {
+          // Create Airport objects for validated inputs
+          if (payload.origin) {
+            setOrigin({
+              iata: payload.origin,
+              name: payload.origin,
+              city: '',
+              country: ''
+            })
+          }
+          if (payload.destination) {
+            setDestination({
+              iata: payload.destination,
+              name: payload.destination,
+              city: '',
+              country: ''
+            })
+          }
+          if (payload.departure_date) {
+            setDepartureDate(payload.departure_date)
+          }
+          if (payload.return_date) {
+            setReturnDate(payload.return_date)
+            setTripType('roundtrip')
+          }
+          if (payload.adults) {
+            setPassengers(prev => ({ ...prev, adults: payload.adults }))
+          }
+          if (payload.cabin_class) {
+            setCabinClass(payload.cabin_class as CabinClass)
+          }
+          if (payload.trip_type) {
+            setTripType(payload.trip_type as TripType)
+          }
+          // Clear after hydration
+          clearModifySearchPayload('flights')
+        }
+        break
+      }
+      
+      case 'hotels': {
+        const payload = getModifySearchPayload<HotelSearchPayload>('hotels')
+        if (payload) {
+          if (payload.city) {
+            setSelectedHotelCity({
+              city: payload.city,
+              country: 'India',
+              display: `${payload.city}, India`
+            })
+          }
+          if (payload.check_in) {
+            setCheckIn(payload.check_in)
+          }
+          if (payload.check_out) {
+            setCheckOut(payload.check_out)
+          }
+          if (payload.adults) {
+            setHotelRooms({
+              rooms: [{ adults: payload.adults, children: [], roomType: 'Standard', ac: true }]
+            })
+          }
+          // Clear after hydration
+          clearModifySearchPayload('hotels')
+        }
+        break
+      }
+      
+      case 'buses': {
+        const payload = getModifySearchPayload<BusSearchPayload>('buses')
+        if (payload) {
+          if (payload.origin) {
+            setBusOriginText(payload.origin)
+            setBusOriginPlace({
+              place_id: `modify_${payload.origin.toLowerCase().replace(/\s+/g, '_')}`,
+              name: payload.origin,
+              type: 'city'
+            })
+          }
+          if (payload.destination) {
+            setBusDestinationText(payload.destination)
+            setBusDestinationPlace({
+              place_id: `modify_${payload.destination.toLowerCase().replace(/\s+/g, '_')}`,
+              name: payload.destination,
+              type: 'city'
+            })
+          }
+          if (payload.departure_date) {
+            setBusDate(payload.departure_date)
+          }
+          if (payload.passengers) {
+            setBusPassengers(payload.passengers)
+          }
+          if (payload.bus_type) {
+            setBusType(payload.bus_type)
+          }
+          // Clear after hydration
+          clearModifySearchPayload('buses')
+        }
+        break
+      }
+      
+      case 'trains': {
+        const payload = getModifySearchPayload<TrainSearchPayload>('trains')
+        if (payload) {
+          // Use origin_city for display if available, otherwise use origin
+          const originLabel = payload.origin_city || payload.origin
+          const destLabel = payload.destination_city || payload.destination
+          
+          if (payload.origin) {
+            setTrainOrigin({
+              value: payload.origin,
+              label: originLabel.includes('(All') ? originLabel : `${originLabel} (All Stations)`,
+              type: payload.origin.endsWith('_ALL') ? 'city_all' : 'station'
+            })
+          }
+          if (payload.destination) {
+            setTrainDestination({
+              value: payload.destination,
+              label: destLabel.includes('(All') ? destLabel : `${destLabel} (All Stations)`,
+              type: payload.destination.endsWith('_ALL') ? 'city_all' : 'station'
+            })
+          }
+          if (payload.departure_date) {
+            setTrainDate(payload.departure_date)
+          }
+          if (payload.passengers) {
+            setTrainPassengers(payload.passengers)
+          }
+          if (payload.train_class) {
+            setTrainClass(payload.train_class)
+          }
+          // Clear after hydration
+          clearModifySearchPayload('trains')
+        }
+        break
+      }
+    }
+  }, [mounted, searchParams])
+
+  /**
    * PREFILL EVENT LISTENER
    * 
    * PRODUCT RULE: Popular cards simulate typing — they are NOT navigation links.
