@@ -43,7 +43,23 @@ export default function RedirectScreen({
     'Securing your redirect…',
   ]
 
-  const messages = type === 'flight' ? flightMessages : hotelMessages
+  const busMessages = [
+    'Checking seat availability…',
+    'Comparing bus options…',
+    'Verifying booking details…',
+    'Securing your redirect…',
+  ]
+
+  const trainMessages = [
+    'Checking seat availability…',
+    'Verifying train schedules…',
+    'Comparing booking options…',
+    'Securing your redirect…',
+  ]
+
+  const messages = type === 'flight' ? flightMessages : 
+                   type === 'hotel' ? hotelMessages :
+                   type === 'bus' ? busMessages : trainMessages
 
   // Calculate duration once using useMemo - randomized between 1.5s - 3.5s
   const duration = useMemo(() => {
