@@ -583,3 +583,24 @@ test_priority: "high_first"
 - User requirement: Popular cards must ONLY prefill form, NOT navigate or auto-search
 - Search button is the only authority for executing searches
 - Date fields should remain untouched after prefill (user selects dates manually)
+
+## Current Focus: Bus & Train Autocomplete - is_search_surface Filter Removal
+
+- task: "Autocomplete is_search_surface Filter Removal"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/components/search/BusLocationAutocomplete.tsx, /app/apps/frontend/app/api/autocomplete/bus/route.ts"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Fixed autocomplete to show ALL results regardless of is_search_surface. Changes: 1) BusLocationAutocomplete.tsx - Added is_search_surface to interface for UI styling only, fixed is_depot logic to NOT use is_search_surface, added opacity-75 styling for non-search-surface items, 2) API route.ts - Extended fallback data to include beed/osmanabad results with proper is_search_surface values."
+  test_requirements:
+    - "Test Bus autocomplete 'pune' - should show ALL 6 results including Pune University (is_search_surface=false) and Nashik Pune Highway (is_search_surface=false)"
+    - "Test Bus autocomplete 'beed' - should show ALL 3 results including Dusrbeed (is_search_surface=false)"
+    - "Verify results with is_search_surface=false appear with faded (opacity-75) styling"
+    - "Verify NO filtering happens based on is_search_surface"
+    - "Verify 'Depot' badge only shows for actual depots, NOT for all is_search_surface=true items"
+    - "Test Train autocomplete 'mumbai' - should show ALL results without filtering by is_major"
