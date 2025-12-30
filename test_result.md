@@ -628,3 +628,25 @@ test_priority: "high_first"
     - "Verify NO filtering happens based on is_search_surface"
     - "Verify 'Depot' badge only shows for actual depots, NOT for all is_search_surface=true items"
     - "Test Train autocomplete 'mumbai' - should show ALL results without filtering by is_major"
+
+## Current Focus: Route Correctness & No Results UX Fix
+
+- task: "Bus/Train Route Correctness & User-Friendly No Results UX"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/lib/api.ts, /app/apps/frontend/components/common/NoResultsState.tsx, /app/apps/frontend/components/common/ServiceError.tsx, /app/apps/frontend/app/buses/results/page.tsx, /app/apps/frontend/app/trains/results/page.tsx, /app/apps/frontend/app/hotels/results/page.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Fixed route correctness and UX. Changes: 1) Fixed apiFetch to return Response object for proper error checking, 2) Created NoResultsState component for user-friendly empty results, 3) Created ServiceError component for user-friendly error states, 4) Updated Bus/Train/Hotel results pages to use new components, 5) Error translation: 404->generic, 503->service_unavailable, network errors handled. Raw errors never shown to users."
+  test_requirements:
+    - "Test Bus search Pune->Satara - should show results (4 buses)"
+    - "Test Bus search Pune->Mumbai - should show results"
+    - "Test Train search CSMT->PUNE - should show results or redirect card"
+    - "Test Train search PUNE->MUMBAI_ALL - should show results"
+    - "Verify NO raw errors (404, 500) shown to users"
+    - "Verify No Results state shows 'No buses/trains available' with Change Date button"
+    - "Verify error state shows 'Something went wrong' or 'Service unavailable'"
