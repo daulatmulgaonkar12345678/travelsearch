@@ -27,6 +27,8 @@ import PriceSourceBadge from '@/components/results/PriceSourceBadge'
 import RefreshLivePrice, { type RefreshResult } from '@/components/results/RefreshLivePrice'
 // Recent search store - automatic localStorage persistence
 import { addRecentSearch, updateRecentSearchPrice } from '@/lib/recentSearchStore'
+// Modify Search Button - Opens search form with pre-filled values
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
 interface DateOption {
   date: string

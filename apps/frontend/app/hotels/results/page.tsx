@@ -9,6 +9,7 @@ import NoResultsState from '@/components/common/NoResultsState'
 import ServiceError, { getErrorType, ErrorType } from '@/components/common/ServiceError'
 import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 import { requestCache } from '@/lib/requestCache'
 
 interface HotelOffer {

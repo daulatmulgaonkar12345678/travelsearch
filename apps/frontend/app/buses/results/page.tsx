@@ -10,6 +10,7 @@ import { apiFetch } from '@/lib/api'
 import { addRecentSearch, updateRecentSearchPrice } from '@/lib/unifiedRecentSearchStore'
 import NoResultsState from '@/components/common/NoResultsState'
 import ServiceError, { getErrorType, ErrorType } from '@/components/common/ServiceError'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
 interface BusOffer {
   offer_id: string
