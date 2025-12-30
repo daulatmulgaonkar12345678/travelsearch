@@ -509,21 +509,39 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): D
 
 // ============================================================
 // TRAIN DEEP LINKS
+// Uses: IRCTC station codes or city names (no vendor-specific IDs)
 // ============================================================
 
 export interface TrainDeepLinkParams {
-  fromStation: string // Station name or code
-  toStation: string   // Station name or code
-  fromCity: string    // City name
-  toCity: string      // City name
+  fromStation: string // Station code (e.g., CSMT, NDLS) or city name
+  toStation: string   // Station code or city name
+  fromCity: string    // City name for display/fallback
+  toCity: string      // City name for display/fallback
   date: string        // YYYY-MM-DD
 }
 
 /**
- * Paytm Trains Deep Link (search only)
- * Format: https://tickets.paytm.com/trains/search?from=...
+ * Validate train deep link parameters
+ * Returns error message if validation fails, null if valid
  */
-export function buildPaytmTrainsUrl(params: TrainDeepLinkParams): string {
+export function validateTrainParams(params: TrainDeepLinkParams): string | null {
+  if (!isValidString(params.fromStation) && !isValidString(params.fromCity)) {
+    return 'Origin station or city is required'
+  }
+  if (!isValidString(params.toStation) && !isValidString(params.toCity)) {
+    return 'Destination station or city is required'
+  }
+  if (!isValidDate(params.date)) {
+    return 'Valid travel date is required (YYYY-MM-DD)'
+  }
+  return null
+}
+
+/**
+ * Paytm Trains Deep Link (station codes or city names)
+ * Format: https://tickets.paytm.com/trains/search?from=CSMT&to=PUNE...
+ */
+function buildPaytmTrainsUrl(params: TrainDeepLinkParams): string {
   const { fromStation, toStation, date } = params
   
   const fromEncoded = encodeURIComponent(fromStation)
@@ -533,10 +551,10 @@ export function buildPaytmTrainsUrl(params: TrainDeepLinkParams): string {
 }
 
 /**
- * MakeMyTrip Railways Deep Link
- * Format: https://www.makemytrip.com/railways/search?fromCity=...
+ * MakeMyTrip Railways Deep Link (city names)
+ * Format: https://www.makemytrip.com/railways/search?fromCity=Mumbai&toCity=Pune...
  */
-export function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string {
+function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string {
   const { fromCity, toCity, date } = params
   
   const dateFormatted = formatDDMMYYYYDash(date)
@@ -547,18 +565,28 @@ export function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string 
 }
 
 /**
- * Build train deep link for any vendor
- * NOTE: Form-fill availability only - no payment-page redirects
+ * Build train deep link with validation
+ * Returns null if parameters are invalid - BLOCKS redirect
  */
-export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams): string {
+export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams): DeepLinkResult {
+  const validationError = validateTrainParams(params)
+  if (validationError) {
+    return { url: null, error: validationError }
+  }
+  
+  let url: string
   switch (vendorId) {
     case 'paytm_trains':
-      return buildPaytmTrainsUrl(params)
+      url = buildPaytmTrainsUrl(params)
+      break
     case 'makemytrip_railways':
-      return buildMakeMyTripRailwaysUrl(params)
+      url = buildMakeMyTripRailwaysUrl(params)
+      break
     default:
-      return buildPaytmTrainsUrl(params)
+      url = buildPaytmTrainsUrl(params)
   }
+  
+  return { url, error: null }
 }
 
 // ============================================================
