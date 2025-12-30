@@ -209,7 +209,7 @@ function FlightVendorsContent() {
             ))}
           </div>
 
-          {/* Book Button */}
+          {/* View Flights Button - vendor-specific label */}
           <button
             onClick={() => handleVendorClick(selectedVendor)}
             disabled={redirecting !== null}
@@ -223,13 +223,13 @@ function FlightVendorsContent() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                View Flights
+                View flights on {FLIGHT_VENDORS.find(v => v.id === selectedVendor)?.name}
               </>
             )}
           </button>
 
           <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll see flight search results on the partner site.
+            You&apos;ll be redirected to the partner website to complete your booking.
           </p>
         </div>
       </div>
