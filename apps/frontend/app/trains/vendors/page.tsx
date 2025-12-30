@@ -3,17 +3,20 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import { Train, Clock, ArrowRight, Loader2, ExternalLink, Calendar, Check } from 'lucide-react'
+import { Train, ArrowRight, Loader2, ExternalLink, Calendar, Check, AlertCircle } from 'lucide-react'
 import { 
   getVendorsForService, 
+  getPrimaryVendor,
   buildTrainDeepLink, 
   logAffiliateClick,
   type TrainDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
-// Train-specific vendors only
+// Train-specific vendors only - Ixigo is PRIMARY
 const TRAIN_VENDORS = getVendorsForService('trains')
+const PRIMARY_VENDOR = getPrimaryVendor('trains')
 
 function TrainVendorsContent() {
   const searchParams = useSearchParams()
@@ -21,7 +24,7 @@ function TrainVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  const [selectedVendor, setSelectedVendor] = useState<string>('paytm_trains')
+  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'ixigo_trains')
 
   // Get search details from URL params
   const origin = searchParams.get('origin') || ''
