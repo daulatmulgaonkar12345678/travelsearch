@@ -302,25 +302,6 @@ class AmadeusHotelsAdapter:
         """
         normalized = []
         
-        # Generate Travelpayouts deep link for this search
-        deep_link_result = generate_hotel_deep_link(
-            city=request.city,
-            check_in=request.check_in,
-            check_out=request.check_out,
-            adults=2,  # Default
-            rooms=len(request.rooms) if request.rooms else 1
-        )
-        travelpayouts_url = deep_link_result["url"]
-        
-        # Generate booking partners
-        booking_partners = generate_hotel_booking_partners(
-            city=request.city,
-            check_in=request.check_in,
-            check_out=request.check_out,
-            adults=2,
-            rooms=len(request.rooms) if request.rooms else 1
-        )
-        
         for hotel_data in hotels:
             try:
                 hotel_info = hotel_data.get("hotel", {})
