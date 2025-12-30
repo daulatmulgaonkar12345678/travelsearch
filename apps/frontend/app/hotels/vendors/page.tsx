@@ -3,10 +3,17 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import { Hotel, MapPin, Star, Loader2, ExternalLink } from 'lucide-react'
-import { HOTEL_VENDORS } from '@/lib/vendors'
-import { buildAviasalesHotelUrl, logAffiliateClick } from '@/lib/affiliate'
+import { Hotel, MapPin, Star, Loader2, ExternalLink, Check } from 'lucide-react'
+import { 
+  getVendorsForService, 
+  buildHotelDeepLink, 
+  logAffiliateClick,
+  type HotelDeepLinkParams 
+} from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
+
+// Hotel-specific vendors
+const HOTEL_VENDORS = getVendorsForService('hotels')
 
 function HotelVendorsContent() {
   const searchParams = useSearchParams()
@@ -14,6 +21,7 @@ function HotelVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
+  const [selectedVendor, setSelectedVendor] = useState<string>('booking')
 
   // Get hotel details from URL params
   const hotelName = searchParams.get('hotel_name') || ''
@@ -24,33 +32,30 @@ function HotelVendorsContent() {
   const checkOut = searchParams.get('check_out') || ''
 
   const handleVendorClick = async (vendorId: string) => {
-    if (vendorId !== 'aviasales') {
-      alert(`${vendorId} integration coming soon!`)
-      return
-    }
-
     try {
       setRedirecting(vendorId)
 
-      // Build affiliate URL DIRECTLY on frontend (no backend call)
-      // Pass hotelName for hotel-specific deep link
-      const finalRedirectUrl = buildAviasalesHotelUrl({
+      // Build deep link for selected vendor
+      const params: HotelDeepLinkParams = {
+        hotelName: hotelName || city,
         city,
         checkIn,
         checkOut,
         adults: 2,
-        hotelName: hotelName || undefined, // Hotel-specific if name available
-      })
+        rooms: 1,
+      }
 
-      // Log click asynchronously (fire-and-forget, won't block redirect)
+      const finalRedirectUrl = buildHotelDeepLink(vendorId, params)
+
+      // Log click asynchronously (fire-and-forget)
       logAffiliateClick(
-        'aviasales_hotels',
+        vendorId,
         `hotel-${city}`,
         `${hotelName}-${checkIn}`,
         parseFloat(price)
-      ).catch(() => {}) // Silently fail
+      ).catch(() => {})
 
-      // Show redirect screen - it will handle the actual redirect
+      // Show redirect screen
       setRedirectUrl(finalRedirectUrl)
       setShowRedirectScreen(true)
     } catch (error) {
@@ -60,39 +65,13 @@ function HotelVendorsContent() {
     }
   }
 
-  if (!hotelName || !city) {
-    return (
-      <div className="max-w-2xl mx-auto text-center py-12">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-yellow-900 mb-2">Missing Hotel Details</h3>
-          <p className="text-yellow-700 mb-4">Unable to load hotel information.</p>
-          <button
-            onClick={() => router.push('/hotels')}
-            className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-          >
-            Back to Search
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Get vendor details for redirect screen
-  const selectedVendor = HOTEL_VENDORS.find(v => v.id === redirecting)
-
-  // Show redirect screen if triggered
-  if (showRedirectScreen && selectedVendor) {
+  // Show redirect screen
+  if (showRedirectScreen && redirectUrl) {
+    const vendor = HOTEL_VENDORS.find(v => v.id === redirecting)
     return (
       <RedirectScreen
-        vendor={{
-          name: selectedVendor.name,
-          logo: selectedVendor.logo,
-        }}
+        provider={vendor?.name || 'Partner'}
         redirectUrl={redirectUrl}
-        type="hotel"
-        contextInfo={{
-          hotelName: hotelName,
-        }}
         onRedirectComplete={() => {
           setShowRedirectScreen(false)
           setRedirecting(null)
@@ -101,127 +80,116 @@ function HotelVendorsContent() {
     )
   }
 
+  // Missing params
+  if (!city || !checkIn || !checkOut) {
+    return (
+      <div className="min-h-screen bg-[#F5F1EB]">
+        <Navigation />
+        <div className="max-w-2xl mx-auto py-12 px-4 text-center">
+          <Hotel className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-[#1A1A1A] mb-2">Missing Hotel Information</h2>
+          <p className="text-[#6B6B6B] mb-6">Please search for hotels first to view booking options.</p>
+          <button
+            onClick={() => router.push('/?tab=hotels')}
+            className="px-6 py-3 bg-[#E6B54A] text-white rounded-lg hover:bg-[#D4A43C] transition-colors"
+          >
+            Search Hotels
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Hotel Details Card */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Selected Hotel</h2>
-        
-        <div className="mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{hotelName}</h3>
-              <div className="flex items-center text-gray-600">
-                <MapPin className="h-5 w-5 mr-2" />
+    <div className="min-h-screen bg-[#F5F1EB]">
+      <Navigation />
+      
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        {/* Hotel Summary */}
+        <div className="bg-white rounded-xl border border-[#E6E1D8] p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-[#E6B54A]/10 rounded-lg flex items-center justify-center">
+              <Hotel className="w-6 h-6 text-[#E6B54A]" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-[#1A1A1A]">
+                {hotelName || `Hotels in ${city}`}
+              </h1>
+              <div className="flex items-center gap-2 text-[#6B6B6B] mt-1">
+                <MapPin className="w-4 h-4" />
                 <span>{city}</span>
               </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            <div>
-              <div className="text-sm text-gray-600 mb-1">Check-in</div>
-              <div className="font-semibold text-gray-900">{checkIn}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-600 mb-1">Check-out</div>
-              <div className="font-semibold text-gray-900">{checkOut}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-600">Total Price</div>
-              <div className="text-3xl font-bold text-gray-900">
-                {currency} {parseFloat(price).toLocaleString()}
+              <div className="mt-2 text-sm text-[#6B6B6B]">
+                {checkIn} → {checkOut}
               </div>
+              {parseFloat(price) > 0 && (
+                <div className="mt-2 text-lg font-semibold text-[#E6B54A]">
+                  {currency} {parseFloat(price).toLocaleString()}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Vendor Selection */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Choose Your Booking Platform</h3>
-        <p className="text-gray-600 mb-6">
-          Select a vendor to complete your booking. You'll be redirected to their website.
-        </p>
+        {/* Vendor Selection */}
+        <div className="bg-white rounded-xl border border-[#E6E1D8] p-6">
+          <h2 className="text-lg font-semibold text-[#1A1A1A] mb-4">
+            Choose Booking Partner
+          </h2>
+          <p className="text-sm text-[#6B6B6B] mb-6">
+            Select a partner to complete your hotel booking. You&apos;ll be redirected to their site.
+          </p>
 
-        <div className="space-y-3">
-          {HOTEL_VENDORS.map((vendor) => {
-            const isActive = vendor.type === 'real'
-            const isRedirecting = redirecting === vendor.id
-
-            return (
+          {/* Vendor Dropdown/List */}
+          <div className="space-y-3 mb-6">
+            {HOTEL_VENDORS.map((vendor) => (
               <button
                 key={vendor.id}
-                onClick={() => handleVendorClick(vendor.id)}
-                disabled={!isActive || isRedirecting}
-                className={`
-                  w-full p-4 rounded-lg border-2 transition-all text-left
-                  ${isActive
-                    ? 'border-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer'
-                    : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                  }
-                  ${isRedirecting ? 'opacity-50' : ''}
-                `}
+                onClick={() => setSelectedVendor(vendor.id)}
+                className={`w-full p-4 rounded-lg border-2 transition-all flex items-center justify-between ${
+                  selectedVendor === vendor.id
+                    ? 'border-[#E6B54A] bg-[#E6B54A]/5'
+                    : 'border-[#E6E1D8] hover:border-[#E6B54A]/50'
+                }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <div className="font-semibold text-gray-900">{vendor.name}</div>
-                        <div className="text-sm text-gray-600">{vendor.description}</div>
-                      </div>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    selectedVendor === vendor.id ? 'bg-[#E6B54A]' : 'bg-gray-100'
+                  }`}>
+                    <Hotel className={`w-5 h-5 ${selectedVendor === vendor.id ? 'text-white' : 'text-gray-500'}`} />
                   </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    {isActive && (
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-gray-900">
-                          {currency} {parseFloat(price).toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-600">Same price</div>
-                      </div>
-                    )}
-                    
-                    {isRedirecting ? (
-                      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                    ) : isActive ? (
-                      <div className="flex items-center space-x-2 text-blue-600">
-                        <span className="font-semibold">Book Now</span>
-                        <ExternalLink className="h-5 w-5" />
-                      </div>
-                    ) : (
-                      <span className="text-sm font-semibold text-gray-500 px-3 py-1 bg-gray-200 rounded-full">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
+                  <span className="font-medium text-[#1A1A1A]">{vendor.name}</span>
                 </div>
+                {selectedVendor === vendor.id && (
+                  <Check className="w-5 h-5 text-[#E6B54A]" />
+                )}
               </button>
-            )
-          })}
-        </div>
+            ))}
+          </div>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-900">
-            <strong>Note:</strong> You'll be redirected to the vendor's website to complete your booking. 
-            Prices and availability are subject to change.
+          {/* Book Button */}
+          <button
+            onClick={() => handleVendorClick(selectedVendor)}
+            disabled={redirecting !== null}
+            className="w-full py-4 bg-[#E6B54A] text-white rounded-lg font-semibold hover:bg-[#D4A43C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {redirecting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Redirecting...
+              </>
+            ) : (
+              <>
+                <ExternalLink className="w-5 h-5" />
+                Book on {HOTEL_VENDORS.find(v => v.id === selectedVendor)?.name}
+              </>
+            )}
+          </button>
+
+          <p className="text-xs text-[#6B6B6B] text-center mt-4">
+            You&apos;ll be redirected to the partner site to complete your booking.
           </p>
         </div>
-      </div>
-
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => router.back()}
-          className="text-blue-600 hover:text-blue-700 font-semibold"
-        >
-          ← Back to Results
-        </button>
       </div>
     </div>
   )
@@ -229,17 +197,12 @@ function HotelVendorsContent() {
 
 export default function HotelVendorsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <main className="container mx-auto px-4 py-8">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-[400px]">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-          </div>
-        }>
-          <HotelVendorsContent />
-        </Suspense>
-      </main>
-    </div>
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F5F1EB] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#E6B54A]" />
+      </div>
+    }>
+      <HotelVendorsContent />
+    </Suspense>
   )
 }
