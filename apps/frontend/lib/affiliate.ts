@@ -188,81 +188,113 @@ function calculateNights(checkIn: string, checkOut: string): number {
 
 // ============================================================
 // HOTEL DEEP LINKS
+// Uses: hotel name + city (search-based, no vendor-specific IDs)
 // ============================================================
 
 export interface HotelDeepLinkParams {
-  hotelName: string
-  city: string
-  checkIn: string  // YYYY-MM-DD
-  checkOut: string // YYYY-MM-DD
+  hotelName: string   // Hotel name for search
+  city: string        // City name
+  checkIn: string     // YYYY-MM-DD
+  checkOut: string    // YYYY-MM-DD
   adults?: number
   rooms?: number
-  hotelId?: string
-  cityCode?: string
 }
 
 /**
- * MakeMyTrip Hotel Deep Link
- * Format: https://www.makemytrip.com/hotels/hotel-details/?hotelId=...
- * 
- * Note: Without hotel ID, falls back to search
+ * Validate hotel deep link parameters
+ * Returns error message if validation fails, null if valid
  */
-export function buildMakeMyTripHotelUrl(params: HotelDeepLinkParams): string {
-  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1, cityCode } = params
+export function validateHotelParams(params: HotelDeepLinkParams): string | null {
+  if (!isValidString(params.hotelName)) {
+    return 'Hotel name is required'
+  }
+  if (!isValidString(params.city)) {
+    return 'City is required'
+  }
+  if (!isValidDate(params.checkIn)) {
+    return 'Valid check-in date is required (YYYY-MM-DD)'
+  }
+  if (!isValidDate(params.checkOut)) {
+    return 'Valid check-out date is required (YYYY-MM-DD)'
+  }
+  if (new Date(params.checkIn) >= new Date(params.checkOut)) {
+    return 'Check-out date must be after check-in date'
+  }
+  return null
+}
+
+/**
+ * MakeMyTrip Hotel Deep Link (search-based, no hotel ID required)
+ * Format: https://www.makemytrip.com/hotels/hotel-listing/?city=...&searchText=...
+ */
+function buildMakeMyTripHotelUrl(params: HotelDeepLinkParams): string {
+  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
   
-  // Use city search (hotel-details requires specific hotelId from MMT)
   const citySlug = city.toLowerCase().replace(/\s+/g, '-')
   const checkinFormatted = formatMMDDYYYY(checkIn)
   const checkoutFormatted = formatMMDDYYYY(checkOut)
-  
-  // Search-level deep link with hotel name in query
   const hotelNameEncoded = encodeURIComponent(hotelName)
+  const cityEncoded = encodeURIComponent(city)
   
-  return `https://www.makemytrip.com/hotels/hotel-listing/?city=${cityCode || citySlug}&checkin=${checkinFormatted}&checkout=${checkoutFormatted}&roomStayQualifier=${adults}e0e&locusId=CTDEL&country=IN&locusType=city&searchText=${hotelNameEncoded}`
+  // Search-based deep link - vendor resolves hotel ID internally
+  return `https://www.makemytrip.com/hotels/hotel-listing/?city=${citySlug}&checkin=${checkinFormatted}&checkout=${checkoutFormatted}&roomStayQualifier=${adults}e0e${rooms > 1 ? `_${adults}e0e`.repeat(rooms - 1) : ''}&country=IN&locusType=city&searchText=${hotelNameEncoded}%20${cityEncoded}`
 }
 
 /**
- * Agoda Hotel Deep Link
- * Format: https://www.agoda.com/search?city=...
+ * Agoda Hotel Deep Link (search-based)
+ * Format: https://www.agoda.com/search?textToSearch=...
  */
-export function buildAgodaHotelUrl(params: HotelDeepLinkParams): string {
+function buildAgodaHotelUrl(params: HotelDeepLinkParams): string {
   const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
   
   const nights = calculateNights(checkIn, checkOut)
   const hotelNameEncoded = encodeURIComponent(hotelName)
   const cityEncoded = encodeURIComponent(city)
   
+  // Search-based - Agoda resolves hotel internally
   return `https://www.agoda.com/search?city=-1&checkIn=${checkIn}&checkOut=${checkOut}&rooms=${rooms}&adults=${adults}&children=0&los=${nights}&textToSearch=${hotelNameEncoded}%20${cityEncoded}`
 }
 
 /**
- * Booking.com Hotel Deep Link
+ * Booking.com Hotel Deep Link (search-based)
  * Format: https://www.booking.com/searchresults.html?ss=...
  */
-export function buildBookingHotelUrl(params: HotelDeepLinkParams): string {
+function buildBookingHotelUrl(params: HotelDeepLinkParams): string {
   const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
   
   const hotelNameEncoded = encodeURIComponent(hotelName)
   const cityEncoded = encodeURIComponent(city)
   
+  // Search-based - Booking.com resolves hotel internally
   return `https://www.booking.com/searchresults.html?ss=${hotelNameEncoded}%2C+${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&group_adults=${adults}&no_rooms=${rooms}&selected_currency=INR`
 }
 
 /**
- * Build hotel deep link for any vendor
+ * Build hotel deep link with validation
+ * Returns null if parameters are invalid - BLOCKS redirect
  */
-export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams): string {
+export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams): DeepLinkResult {
+  const validationError = validateHotelParams(params)
+  if (validationError) {
+    return { url: null, error: validationError }
+  }
+  
+  let url: string
   switch (vendorId) {
     case 'makemytrip_hotels':
-      return buildMakeMyTripHotelUrl(params)
+      url = buildMakeMyTripHotelUrl(params)
+      break
     case 'agoda':
-      return buildAgodaHotelUrl(params)
+      url = buildAgodaHotelUrl(params)
+      break
     case 'booking':
-      return buildBookingHotelUrl(params)
+      url = buildBookingHotelUrl(params)
+      break
     default:
-      // Fallback to Booking.com
-      return buildBookingHotelUrl(params)
+      url = buildBookingHotelUrl(params)
   }
+  
+  return { url, error: null }
 }
 
 // ============================================================
