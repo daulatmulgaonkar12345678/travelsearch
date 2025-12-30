@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Plane,
   ChevronDown,
@@ -13,11 +14,9 @@ import {
   Clock,
 } from 'lucide-react'
 import { FlightOffer, Segment } from './ResultCard'
-import { FLIGHT_VENDORS } from '@/lib/vendors'
-import { buildAviasalesFlightUrl, logAffiliateClick } from '@/lib/affiliate'
+import { logAffiliateClick } from '@/lib/affiliate'
 import { formatDuration } from '@/lib/formatters'
 import PriceDisplay from '@/components/ui/PriceDisplay'
-import RedirectScreen from '@/components/common/RedirectScreen'
 import { BookingRedirectMicrocopy } from '@/components/trust/Microcopy'
 
 // Common airline codes to full names mapping
