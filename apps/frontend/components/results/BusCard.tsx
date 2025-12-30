@@ -77,6 +77,7 @@ interface BusOffer {
 interface BusCardProps {
   offer: BusOffer
   index?: number
+  departureDate?: string // YYYY-MM-DD format for vendor page
 }
 
 // Button label mapping
@@ -90,13 +91,10 @@ const getPartnerButtonLabel = (partnerName: string): string => {
   return labels[partnerName] || partnerName
 }
 
-export default function BusCard({ offer, index = 0 }: BusCardProps) {
+export default function BusCard({ offer, index = 0, departureDate }: BusCardProps) {
+  const router = useRouter()
   const [showDetails, setShowDetails] = useState(false)
-  const [redirecting, setRedirecting] = useState<string | null>(null)
   const [showFareTooltip, setShowFareTooltip] = useState(false)
-  const [showRedirectTransition, setShowRedirectTransition] = useState(false)
-  const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
-  const [redirectError, setRedirectError] = useState<string | null>(null)
 
   const formatTime = (iso: string) => {
     if (!iso || iso === '0001-01-01T00:00:00') return '--:--'
