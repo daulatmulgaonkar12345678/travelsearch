@@ -168,10 +168,10 @@ function FlightVendorsContent() {
         {/* Vendor Selection */}
         <div className="bg-white rounded-xl border border-[#E6E1D8] p-6">
           <h2 className="text-lg font-semibold text-[#1A1A1A] mb-4">
-            Choose Booking Partner
+            Choose Flight Search Partner
           </h2>
           <p className="text-sm text-[#6B6B6B] mb-6">
-            Select a partner to complete your flight booking. You&apos;ll be redirected to their site.
+            Select a partner to view available flights. You&apos;ll see flight results and can book on their site.
           </p>
 
           {/* Vendor List */}
