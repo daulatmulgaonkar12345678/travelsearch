@@ -450,17 +450,7 @@ function buildMakeMyTripFlightUrl(params: FlightDeepLinkParams): string {
 }
 
 /**
- * Paytm Flight Deep Link (IATA codes)
- * Format: https://tickets.paytm.com/flights/search?from=DEL&to=BOM...
- */
-function buildPaytmFlightUrl(params: FlightDeepLinkParams): string {
-  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
-  
-  return `https://tickets.paytm.com/flights/search?from=${origin.toUpperCase()}&to=${destination.toUpperCase()}&date=${departDate}&adults=${adults}&children=${children}&infants=${infants}&class=economy`
-}
-
-/**
- * Skyscanner Flight Deep Link (IATA codes)
+ * Skyscanner Flight Deep Link (IATA codes) - PRIMARY
  * Format: https://www.skyscanner.co.in/transport/flights/del/bom/...
  */
 function buildSkyscannerFlightUrl(params: FlightDeepLinkParams): string {
