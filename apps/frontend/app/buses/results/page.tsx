@@ -603,7 +603,7 @@ function BusResultsContent() {
             {/* Bus Cards */}
             <div className="space-y-4">
               {filteredOffers.map((offer, idx) => (
-                <BusCard key={offer.offer_id} offer={offer} index={idx} />
+                <BusCard key={offer.offer_id} offer={offer} index={idx} departureDate={departureDate} />
               ))}
             </div>
           </>
