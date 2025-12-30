@@ -1,5 +1,20 @@
 'use client'
 
+/**
+ * TrainCard - Mobile-First Result Card
+ * =====================================
+ * 
+ * MOBILE-FIRST DESIGN:
+ * - Stacked layout on mobile (flex-col)
+ * - No horizontal overflow
+ * - Large tap targets (min 44px)
+ * - Readable text on 360px screens
+ * 
+ * SERVICE THEMING:
+ * - Uses muted olive green accent (#7A8B5C)
+ * - Subtle card tint on hover/select
+ */
+
 import { useState, useCallback } from 'react'
 import {
   Train,
@@ -47,16 +62,15 @@ interface TrainOffer {
   frequency: string | null
   stops_count: number
   intermediate_stops: string[]
-  // VARIANT-LEVEL: This card is for ONE class
-  selected_class?: string | null  // "SL", "3A", "2A", etc.
-  selected_class_display?: string | null  // "Sleeper", "AC 3-Tier", etc.
+  selected_class?: string | null
+  selected_class_display?: string | null
   available_classes: Array<{ class: string; avg_fare: number }>
   has_pantry: boolean
 }
 
 interface TrainCardProps {
   offer: TrainOffer
-  index?: number  // For stagger animation
+  index?: number
 }
 
 export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
@@ -66,7 +80,6 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
   const [redirectError, setRedirectError] = useState<string | null>(null)
 
-  // Calculate stagger class (max 8 levels)
   const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
 
   const formatTime = (iso: string) => {
@@ -78,59 +91,23 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
     })
   }
 
-  /**
-   * STRICT DURATION GUARD
-   * 
-   * Duration must ONLY be shown when we have REAL times.
-   * NO fallbacks, NO estimates, NO defaults.
-   * 
-   * PRODUCT PRINCIPLE: "Wrong time destroys trust faster than missing time ever will"
-   * 
-   * Returns null if duration cannot be computed safely.
-   */
   const computeSafeDuration = (departure: string, arrival: string): string | null => {
-    // Guard 1: Check for missing times
-    if (!departure || !arrival) {
-      console.warn("[Duration] Hidden: Missing times", { departure, arrival })
-      return null
-    }
+    if (!departure || !arrival) return null
     
-    // Guard 2: Check for invalid placeholder times
     const invalidTimes = ['0001-01-01T00:00:00', '0001-01-01', '1970-01-01']
-    if (invalidTimes.some(t => departure.includes(t) || arrival.includes(t))) {
-      console.warn("[Duration] Hidden: Invalid placeholder times", { departure, arrival })
-      return null
-    }
+    if (invalidTimes.some(t => departure.includes(t) || arrival.includes(t))) return null
     
     const depTime = new Date(departure)
     const arrTime = new Date(arrival)
     
-    // Guard 3: Check for invalid dates
-    if (isNaN(depTime.getTime()) || isNaN(arrTime.getTime())) {
-      console.warn("[Duration] Hidden: Invalid date parsing", { departure, arrival })
-      return null
-    }
+    if (isNaN(depTime.getTime()) || isNaN(arrTime.getTime())) return null
+    if (depTime.getTime() === arrTime.getTime()) return null
     
-    // Guard 4: Check if arrival equals departure (signals unknown arrival)
-    if (depTime.getTime() === arrTime.getTime()) {
-      console.warn("[Duration] Hidden: Arrival equals departure (unknown)", { departure, arrival })
-      return null
-    }
-    
-    // Calculate duration with next-day handling
     let diffMs = arrTime.getTime() - depTime.getTime()
+    if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000
     
-    // Handle multi-day journeys (trains can take 24+ hours)
-    if (diffMs < 0) {
-      diffMs += 24 * 60 * 60 * 1000 // Add 24 hours for overnight
-    }
-    
-    // Guard 5: Sanity check - reject unrealistic durations (> 72 hours for trains or < 15 mins)
     const hours = diffMs / (1000 * 60 * 60)
-    if (hours > 72 || hours < 0.25) {
-      console.warn("[Duration] Hidden: Unrealistic duration", { hours, departure, arrival })
-      return null
-    }
+    if (hours > 72 || hours < 0.25) return null
     
     const h = Math.floor(diffMs / (1000 * 60 * 60))
     const m = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60))
@@ -139,7 +116,6 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
   }
 
   const handleBookingClick = (partner: TrainOffer['booking_partners'][0]) => {
-    // MANDATORY: Validate URL before redirect
     const validation = validatePartnerUrl(partner.url)
     
     if (!validation.isValid) {
@@ -163,16 +139,13 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
     setPendingRedirectUrl(null)
   }, [pendingRedirectUrl])
 
-  // Sort booking partners by priority
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
-  
-  // Get the class for this card
   const cardClass = offer.selected_class_display || offer.selected_class || 
                     (offer.available_classes?.[0]?.class) || ''
+  const duration = computeSafeDuration(offer.departure_time, offer.arrival_time)
 
   return (
     <>
-      {/* Pre-redirect transition overlay */}
       <RedirectTransition
         mode="train"
         partnerName={redirecting || ''}
@@ -181,140 +154,173 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
         duration={500}
       />
       
-      <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
+      {/* MOBILE-FIRST CARD */}
+      <div 
+        className={`
+          relative bg-white border border-[#E6E1D8] rounded-xl 
+          shadow-sm hover:shadow-md transition-all duration-200 
+          animate-card-in opacity-0 ${staggerClass}
+          overflow-hidden
+        `}
+      >
         {/* Fallback Badge */}
         {offer.is_fallback && (
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 z-10">
             <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
               Redirect Only
             </span>
           </div>
         )}
 
-      <div className="p-4">
-        {/* Train Info Header - WITH CLASS BADGE */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Train className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900">
-                {offer.train_name}
-                {!offer.is_fallback && (
-                  <span className="ml-2 text-sm font-normal text-gray-500">#{offer.train_number}</span>
-                )}
-              </p>
-              {offer.train_type && (
-                <p className="text-sm text-gray-500">{offer.train_type}</p>
-              )}
-            </div>
-          </div>
-          
-          {/* CLASS BADGE - Prominent for variant-level */}
-          {cardClass && !offer.is_fallback && (
-            <span className="px-3 py-1 text-sm font-semibold bg-blue-100 text-blue-700 rounded-full">
-              {cardClass}
-            </span>
-          )}
-        </div>
-
-        {/* Route & Time */}
-        {!offer.is_fallback && (
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              <p className="text-2xl font-bold text-gray-900">{formatTime(offer.departure_time)}</p>
-              <p className="text-sm text-gray-600">{offer.from_station}</p>
-              <p className="text-xs text-gray-400">{offer.from_city}</p>
-            </div>
-            
-            <div className="flex-1 flex flex-col items-center px-4">
-              {/* Duration - ONLY show if computeSafeDuration returns a value */}
-              {computeSafeDuration(offer.departure_time, offer.arrival_time) && (
-                <p className="text-sm text-gray-500">{computeSafeDuration(offer.departure_time, offer.arrival_time)}</p>
-              )}
-              <div className="w-full h-0.5 bg-gray-200 my-1 relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
+        {/* === HEADER: Train Name + Number + Class === */}
+        <div className="p-4 pb-3 border-b border-[#F3EFEA]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Icon */}
+              <div className="w-10 h-10 bg-[#EEF1E8] rounded-lg flex items-center justify-center flex-shrink-0">
+                <Train className="h-5 w-5 text-[#7A8B5C]" />
               </div>
-              <p className="text-xs text-gray-400">
-                {offer.stops_count === 0 ? 'Direct' : `${offer.stops_count} stop${offer.stops_count > 1 ? 's' : ''}`}
-              </p>
+              
+              {/* Train Info */}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-[#2B2B2B] text-sm sm:text-base truncate">
+                  {offer.train_name}
+                  {!offer.is_fallback && (
+                    <span className="ml-1.5 text-xs sm:text-sm font-normal text-[#6B6B6B]">
+                      #{offer.train_number}
+                    </span>
+                  )}
+                </p>
+                {offer.train_type && (
+                  <p className="text-xs sm:text-sm text-[#6B6B6B] truncate">
+                    {offer.train_type}
+                  </p>
+                )}
+              </div>
             </div>
             
-            <div className="flex-1 text-right">
-              {/* Arrival time - ONLY show if different from departure (known arrival) */}
-              {computeSafeDuration(offer.departure_time, offer.arrival_time) ? (
-                <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
-              ) : (
-                <p className="text-lg text-gray-400">Arr. varies</p>
-              )}
-              <p className="text-sm text-gray-600">{offer.to_station}</p>
-              <p className="text-xs text-gray-400">{offer.to_city}</p>
+            {/* Class Badge */}
+            {cardClass && !offer.is_fallback && (
+              <span className="px-2.5 py-1 text-xs sm:text-sm font-semibold bg-[#EEF1E8] text-[#7A8B5C] rounded-full flex-shrink-0">
+                {cardClass}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* === TIME & ROUTE SECTION (MOBILE OPTIMIZED) === */}
+        {!offer.is_fallback && (
+          <div className="p-4">
+            {/* Time Row */}
+            <div className="flex items-center justify-between mb-3">
+              {/* Departure */}
+              <div className="text-left">
+                <p className="text-xl sm:text-2xl font-bold text-[#2B2B2B]">
+                  {formatTime(offer.departure_time)}
+                </p>
+                <p className="text-xs sm:text-sm font-medium text-[#2B2B2B] truncate max-w-[90px] sm:max-w-none">
+                  {offer.from_station}
+                </p>
+                <p className="text-xs text-[#9CA3AF] truncate max-w-[90px] sm:max-w-none">
+                  {offer.from_city}
+                </p>
+              </div>
+              
+              {/* Duration */}
+              <div className="flex flex-col items-center px-2 sm:px-4 flex-1">
+                {duration && (
+                  <p className="text-xs sm:text-sm text-[#6B6B6B] mb-1">{duration}</p>
+                )}
+                <div className="w-full max-w-[100px] h-0.5 bg-[#E6E1D8] relative">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#7A8B5C] rounded-full" />
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#7A8B5C] rounded-full" />
+                </div>
+                <p className="text-xs text-[#9CA3AF] mt-1">
+                  {offer.stops_count === 0 ? 'Direct' : `${offer.stops_count} stop${offer.stops_count > 1 ? 's' : ''}`}
+                </p>
+              </div>
+              
+              {/* Arrival */}
+              <div className="text-right">
+                {duration ? (
+                  <p className="text-xl sm:text-2xl font-bold text-[#2B2B2B]">
+                    {formatTime(offer.arrival_time)}
+                  </p>
+                ) : (
+                  <p className="text-base text-[#9CA3AF]">Arr. varies</p>
+                )}
+                <p className="text-xs sm:text-sm font-medium text-[#2B2B2B] truncate max-w-[90px] sm:max-w-none">
+                  {offer.to_station}
+                </p>
+                <p className="text-xs text-[#9CA3AF] truncate max-w-[90px] sm:max-w-none">
+                  {offer.to_city}
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Fallback Message */}
+        {/* === FALLBACK MESSAGE === */}
         {offer.is_fallback && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0" />
-              <p className="text-sm text-amber-800">
-                This route is not in our database. Check our booking partners for live schedules and availability.
+          <div className="mx-4 my-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-amber-800">
+                Route not in our database. Check partners for live schedules.
               </p>
             </div>
           </div>
         )}
 
-        {/* Price - THIS IS THE PRICE FOR THIS CLASS ONLY */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-green-600">
-                ₹{Math.round(offer.avg_price).toLocaleString('en-IN')}
-              </span>
-              <span className="text-sm text-gray-500">/ person</span>
+        {/* === PRICE + AMENITIES === */}
+        <div className="px-4 py-3 bg-[#FAFAF8] border-t border-[#F3EFEA]">
+          <div className="flex items-center justify-between">
+            {/* Price */}
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl sm:text-2xl font-bold text-[#2E7D32]">
+                  ₹{Math.round(offer.avg_price).toLocaleString('en-IN')}
+                </span>
+                <span className="text-xs sm:text-sm text-[#6B6B6B]">/ person</span>
+              </div>
+              <p className="text-xs text-[#9CA3AF]">{offer.price_label}</p>
             </div>
-            <p className="text-xs text-gray-400">{offer.price_label}</p>
+            
+            {/* Pantry indicator */}
+            {!offer.is_fallback && offer.has_pantry && (
+              <div className="flex items-center gap-1 text-[#6B6B6B]">
+                <Utensils className="h-4 w-4" />
+                <span className="text-xs hidden sm:inline">Pantry</span>
+              </div>
+            )}
           </div>
-          
-          {/* Amenities */}
-          {!offer.is_fallback && offer.has_pantry && (
-            <div className="flex items-center gap-1 text-gray-500">
-              <Utensils className="h-4 w-4" />
-              <span className="text-xs">Pantry</span>
-            </div>
-          )}
         </div>
 
-        {/* Expand Details Button */}
+        {/* === EXPAND DETAILS === */}
         {!offer.is_fallback && (
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 mb-4"
+            className="w-full px-4 py-2 flex items-center justify-center gap-1 text-sm text-[#7A8B5C] hover:bg-[#EEF1E8] transition"
           >
             {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             {showDetails ? 'Hide details' : 'Show details'}
           </button>
         )}
 
-        {/* Expanded Details */}
+        {/* === EXPANDED DETAILS === */}
         {showDetails && !offer.is_fallback && (
-          <div className="border-t pt-4 mb-4 space-y-3">
+          <div className="px-4 pb-3 space-y-2 text-sm text-[#6B6B6B] border-t border-[#F3EFEA] pt-3">
             {offer.frequency && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 <span>Runs: {offer.frequency}</span>
               </div>
             )}
             {offer.days_of_operation.length > 0 && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>Days: {offer.days_of_operation.join(', ')}</span>
-              </div>
+              <div>Days: {offer.days_of_operation.join(', ')}</div>
             )}
             {offer.distance_km && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span>Distance: {offer.distance_km} km</span>
               </div>
@@ -322,37 +328,44 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
           </div>
         )}
 
-        {/* Booking Partners */}
-        <div className="border-t pt-4">
-          <p className="text-xs text-gray-500 mb-2">Check availability:</p>
+        {/* === BOOKING PARTNERS (MOBILE OPTIMIZED) === */}
+        <div className="p-4 bg-[#EEF1E8] border-t border-[#E6E1D8]">
+          <p className="text-xs text-[#6B6B6B] mb-3">Check availability:</p>
           
-          {/* Redirect Error Fallback UI */}
+          {/* Error message */}
           {redirectError && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{redirectError}</p>
+              <p className="text-xs text-red-700">{redirectError}</p>
             </div>
           )}
           
-          <div className="flex flex-wrap gap-2">
-            {sortedPartners.map(partner => (
+          {/* Buttons - Stack vertically on mobile */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+            {sortedPartners.map((partner, idx) => (
               <button
                 key={partner.name}
                 onClick={() => handleBookingClick(partner)}
                 disabled={redirecting === partner.name}
-                className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition ${
-                  partner.is_official
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } disabled:opacity-50`}
+                className={`
+                  flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 text-sm font-medium rounded-lg
+                  transition-all duration-200 min-h-[44px]
+                  ${partner.is_official 
+                    ? 'bg-[#2E7D32] hover:bg-[#256929] text-white' 
+                    : idx === 0 && !sortedPartners.some(p => p.is_official)
+                      ? 'bg-[#7A8B5C] hover:bg-[#697A4C] text-white'
+                      : 'bg-white border border-[#7A8B5C] text-[#7A8B5C] hover:bg-[#EEF1E8]'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                `}
               >
                 {redirecting === partner.name ? (
-                  'Redirecting...'
+                  'Opening...'
                 ) : (
                   <>
                     {partner.name}
                     {partner.is_official && <span className="text-xs">(Official)</span>}
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </>
                 )}
               </button>
@@ -361,9 +374,10 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
         </div>
 
         {/* Disclaimer */}
-        <p className="mt-3 text-xs text-gray-400">{offer.price_disclaimer}</p>
+        <p className="px-4 py-2 text-xs text-[#9CA3AF] bg-[#FAFAF8] border-t border-[#F3EFEA]">
+          {offer.price_disclaimer}
+        </p>
       </div>
-    </div>
     </>
   )
 }
