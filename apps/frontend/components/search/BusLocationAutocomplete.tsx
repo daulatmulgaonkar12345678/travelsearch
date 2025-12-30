@@ -369,7 +369,8 @@ export default function BusLocationAutocomplete({
                 </div>
               </div>
             </button>
-          ))}
+            )
+          })}
         </div>
       )}
 
