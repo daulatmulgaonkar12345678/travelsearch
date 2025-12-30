@@ -615,6 +615,47 @@ function buildMakeMyTripBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
+ * Goibibo Bus Deep Link (city names)
+ * Format: https://www.goibibo.com/bus/...
+ */
+function buildGoibiboBusUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const fromEncoded = encodeURIComponent(fromCity)
+  const toEncoded = encodeURIComponent(toCity)
+  
+  return `https://www.goibibo.com/bus/search/?src=${fromEncoded}&dest=${toEncoded}&dt=${date}`
+}
+
+/**
+ * EaseMyTrip Bus Deep Link (city names)
+ * Format: https://www.easemytrip.com/bus/...
+ */
+function buildEaseMyTripBusUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-')
+  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-')
+  const dateFormatted = formatDDMMYYYYDash(date)
+  
+  return `https://www.easemytrip.com/bus/${fromSlug}-to-${toSlug}-bus.html?date=${dateFormatted}`
+}
+
+/**
+ * Ixigo Bus Deep Link (city names)
+ * Format: https://www.ixigo.com/search/result/bus/...
+ */
+function buildIxigoBusUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const fromEncoded = encodeURIComponent(fromCity)
+  const toEncoded = encodeURIComponent(toCity)
+  const dateFormatted = formatDDMMYYYY(date)
+  
+  return `https://www.ixigo.com/search/result/bus/${fromEncoded}/${toEncoded}/${dateFormatted}`
+}
+
+/**
  * Build bus deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
  */
@@ -629,13 +670,17 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): D
     case 'redbus':
       url = buildRedBusUrl(params)
       break
-    case 'paytm_bus':
-      url = buildPaytmBusUrl(params)
+    case 'goibibo_bus':
+      url = buildGoibiboBusUrl(params)
       break
-    case 'makemytrip_bus':
-      url = buildMakeMyTripBusUrl(params)
+    case 'easemytrip_bus':
+      url = buildEaseMyTripBusUrl(params)
+      break
+    case 'ixigo_bus':
+      url = buildIxigoBusUrl(params)
       break
     default:
+      // redBus is PRIMARY for buses
       url = buildRedBusUrl(params)
   }
   
