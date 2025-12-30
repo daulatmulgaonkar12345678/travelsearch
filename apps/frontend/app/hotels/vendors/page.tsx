@@ -3,17 +3,20 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import { Hotel, MapPin, Star, Loader2, ExternalLink, Check } from 'lucide-react'
+import { Hotel, MapPin, Loader2, ExternalLink, Check, AlertCircle, Calendar } from 'lucide-react'
 import { 
   getVendorsForService, 
+  getPrimaryVendor,
   buildHotelDeepLink, 
   logAffiliateClick,
   type HotelDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
-// Hotel-specific vendors
+// Hotel-specific vendors - Agoda is PRIMARY
 const HOTEL_VENDORS = getVendorsForService('hotels')
+const PRIMARY_VENDOR = getPrimaryVendor('hotels')
 
 function HotelVendorsContent() {
   const searchParams = useSearchParams()
@@ -21,7 +24,7 @@ function HotelVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  const [selectedVendor, setSelectedVendor] = useState<string>('booking')
+  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'agoda')
 
   // Get hotel details from URL params
   const hotelName = searchParams.get('hotel_name') || ''
@@ -30,6 +33,7 @@ function HotelVendorsContent() {
   const currency = searchParams.get('currency') || 'INR'
   const checkIn = searchParams.get('check_in') || ''
   const checkOut = searchParams.get('check_out') || ''
+  const adults = searchParams.get('adults') || '2'
 
   const handleVendorClick = async (vendorId: string) => {
     try {
@@ -41,7 +45,7 @@ function HotelVendorsContent() {
         city,
         checkIn,
         checkOut,
-        adults: 2,
+        adults: parseInt(adults),
         rooms: 1,
       }
 
