@@ -34,6 +34,30 @@ run_ui: true
     - "Verify NO cross-service redirect: Hotel vendor page must NOT generate flight URLs"
     - "Verify NO cross-service redirect: Flight vendor page must NOT generate hotel URLs"
 
+## Current Focus: Vendor Dropdown for Buses & Trains (P1) - IN PROGRESS
+
+- task: "Implement and Verify Vendor Dropdown for Buses and Trains"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/app/buses/vendors/page.tsx, /app/apps/frontend/app/trains/vendors/page.tsx, /app/apps/frontend/components/results/BusCard.tsx, /app/apps/frontend/components/results/TrainCard.tsx"
+  stuck_count: 0
+  priority: "P1"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented vendor dropdown pages for Buses and Trains. Created /buses/vendors and /trains/vendors pages similar to Flights/Hotels. Updated BusCard and TrainCard to navigate to vendor pages instead of direct redirect. RedirectScreen updated to support bus and train types with appropriate animations and colors. Vendors: Buses (redBus, Paytm Bus), Trains (Paytm Trains, MakeMyTrip Railways)."
+  test_requirements:
+    - "Test Bus Results Page: Navigate to bus results (Pune→Mumbai), verify 'Book Now' button navigates to /buses/vendors page"
+    - "Test Bus Vendors Page: Verify page shows bus vendors ONLY (redBus, Paytm Bus) - NO flight/hotel vendors"
+    - "Test Bus Vendor Selection: Select redBus, click Search - verify URL contains redbus.in/search"
+    - "Test Bus Vendor Selection: Select Paytm, click Search - verify URL contains tickets.paytm.com/bus/search"
+    - "Test Train Results Page: Navigate to train results (Mumbai→Pune), verify 'Book Now' button navigates to /trains/vendors page"
+    - "Test Train Vendors Page: Verify page shows train vendors ONLY (Paytm Trains, MakeMyTrip Railways) - NO flight/hotel vendors"
+    - "Test Train Vendor Selection: Select Paytm Trains, click Search - verify URL contains tickets.paytm.com/trains/search"
+    - "Test Train Vendor Selection: Select MakeMyTrip Railways, click Search - verify URL contains makemytrip.com/railways/search"
+    - "Verify NO cross-service redirect: Bus/Train vendor pages must NOT generate flight or hotel URLs"
+
 ## Previous Focus: API Proxy Architecture Validation (P0) - COMPLETED
 
 - task: "API Proxy Architecture Validation - Next.js Proxy Routes"
