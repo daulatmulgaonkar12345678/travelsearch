@@ -4,81 +4,64 @@
  * BusLocationAutocomplete - ID-Based Selection Only
  * ==================================================
  * 
- * CRITICAL ARCHITECTURE RULES:
- * 1. User selection = STRICT, ID-based, immutable
- * 2. Route intelligence = FLEXIBLE, corridor-based, POST-selection only
- * 3. These two layers must NEVER mix
+ * Uses shared useAutocomplete hook for:
+ * - State machine (IDLE | LOADING | HAS_RESULTS | NO_RESULTS)
+ * - Race condition prevention
+ * - Response normalization
+ * - Credit-saving debounce
  * 
- * FORBIDDEN BEHAVIORS:
- * - ❌ DO NOT resolve from text
- * - ❌ DO NOT fallback to origin when destination not selected
- * - ❌ DO NOT guess nearest city
- * - ❌ DO NOT use corridor logic during selection
- * - ❌ DO NOT allow search without dropdown selection
- * 
- * This component ensures user intent is PRESERVED EXACTLY.
- * "Satara → Karad" MUST stay "Satara → Karad", never "Satara → Satara"
+ * CRITICAL RULES:
+ * - User MUST select from dropdown
+ * - Typing alone is NOT a valid selection
+ * - Validation is DECOUPLED from autocomplete UI
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Bus, MapPin, AlertCircle, Check, Loader2 } from 'lucide-react'
+import { useAutocomplete } from '@/hooks/useAutocomplete'
 
 // ============================================================
 // STRICT PLACE OBJECT - ID IS THE SOURCE OF TRUTH
 // ============================================================
 export interface BusPlace {
-  place_id: string       // UNIQUE - The ONLY source of truth
-  name: string           // Display name (English) - stop or city name
-  name_local?: string    // Marathi name (optional)
-  type: 'CITY' | 'STOP' | 'TOURIST'  // Place type
-  district: string       // District name
-  state: string          // State (Maharashtra for MSRTC)
-  operator?: string      // Operator (e.g., MSRTC)
-  is_depot?: boolean     // Is this a depot/search surface stop
-  // CRITICAL: City info for booking partner URLs
-  // redBus only supports CITY → CITY searches, never STOP → STOP
-  cityName: string       // Parent city name (used for redBus URLs)
-  cityId?: string        // City ID (for future use)
-  // Tourist destination fields
+  place_id: string
+  name: string
+  name_local?: string
+  type: 'CITY' | 'STOP' | 'TOURIST'
+  district: string
+  state: string
+  operator?: string
+  is_depot?: boolean
+  cityName: string
+  cityId?: string
   is_tourist?: boolean
-  destination_type?: string  // HILL_STATION, RELIGIOUS, HERITAGE, BEACH, RESORT
+  destination_type?: string
   description?: string
 }
 
 interface BusLocationAutocompleteProps {
-  value: string                    // Display text
-  selectedPlace: BusPlace | null   // STRICT: Selected place object with ID
+  value: string
+  selectedPlace: BusPlace | null
   onChange: (text: string, place: BusPlace | null) => void
   placeholder?: string
   label: string
   testId?: string
   disabled?: boolean
-  otherPlaceId?: string | null     // The other field's place_id (to prevent same selection)
+  otherPlaceId?: string | null
 }
 
 /**
- * Normalize API response to flat array
- * Handles: response.data, response.results, or raw array
+ * Transform raw API result to BusPlace
  */
-function normalizeApiResponse(data: any): any[] {
-  if (!data) return []
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data.results)) return data.results
-  if (Array.isArray(data.data)) return data.data
-  return []
-}
-
-/**
- * Convert raw API result to BusPlace format
- */
-function toBusPlace(r: any): BusPlace {
-  // For tourist destinations, use the destination name directly
+function transformToBusPlace(raw: unknown): BusPlace {
+  const r = raw as Record<string, any>
+  
   if (r.type === 'tourist_destination') {
     return {
       place_id: r.id || r.place_id || `tourist_${r.city}`,
-      name: r.label_en || r.name || r.city,
+      name: r.label_en || r.name || r.city || '',
       name_local: r.city_local || r.label || '',
-      type: 'TOURIST' as const,
+      type: 'TOURIST',
       district: r.city || r.district || '',
       state: r.state || 'Maharashtra',
       operator: undefined,
@@ -91,14 +74,14 @@ function toBusPlace(r: any): BusPlace {
     }
   }
   
-  // label_en format: "Karad Bus Stand" -> extract first part as name
   const labelEn = r.label_en || r.name || ''
   const stopName = labelEn 
-    ? labelEn.replace(/ Bus Stand$/i, '')
-             .replace(/ Depot$/i, '')
-             .replace(/ ST Stand$/i, '')
-             .replace(/ CBS$/i, '')
-             .trim()
+    ? labelEn
+        .replace(/ Bus Stand$/i, '')
+        .replace(/ Depot$/i, '')
+        .replace(/ ST Stand$/i, '')
+        .replace(/ CBS$/i, '')
+        .trim()
     : r.city || ''
   
   return {
@@ -126,20 +109,33 @@ export default function BusLocationAutocomplete({
   otherPlaceId = null,
 }: BusLocationAutocompleteProps) {
   const [query, setQuery] = useState(value)
-  const [suggestions, setSuggestions] = useState<BusPlace[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [requestCompleted, setRequestCompleted] = useState(false)
   
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  
-  // CRITICAL: Track latest query to prevent stale response overwrites
-  const latestQueryRef = useRef<string>('')
-  // AbortController for canceling in-flight requests
-  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Shared autocomplete hook
+  const {
+    state,
+    results: allResults,
+    isLoading,
+    search,
+    clear,
+    shouldShowNoResults,
+  } = useAutocomplete<BusPlace>({
+    endpoint: '/api/autocomplete/bus',
+    minQueryLength: 2,
+    debounceMs: 400,
+    limit: 15,
+    transform: transformToBusPlace,
+    extraParams: { mode: 'bus' },
+  })
+
+  // Filter out the other selected place
+  const suggestions = otherPlaceId 
+    ? allResults.filter(p => p.place_id !== otherPlaceId)
+    : allResults
 
   // Sync query with external value
   useEffect(() => {
@@ -150,144 +146,43 @@ export default function BusLocationAutocomplete({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
+        setShowDropdown(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  /**
-   * Fetch suggestions from backend API
-   * 
-   * CRITICAL FIX: 
-   * 1. Cancel previous request before starting new one
-   * 2. Track which query this response belongs to
-   * 3. Ignore stale responses that don't match latest query
-   */
-  const fetchSuggestions = useCallback(async (searchQuery: string) => {
-    // Update the latest query ref FIRST
-    latestQueryRef.current = searchQuery
-    
-    if (searchQuery.length < 2) {
-      setSuggestions([])
-      setRequestCompleted(true)
-      return
-    }
-
-    // Cancel any in-flight request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController()
-    const currentQuery = searchQuery // Capture for closure
-    
-    setIsLoading(true)
-    setRequestCompleted(false)
-    
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
-      const response = await fetch(
-        `${apiBase}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`,
-        { signal: abortControllerRef.current.signal }
-      )
-      
-      // CRITICAL: Check if this response is for the latest query
-      // If user typed more characters, ignore this stale response
-      if (currentQuery !== latestQueryRef.current) {
-        return // Stale response - ignore
-      }
-      
-      if (response.ok) {
-        const data = await response.json()
-        
-        // CRITICAL: Normalize response - handle data/results/array formats
-        const rawResults = normalizeApiResponse(data)
-        
-        // Convert to BusPlace format
-        const busPlaces: BusPlace[] = rawResults.map(toBusPlace)
-        
-        // Filter out the "other" place if it's already selected
-        const filteredPlaces = otherPlaceId 
-          ? busPlaces.filter(p => p.place_id !== otherPlaceId)
-          : busPlaces
-        
-        // Only update if this is still the latest query
-        if (currentQuery === latestQueryRef.current) {
-          setSuggestions(filteredPlaces)
-          setRequestCompleted(true)
-        }
-      } else {
-        if (currentQuery === latestQueryRef.current) {
-          setSuggestions([])
-          setRequestCompleted(true)
-        }
-      }
-    } catch (error) {
-      // Ignore abort errors - they're expected when canceling
-      if (error instanceof Error && error.name === 'AbortError') {
-        return
-      }
-      console.error('Bus autocomplete fetch error:', error)
-      if (currentQuery === latestQueryRef.current) {
-        setSuggestions([])
-        setRequestCompleted(true)
-      }
-    } finally {
-      // Only update loading state if this is the latest query
-      if (currentQuery === latestQueryRef.current) {
-        setIsLoading(false)
-      }
-    }
-  }, [otherPlaceId])
-
-  /**
-   * Handle input change
-   * 
-   * CRITICAL: When user types, we CLEAR the selectedPlace.
-   * User MUST re-select from dropdown to have a valid place.
-   */
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle input change
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setQuery(newValue)
     setSelectedIndex(-1)
-    setShowSuggestions(true)
-    setRequestCompleted(false) // Reset completion state when typing
+    setShowDropdown(true)
 
-    // CRITICAL: Clear selected place when user types
+    // Clear selection when user types
     if (selectedPlace) {
       onChange(newValue, null)
     }
 
-    // Debounce search
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current)
-    }
+    // Trigger search via hook
+    search(newValue)
+  }, [selectedPlace, onChange, search])
 
-    debounceTimer.current = setTimeout(() => {
-      fetchSuggestions(newValue)
-    }, 150)
-  }
-
-  /**
-   * Handle dropdown selection
-   * 
-   * CRITICAL: This is the ONLY way to set a valid place.
-   */
-  const handleSelectPlace = (place: BusPlace) => {
+  // Handle dropdown selection
+  const handleSelectPlace = useCallback((place: BusPlace) => {
     const displayValue = place.name_local 
       ? `${place.name} (${place.name_local})`
       : place.name
     
     setQuery(displayValue)
-    setShowSuggestions(false)
+    setShowDropdown(false)
     onChange(displayValue, place)
-  }
+  }, [onChange])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSuggestions || suggestions.length === 0) return
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDropdown || suggestions.length === 0) return
 
     switch (e.key) {
       case 'ArrowDown':
@@ -307,44 +202,30 @@ export default function BusLocationAutocomplete({
         }
         break
       case 'Escape':
-        setShowSuggestions(false)
+        setShowDropdown(false)
         break
     }
-  }
+  }, [showDropdown, suggestions, selectedIndex, handleSelectPlace])
 
-  const handleFocus = () => {
+  // Handle focus
+  const handleFocus = useCallback(() => {
     if (query.length >= 2) {
-      setShowSuggestions(true)
-      fetchSuggestions(query)
+      setShowDropdown(true)
+      search(query)
     }
-  }
+  }, [query, search])
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current)
-      }
-    }
-  }, [])
+    return () => clear()
+  }, [clear])
 
-  // Validation state
+  // Validation state (DECOUPLED from autocomplete)
   const isValid = selectedPlace !== null
-  const showValidationHint = query.length >= 2 && !selectedPlace && !showSuggestions
+  const showValidationHint = query.length >= 2 && !selectedPlace && !showDropdown
 
-  // CRITICAL: Only show "No cities found" when:
-  // 1. Query length >= 3 (not 2, to reduce false positives)
-  // 2. Request has completed (not in-flight)
-  // 3. Results array is empty
-  // 4. Dropdown should be shown
-  const showNoResults = showSuggestions && 
-    query.length >= 3 && 
-    requestCompleted && 
-    !isLoading && 
-    suggestions.length === 0
+  // Empty state check via hook
+  const showNoResults = showDropdown && shouldShowNoResults(query)
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -384,7 +265,7 @@ export default function BusLocationAutocomplete({
         )}
       </div>
 
-      {/* Validation hint */}
+      {/* Validation hint - DECOUPLED from autocomplete */}
       {showValidationHint && (
         <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
@@ -392,8 +273,8 @@ export default function BusLocationAutocomplete({
         </p>
       )}
 
-      {/* Suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {/* Suggestions dropdown - only show when HAS_RESULTS */}
+      {showDropdown && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto animate-dropdown-open">
           <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
             <span className="text-xs text-gray-600 font-medium">
@@ -469,7 +350,7 @@ export default function BusLocationAutocomplete({
         </div>
       )}
 
-      {/* No results - ONLY show when request completed and results empty */}
+      {/* No results - ONLY via state machine */}
       {showNoResults && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
           <div className="text-center text-gray-500 text-sm">
