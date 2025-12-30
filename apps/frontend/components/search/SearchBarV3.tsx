@@ -838,7 +838,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       </div>
 
       {/* Search Form - with tab content animation */}
-      <div className="p-6 animate-tab-content bg-white/90" key={searchType}>
+      <div className="p-6 animate-tab-content bg-white" key={searchType}>
         {searchType === 'flights' ? (
           <div className="space-y-4">
             <TripTypeSelector value={tripType} onChange={setTripType} />
