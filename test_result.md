@@ -345,7 +345,27 @@ test_priority: "high_first"
     - "Test GET /api/search/buses?origin=pune&destination=bangalore&departure_date=2025-12-30&passengers=1 - may have offers OR is_fallback=true (inter-state route)"
     - "Validate booking partners include redBus, MSRTC Official, AbhiBus, Paytm"
 
-## Current Focus: Bus and Train Autocomplete Filter Removal Fix Testing
+## Current Focus: Deep Link Verification Testing (P0 CRITICAL)
+
+- task: "Deep Link Verification Testing - Bus and Train Booking Partner URLs"
+  implemented: true
+  working: false
+  file: "/app/apps/frontend/components/results/BusCard.tsx, /app/apps/frontend/components/results/TrainCard.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: false
+      agent: "testing"
+      comment: "❌ CRITICAL DEEP LINK ISSUES IDENTIFIED (MIXED RESULTS): Comprehensive testing of deep link verification revealed critical browser navigation failures despite correct backend URL generation. BACKEND URL GENERATION (✅ WORKING): 1) Bus Deep Links: ✅ redBus: https://www.redbus.in/bus-tickets/pune-to-mumbai (contains route data), ✅ AbhiBus: https://www.abhibus.com/bus-tickets/pune-to-mumbai (contains route data), ✅ Paytm Bus: https://tickets.paytm.com/bus/pune-to-mumbai (contains route data), ⚠️ MSRTC Official: https://public.msrtcors.com/ticket/ (homepage, expected), 2) Train Deep Links: ✅ ixigo Trains: https://www.ixigo.com/search/result/train/mumbai/pune/2025-12-31 (contains route and date data), ✅ Paytm Trains: https://paytm.com/trains/mumbai-to-pune-train-tickets (contains route data), ⚠️ IRCTC: https://www.irctc.co.in/nget/train-search (search page, expected). CRITICAL BROWSER NAVIGATION FAILURES (❌ FAILING): 1) redBus Button: ❌ Opens chrome-error://chromewebdata/ instead of actual redBus URL, 2) IRCTC Button: ❌ Opens chrome-error://chromewebdata/ instead of IRCTC URL, 3) Some Paytm redirects timeout during navigation. SUCCESSFUL CASES: ✅ ixigo Trains: Successfully opens with correct URL and route data, ✅ AbhiBus: Successfully opens with correct URL and route data. ROOT CAUSE: Frontend redirect mechanism (window.open) failing for certain partner URLs despite correct URL generation in backend. URLs are properly formatted without placeholder variables, but browser navigation is blocked or failing. ACCEPTANCE CRITERIA STATUS: ✅ All deep links have actual route data (no {placeholder} variables), ❌ New tab opening inconsistent (some partners fail), ✅ Partner pages show pre-filled search when navigation succeeds, ❌ Some redirects fail completely. CRITICAL ISSUE: Browser navigation failures prevent users from reaching booking partners despite correct URL generation."
+  test_requirements:
+    - "Test Bus Deep Links: Navigate to /buses/results?origin=Pune&destination=Mumbai&departure_date=2025-12-31&passengers=1 - verify redBus, AbhiBus, Paytm buttons open new tabs with route data"
+    - "Test Train Deep Links: Navigate to /trains/results?origin=MUMBAI_ALL&destination=PUNE&departure_date=2025-12-31&passengers=1 - verify ixigo, Paytm, IRCTC buttons open new tabs"
+    - "Verify NO URLs contain {origin}, {destination}, {date} placeholders"
+    - "Verify new tab navigation works for all partners"
+    - "Verify original search results page remains open after redirect"
+
+## Previous Focus: Bus and Train Autocomplete Filter Removal Fix Testing
 
 - task: "Bus and Train Autocomplete Filter Removal Fix - Show ALL Results"
   implemented: true
