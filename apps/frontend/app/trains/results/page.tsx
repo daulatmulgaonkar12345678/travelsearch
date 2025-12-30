@@ -115,7 +115,7 @@ function TrainResultsContent() {
   useEffect(() => {
     const fetchTrains = async () => {
       if (!origin || !destination || !departureDate) {
-        setError('Missing search parameters')
+        setError('generic')
         setLoading(false)
         return
       }
@@ -134,12 +134,11 @@ function TrainResultsContent() {
         const response = await apiFetch(`/api/search/trains?${params}`)
         
         if (!response.ok) {
-          const errorData = await response.json()
-          // Handle structured error response
-          if (errorData.detail && typeof errorData.detail === 'object') {
-            throw new Error(errorData.detail.message || 'Failed to search trains')
-          }
-          throw new Error(errorData.detail || 'Failed to search trains')
+          // Log for developers, show friendly error to users
+          const errorData = await response.json().catch(() => ({}))
+          console.error('[TrainSearch] API Error:', response.status, errorData)
+          setError(getErrorType(response.status))
+          return
         }
         
         const rawData = await response.json()
@@ -177,7 +176,8 @@ function TrainResultsContent() {
         }
         
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        console.error('[TrainSearch] Fetch error:', err)
+        setError(getErrorType(undefined, err instanceof Error ? err : undefined))
       } finally {
         setLoading(false)
       }
