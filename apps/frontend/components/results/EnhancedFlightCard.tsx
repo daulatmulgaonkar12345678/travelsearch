@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Plane,
-  ChevronDown,
-  ChevronUp,
   ExternalLink,
   Briefcase,
   UtensilsCrossed,
@@ -14,10 +12,8 @@ import {
   Clock,
 } from 'lucide-react'
 import { FlightOffer, Segment } from './ResultCard'
-import { logAffiliateClick } from '@/lib/affiliate'
 import { formatDuration } from '@/lib/formatters'
 import PriceDisplay from '@/components/ui/PriceDisplay'
-import { BookingRedirectMicrocopy } from '@/components/trust/Microcopy'
 
 // Common airline codes to full names mapping
 const AIRLINE_NAMES: Record<string, string> = {
