@@ -1,40 +1,35 @@
 /**
  * Centralized API Configuration
  * 
- * Single source of truth for API base URL across the application.
+ * ARCHITECTURE RULE (MANDATORY):
+ * - Browser MUST NEVER call backend directly
+ * - All API calls use relative URLs (/api/...)
+ * - Next.js API routes proxy to backend
+ * 
+ * This ensures:
+ * - No CORS errors
+ * - Works on localhost, Vercel preview, production
+ * - No environment-specific failures
  * 
  * Usage:
- * - Import { getApiBase, apiFetch, apiUrl } from '@/lib/api'
+ * - Import { apiFetch } from '@/lib/api'
  * - Use apiFetch('/api/search/flights', options) for all API calls
- * 
- * Environment:
- * - Local: Empty NEXT_PUBLIC_API_BASE uses Next.js rewrites (localhost:8001)
- * - Production: NEXT_PUBLIC_API_BASE = https://travelsearch-backend.onrender.com
  */
 
 /**
- * Get the API base URL
- * - Returns empty string for local development (uses Next.js rewrites)
- * - Returns production URL in deployed environment
- */
-export function getApiBase(): string {
-  return process.env.NEXT_PUBLIC_API_BASE || ''
-}
-
-// Alias for backward compatibility
-export const getApiBaseUrl = getApiBase
-
-/**
- * Build a full API URL
+ * Build API URL - ALWAYS returns relative path
+ * Browser calls /api/* which Next.js proxies to backend
  */
 export function buildApiUrl(path: string): string {
-  const base = getApiBase()
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  return `${base}${normalizedPath}`
+  // ALWAYS return relative URL - never prepend external domain
+  return normalizedPath
 }
 
-// Alias for backward compatibility
+// Backward compatibility aliases
+export const getApiBase = () => ''
+export const getApiBaseUrl = getApiBase
 export const apiUrl = buildApiUrl
 
 /**
@@ -69,7 +64,7 @@ export async function apiFetch(
  * Type-safe fetch that parses JSON and throws on error
  * Use this for simple cases where you just want the data
  */
-export async function apiGet<T = any>(path: string): Promise<T> {
+export async function apiGet<T = unknown>(path: string): Promise<T> {
   const response = await apiFetch(path)
   
   if (!response.ok) {
@@ -81,9 +76,9 @@ export async function apiGet<T = any>(path: string): Promise<T> {
 }
 
 /**
- * Autocomplete-specific fetch with timeout and fallback
+ * Autocomplete-specific fetch with timeout
  */
-export async function autocompleteSearch<T = any>(
+export async function autocompleteSearch<T = unknown>(
   endpoint: string,
   query: string,
   options: {
@@ -101,7 +96,8 @@ export async function autocompleteSearch<T = any>(
   const params = new URLSearchParams({ q: query, limit: String(limit) })
   if (mode) params.set('mode', mode)
   
-  const url = buildApiUrl(`${endpoint}?${params.toString()}`)
+  // Always use relative URL
+  const url = `${endpoint}?${params.toString()}`
   
   try {
     const controller = new AbortController()
