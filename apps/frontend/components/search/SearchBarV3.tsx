@@ -831,7 +831,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 {multiCitySegments.map((segment, index) => (
                   <div key={segment.id} className="border border-gray-200 rounded-xl p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-gray-700">Flight {index + 1}</span>
+                      <span className="text-sm font-medium text-[#374151]">Flight {index + 1}</span>
                       {multiCitySegments.length > 2 && (
                         <button
                           type="button"
@@ -858,7 +858,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         testId={`destination-${index}`}
                       />
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <label className="block text-sm font-medium text-[#374151] mb-2">Date</label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                           <input
@@ -908,7 +908,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       />
                       <label 
                         htmlFor="nearby-origin" 
-                        className={`text-sm select-none ${!origin ? 'text-[#9CA3AF]' : 'text-gray-700 cursor-pointer'}`}
+                        className={`text-sm select-none ${!origin ? 'text-[#9CA3AF]' : 'text-[#374151] cursor-pointer'}`}
                       >
                         Add nearby airports (within 250 km)
                       </label>
@@ -939,7 +939,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       />
                       <label 
                         htmlFor="nearby-destination" 
-                        className={`text-sm select-none ${!destination ? 'text-[#9CA3AF]' : 'text-gray-700 cursor-pointer'}`}
+                        className={`text-sm select-none ${!destination ? 'text-[#9CA3AF]' : 'text-[#374151] cursor-pointer'}`}
                       >
                         Add nearby airports (within 250 km)
                       </label>
@@ -949,7 +949,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Departure</label>
+                    <label className="block text-sm font-medium text-[#374151] mb-2">Departure</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                       <input
@@ -963,7 +963,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-[#374151] mb-2">
                       Return {tripType === 'oneway' && '(N/A)'}
                     </label>
                     <div className="relative">
@@ -984,7 +984,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+              <label className="block text-sm font-medium text-[#374151] mb-2">Passengers</label>
               <button
                 data-testid="passenger-selector"
                 onClick={() => setShowPassengerModal(true)}
@@ -1021,7 +1021,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Date</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <input
@@ -1035,7 +1035,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Class (Optional)</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Class (Optional)</label>
                 <select
                   data-testid="train-class"
                   value={trainClass}
@@ -1051,7 +1051,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Passengers</label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <select
@@ -1118,7 +1118,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Date</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <input
@@ -1132,7 +1132,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Bus Type</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Bus Type</label>
                 <select
                   data-testid="bus-type"
                   value={busType}
@@ -1146,7 +1146,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Passengers</label>
                 <div className="relative">
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <select
@@ -1192,7 +1192,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 }}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rooms & Guests</label>
+                <label className="block text-sm font-medium text-[#374151] mb-2">Rooms & Guests</label>
                 <button
                   data-testid="room-selector"
                   onClick={() => setShowRoomModal(true)}
