@@ -296,7 +296,7 @@ function TrainResultsContent() {
     }), { min: Infinity, max: 0 }) || { min: 0, max: 10000 }
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FAF9F6]">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
