@@ -360,8 +360,31 @@ class AmadeusHotelsAdapter:
                     if deadline:
                         cancellation_policy = f"Free cancellation until {deadline}"
                 
-                # Use Travelpayouts deep link (NOT Amadeus direct URL)
-                # This ensures proper affiliate tracking and working redirects
+                # CRITICAL: Generate HOTEL-SPECIFIC deep link
+                # Each hotel card MUST have a unique URL to enable actual booking
+                hotel_deep_link = generate_hotel_specific_deep_link(
+                    hotel_name=hotel_name,
+                    city=request.city,
+                    check_in=request.check_in,
+                    check_out=request.check_out,
+                    adults=2,
+                    rooms=len(request.rooms) if request.rooms else 1,
+                    hotel_id=hotel_id,
+                    provider="amadeus"
+                )
+                
+                # Generate hotel-specific booking partners
+                hotel_booking_partners = generate_hotel_specific_booking_partners(
+                    hotel_name=hotel_name,
+                    city=request.city,
+                    check_in=request.check_in,
+                    check_out=request.check_out,
+                    adults=2,
+                    rooms=len(request.rooms) if request.rooms else 1,
+                    hotel_id=hotel_id,
+                    provider="amadeus"
+                )
+                
                 normalized.append(HotelOffer(
                     offer_id=f"AMADEUS-{hotel_id}-{best_offer.get('id')}",
                     provider="amadeus",
@@ -378,8 +401,8 @@ class AmadeusHotelsAdapter:
                     room_type=room_type,
                     cancellation_policy=cancellation_policy,
                     images=[],  # Amadeus requires separate API call for images
-                    deep_link=travelpayouts_url,  # Use Travelpayouts redirect
-                    booking_partners=booking_partners  # Multiple booking options
+                    deep_link=hotel_deep_link["url"],  # HOTEL-SPECIFIC URL
+                    booking_partners=hotel_booking_partners  # HOTEL-SPECIFIC partners
                 ))
                 
             except Exception as e:
