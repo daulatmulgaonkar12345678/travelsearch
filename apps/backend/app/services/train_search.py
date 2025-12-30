@@ -371,16 +371,12 @@ def create_fallback_offers(
     
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
     
-    booking_partners = [
-        {
-            "name": partner["name"],
-            "url": partner["url_template"],
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-            "description": partner["description"],
-        }
-        for partner in TRAIN_BOOKING_PARTNERS
-    ]
+    # Generate properly populated booking partner URLs
+    booking_partners = generate_train_booking_partners(
+        from_station=origin,
+        to_station=destination,
+        departure_date=departure_date,
+    )
     
     estimated_sl = calculate_average_fare(distance_km, "SL")
     estimated_3a = calculate_average_fare(distance_km, "3A")
