@@ -32,6 +32,8 @@ export interface BusPlace {
   state: string
   operator?: string
   is_depot?: boolean
+  /** For UI styling only - makes item appear faded if false. NEVER filter by this. */
+  is_search_surface?: boolean
   cityName: string
   cityId?: string
   is_tourist?: boolean
