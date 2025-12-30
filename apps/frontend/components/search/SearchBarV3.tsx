@@ -876,7 +876,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 <button
                   type="button"
                   onClick={addMultiCitySegment}
-                  className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#5F8D7E] hover:text-blue-600 transition-colors"
+                  className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#5F8D7E] hover:text-[#5F8D7E] transition-colors"
                 >
                   + Add Another Flight
                 </button>
