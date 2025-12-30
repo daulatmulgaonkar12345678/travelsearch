@@ -745,6 +745,33 @@ function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string {
 }
 
 /**
+ * Ixigo Trains Deep Link (station codes) - PRIMARY
+ * Format: https://www.ixigo.com/search/result/train/...
+ */
+function buildIxigoTrainsUrl(params: TrainDeepLinkParams): string {
+  const { fromStation, toStation, date } = params
+  
+  const fromEncoded = encodeURIComponent(fromStation)
+  const toEncoded = encodeURIComponent(toStation)
+  const dateFormatted = formatDDMMYYYY(date)
+  
+  return `https://www.ixigo.com/search/result/train/${fromEncoded}/${toEncoded}/${dateFormatted}`
+}
+
+/**
+ * Goibibo Trains Deep Link (city names)
+ * Format: https://www.goibibo.com/trains/...
+ */
+function buildGoibiboTrainsUrl(params: TrainDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const fromEncoded = encodeURIComponent(fromCity)
+  const toEncoded = encodeURIComponent(toCity)
+  
+  return `https://www.goibibo.com/trains/search/?src=${fromEncoded}&dest=${toEncoded}&dt=${date}`
+}
+
+/**
  * Build train deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
  */
@@ -756,14 +783,18 @@ export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams
   
   let url: string
   switch (vendorId) {
-    case 'paytm_trains':
-      url = buildPaytmTrainsUrl(params)
+    case 'ixigo_trains':
+      url = buildIxigoTrainsUrl(params)
       break
     case 'makemytrip_railways':
       url = buildMakeMyTripRailwaysUrl(params)
       break
+    case 'goibibo_trains':
+      url = buildGoibiboTrainsUrl(params)
+      break
     default:
-      url = buildPaytmTrainsUrl(params)
+      // Ixigo is PRIMARY for trains
+      url = buildIxigoTrainsUrl(params)
   }
   
   return { url, error: null }
