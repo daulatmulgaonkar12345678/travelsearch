@@ -392,11 +392,11 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Vendor Dropdown for Buses & Trains testing completed successfully - all 5 critical test scenarios passed"
-  - "Bus vendors page shows ONLY bus vendors (redBus, Paytm Bus) with zero cross-service contamination"
-  - "Train vendors page shows ONLY train vendors (Paytm Trains, MakeMyTrip Railways) with zero cross-service contamination"
-  - "Book Now button navigation, vendor selection, and missing parameters handling all working correctly"
-  - "Vendor dropdown implementation is production-ready and fully functional"
+  - "Vendor & UX Overhaul - ModifySearchButton Integration testing completed"
+  - "All vendor pages use centralized getVendorsForService() function"
+  - "ModifySearchButton component integrated on all vendor pages"
+  - "Vendor ecosystem updated with new vendor lists and primary vendors"
+  - "CTA labels aligned with service capabilities"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
