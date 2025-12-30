@@ -188,8 +188,14 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                        busOriginPlace !== null && busDestinationPlace !== null
   const busSearchEnabled = busOriginValid && busDestinationValid && !busSamePlace
 
-  // Synchronize dates between all modes
+  // Track if we're in modify mode - prevents date sync from overwriting hydrated values
+  const [isHydrating, setIsHydrating] = useState(false)
+
+  // Synchronize dates between all modes (skip during hydration)
   useEffect(() => {
+    // Skip date sync when we're hydrating from modify search
+    if (isHydrating) return
+    
     // When switching modes, sync dates (but not from/to - those are mode-specific)
     if (searchType === 'flights') {
       setCheckIn(departureDate)
