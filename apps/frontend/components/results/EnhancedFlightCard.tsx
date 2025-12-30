@@ -128,67 +128,30 @@ export default function EnhancedFlightCard({
       hour12: false,
     })
 
-  const handleVendorClick = async (vendorId: string) => {
-    if (vendorId !== 'aviasales') {
-      alert(`${vendorId} integration coming soon`)
-      return
+  const handleVendorClick = () => {
+    // Navigate to vendors page - user selects vendor there
+    // No automatic redirects, no background calls to vendor domains
+    const params = new URLSearchParams({
+      origin: firstSegment.departure_airport,
+      destination: lastSegment.arrival_airport,
+      departure_date: firstSegment.departure_time.split('T')[0],
+      adults: searchParams?.get('adults') || '1',
+      children: searchParams?.get('children') || '0',
+      infants: searchParams?.get('infants') || '0',
+      price: offer.price.toString(),
+      currency: offer.currency || 'INR',
+      airline: firstSegment.airline || '',
+      flight_number: firstSegment.flight_number || '',
+      departure_time: formatTime(firstSegment.departure_time),
+      arrival_time: formatTime(lastSegment.arrival_time),
+      stops: (offer.segments.length - 1).toString(),
+    })
+    
+    if (searchParams?.get('return_date')) {
+      params.set('return_date', searchParams.get('return_date')!)
     }
-
-    try {
-      setRedirecting(vendorId)
-
-      // PRIORITY: Use deeplink from API response if available (contains affiliate marker)
-      // This is the correct approach for real-time pricing data
-      let finalUrl = offer.deeplink || offer.booking_url
-      
-      // Fallback: Build URL manually only if API didn't provide deeplink
-      if (!finalUrl) {
-        finalUrl = buildAviasalesFlightUrl({
-          origin: firstSegment.departure_airport,
-          destination: lastSegment.arrival_airport,
-          departDate: firstSegment.departure_time.split('T')[0],
-          returnDate: searchParams?.get('return_date') || undefined,
-          adults: parseInt(searchParams?.get('adults') || '1'),
-          children: parseInt(searchParams?.get('children') || '0'),
-          infants: parseInt(searchParams?.get('infants') || '0'),
-        })
-      }
-
-      logAffiliateClick(
-        'aviasales',
-        `${firstSegment.departure_airport}-${lastSegment.arrival_airport}`,
-        offer.offer_id,
-        offer.price
-      ).catch(() => {})
-
-      setRedirectUrl(finalUrl)
-      setShowRedirectScreen(true)
-    } catch {
-      setRedirecting(null)
-      alert('Redirect failed')
-    }
-  }
-
-  const selectedVendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
-
-  if (showRedirectScreen && selectedVendor) {
-    return (
-      <RedirectScreen
-        vendor={{
-          name: selectedVendor.name,
-          logo: selectedVendor.logo,
-        }}
-        redirectUrl={redirectUrl}
-        type="flight"
-        contextInfo={{
-          route: `${firstSegment.departure_airport} → ${lastSegment.arrival_airport}`,
-        }}
-        onRedirectComplete={() => {
-          setShowRedirectScreen(false)
-          setRedirecting(null)
-        }}
-      />
-    )
+    
+    router.push(`/flights/vendors?${params.toString()}`)
   }
 
   return (
