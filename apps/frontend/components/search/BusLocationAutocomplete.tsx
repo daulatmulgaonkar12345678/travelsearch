@@ -299,7 +299,12 @@ export default function BusLocationAutocomplete({
               Select a bus stop or city
             </span>
           </div>
-          {suggestions.map((place, index) => (
+          {suggestions.map((place, index) => {
+            // is_search_surface is for UI styling only (faded vs prominent)
+            // NEVER filter/hide results based on this value
+            const isFaded = place.is_search_surface === false
+            
+            return (
             <button
               key={place.place_id}
               type="button"
@@ -308,7 +313,7 @@ export default function BusLocationAutocomplete({
                 index === selectedIndex 
                   ? 'bg-orange-50 ring-2 ring-inset ring-orange-500' 
                   : 'hover:bg-orange-50'
-              }`}
+              } ${isFaded ? 'opacity-75' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -334,14 +339,14 @@ export default function BusLocationAutocomplete({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate flex items-center gap-2">
+                  <div className={`font-medium truncate flex items-center gap-2 ${isFaded ? 'text-gray-600' : 'text-gray-900'}`}>
                     {place.name}
                     {place.type === 'TOURIST' && (
                       <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
                         {place.destination_type?.replace('_', ' ').toLowerCase()}
                       </span>
                     )}
-                    {place.is_depot && (
+                    {place.is_depot && place.type === 'STOP' && (
                       <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">
                         Depot
                       </span>
