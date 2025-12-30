@@ -876,7 +876,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 <button
                   type="button"
                   onClick={addMultiCitySegment}
-                  className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                  className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#5F8D7E] hover:text-blue-600 transition-colors"
                 >
                   + Add Another Flight
                 </button>
@@ -988,7 +988,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <button
                 data-testid="passenger-selector"
                 onClick={() => setShowPassengerModal(true)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
               >
                 <div className="flex items-center space-x-2">
                   <Users className="h-5 w-5 text-gray-400" />
@@ -1196,7 +1196,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 <button
                   data-testid="room-selector"
                   onClick={() => setShowRoomModal(true)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                 >
                   <div className="flex items-center space-x-2">
                     <Users className="h-5 w-5 text-gray-400" />
