@@ -1,23 +1,28 @@
 /**
  * Affiliate Link Builder
  * 
- * CRITICAL: All booking redirects MUST use the Travelpayouts redirect gateway.
+ * CRITICAL: Flights and Hotels use SEPARATE redirect gateways.
  * 
- * ❌ NEVER use: aviasales.com/search/* (causes CORS errors from auth.avs.io)
- * ✅ ALWAYS use: aviasales.tpx.lt/eqOxwsZu (handles JWT internally, no CORS)
+ * ❌ NEVER use: aviasales.com, aviasales.in (causes CORS errors)
+ * ✅ Flights: aviasales.tpx.lt/eqOxwsZu
+ * ✅ Hotels: hotellook.tpx.lt/eqOxwsZu (SEPARATE gateway for hotels)
  * 
- * This module builds affiliate URLs directly on the frontend for immediate redirects.
- * No backend dependency - ensures fast, reliable redirects to partner sites.
+ * If hotel context is missing, fallback to hotel search page (NOT flights).
  */
 
 /**
  * Travelpayouts Configuration
  * 
- * MANDATORY: Use ONLY the redirect gateway URL for all bookings.
+ * SEPARATE gateways for each product type to prevent cross-redirects.
  */
 const TRAVELPAYOUTS_CONFIG = {
-  // REQUIRED: Travelpayouts redirect gateway (handles auth internally)
-  redirectGateway: 'https://aviasales.tpx.lt/eqOxwsZu',
+  // Flight redirect gateway
+  flightGateway: 'https://aviasales.tpx.lt/eqOxwsZu',
+  
+  // Hotel redirect gateway (SEPARATE from flights)
+  hotelGateway: 'https://hotellook.tpx.lt/eqOxwsZu',
+  
+  // Affiliate marker
   marker: '689331',
 }
 
@@ -41,13 +46,12 @@ export interface HotelSearchParams {
 }
 
 /**
- * Build Aviasales flight affiliate URL
+ * Build flight affiliate URL
  * 
- * CRITICAL: Uses ONLY the Travelpayouts redirect gateway.
- * NEVER uses aviasales.com directly (causes CORS errors).
+ * Uses aviasales.tpx.lt gateway (flights only).
  * 
  * @param params Flight search parameters
- * @returns Travelpayouts redirect URL with all flight parameters
+ * @returns Travelpayouts flight redirect URL
  */
 export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
   const {
@@ -60,8 +64,8 @@ export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
     infants = 0,
   } = params
 
-  // Build URL with Travelpayouts redirect gateway
-  const url = new URL(TRAVELPAYOUTS_CONFIG.redirectGateway)
+  // Use FLIGHT gateway (aviasales.tpx.lt)
+  const url = new URL(TRAVELPAYOUTS_CONFIG.flightGateway)
   
   // Flight parameters
   url.searchParams.set('origin_iata', origin.toUpperCase())
@@ -94,13 +98,20 @@ export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
  * 
  * Strategy:
  * 1. If hotelName provided → Use Booking.com with hotel-specific search
- * 2. If only city → Use Travelpayouts city-level hotel search
+ * 2. If only city → Use Hotellook gateway (NOT Aviasales)
+ * 3. NEVER redirect to flights when hotel context is missing
  * 
  * @param params Hotel search parameters
- * @returns Booking URL (hotel-specific) or Travelpayouts URL (city-level)
+ * @returns Hotel redirect URL (Booking.com or Hotellook)
  */
 export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
   const { city, checkIn, checkOut, adults = 2, hotelName, hotelId } = params
+
+  // Validate required hotel parameters
+  if (!city || !checkIn || !checkOut) {
+    // Fallback to Hotellook search page (NOT flights)
+    return `${TRAVELPAYOUTS_CONFIG.hotelGateway}`
+  }
 
   // If hotel name provided, use Booking.com for hotel-specific search
   if (hotelName) {
@@ -110,9 +121,11 @@ export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
     return `https://www.booking.com/searchresults.html?ss=${hotelNameEncoded}%2C+${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&group_adults=${adults}&no_rooms=1`
   }
 
-  // Fallback: City-level search via Travelpayouts
-  const url = new URL(TRAVELPAYOUTS_CONFIG.redirectGateway)
-  url.searchParams.set('type', 'hotel')
+  // City-level search: Use HOTEL gateway (hotellook.tpx.lt)
+  // This ensures we stay on hotel search, never redirect to flights
+  const url = new URL(TRAVELPAYOUTS_CONFIG.hotelGateway)
+  
+  // Format dates for Hotellook (YYYY-MM-DD)
   url.searchParams.set('destination', city)
   url.searchParams.set('checkIn', checkIn)
   url.searchParams.set('checkOut', checkOut)
@@ -125,14 +138,14 @@ export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
  * Build hotel-specific affiliate URL
  * 
  * Uses Booking.com with hotel name search for precise hotel targeting.
- * Falls back to city-level search if hotel name not provided.
+ * Falls back to Hotellook city search if hotel name not provided.
  * 
  * @param hotelName Hotel name
  * @param city City name
  * @param checkIn Check-in date (YYYY-MM-DD)
  * @param checkOut Check-out date (YYYY-MM-DD)
  * @param adults Number of adults
- * @returns Hotel-specific Booking.com URL
+ * @returns Hotel-specific Booking.com URL or Hotellook fallback
  */
 export function buildHotelSpecificUrl(
   hotelName: string,
@@ -142,7 +155,7 @@ export function buildHotelSpecificUrl(
   adults: number = 2
 ): string {
   if (!hotelName) {
-    // Fallback to city-level
+    // Fallback to Hotellook city search (NOT flights)
     return buildAviasalesHotelUrl({ city, checkIn, checkOut, adults })
   }
 
