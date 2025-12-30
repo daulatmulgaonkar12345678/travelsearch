@@ -411,19 +411,37 @@ export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkPara
 
 // ============================================================
 // BUS DEEP LINKS
+// Uses: City names only (no vendor-specific IDs)
 // ============================================================
 
 export interface BusDeepLinkParams {
-  fromCity: string
-  toCity: string
-  date: string // YYYY-MM-DD
+  fromCity: string  // City name (e.g., "Pune", "Mumbai")
+  toCity: string    // City name
+  date: string      // YYYY-MM-DD
 }
 
 /**
- * redBus Deep Link
- * Format: https://www.redbus.in/search?fromCityName=...
+ * Validate bus deep link parameters
+ * Returns error message if validation fails, null if valid
  */
-export function buildRedBusUrl(params: BusDeepLinkParams): string {
+export function validateBusParams(params: BusDeepLinkParams): string | null {
+  if (!isValidString(params.fromCity)) {
+    return 'Origin city is required'
+  }
+  if (!isValidString(params.toCity)) {
+    return 'Destination city is required'
+  }
+  if (!isValidDate(params.date)) {
+    return 'Valid travel date is required (YYYY-MM-DD)'
+  }
+  return null
+}
+
+/**
+ * redBus Deep Link (city names, vendor resolves IDs)
+ * Format: https://www.redbus.in/search?fromCityName=Pune&toCityName=Mumbai...
+ */
+function buildRedBusUrl(params: BusDeepLinkParams): string {
   const { fromCity, toCity, date } = params
   
   const dateFormatted = formatDDMMMYYYY(date)
@@ -434,10 +452,10 @@ export function buildRedBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
- * Paytm Bus Deep Link
- * Format: https://tickets.paytm.com/bus/search?source=...
+ * Paytm Bus Deep Link (city names)
+ * Format: https://tickets.paytm.com/bus/search?source=Pune&destination=Mumbai...
  */
-export function buildPaytmBusUrl(params: BusDeepLinkParams): string {
+function buildPaytmBusUrl(params: BusDeepLinkParams): string {
   const { fromCity, toCity, date } = params
   
   const fromEncoded = encodeURIComponent(fromCity)
@@ -447,35 +465,46 @@ export function buildPaytmBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
- * MakeMyTrip Bus Deep Link
- * Format: https://www.makemytrip.com/bus-tickets/...
+ * MakeMyTrip Bus Deep Link (city name slugs)
+ * Format: https://www.makemytrip.com/bus-tickets/pune-mumbai-bus.html?departDate=...
  */
-export function buildMakeMyTripBusUrl(params: BusDeepLinkParams): string {
+function buildMakeMyTripBusUrl(params: BusDeepLinkParams): string {
   const { fromCity, toCity, date } = params
   
-  // MMT Bus format: city names as slugs
-  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-')
-  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-')
+  // MMT Bus format: city names as URL-safe slugs
+  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   const dateFormatted = formatDDMMYYYY(date)
   
   return `https://www.makemytrip.com/bus-tickets/${fromSlug}-${toSlug}-bus.html?departDate=${dateFormatted}`
 }
 
 /**
- * Build bus deep link for any vendor
- * NOTE: Form-fill search only - no direct seat or payment redirects
+ * Build bus deep link with validation
+ * Returns null if parameters are invalid - BLOCKS redirect
  */
-export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): string {
+export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): DeepLinkResult {
+  const validationError = validateBusParams(params)
+  if (validationError) {
+    return { url: null, error: validationError }
+  }
+  
+  let url: string
   switch (vendorId) {
     case 'redbus':
-      return buildRedBusUrl(params)
+      url = buildRedBusUrl(params)
+      break
     case 'paytm_bus':
-      return buildPaytmBusUrl(params)
+      url = buildPaytmBusUrl(params)
+      break
     case 'makemytrip_bus':
-      return buildMakeMyTripBusUrl(params)
+      url = buildMakeMyTripBusUrl(params)
+      break
     default:
-      return buildRedBusUrl(params)
+      url = buildRedBusUrl(params)
   }
+  
+  return { url, error: null }
 }
 
 // ============================================================
