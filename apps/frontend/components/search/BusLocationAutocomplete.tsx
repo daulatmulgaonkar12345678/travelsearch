@@ -53,6 +53,13 @@ interface BusLocationAutocompleteProps {
 /**
  * Transform raw API result to BusPlace
  */
+/**
+ * Transform raw API result to BusPlace
+ * 
+ * CRITICAL: Do NOT filter by is_search_surface here.
+ * All valid results must be included. is_search_surface is only
+ * used for UI styling (faded appearance for non-primary stops).
+ */
 function transformToBusPlace(raw: unknown): BusPlace {
   const r = raw as Record<string, any>
   
@@ -66,6 +73,8 @@ function transformToBusPlace(raw: unknown): BusPlace {
       state: r.state || 'Maharashtra',
       operator: undefined,
       is_depot: false,
+      // is_search_surface is for UI styling only (faded vs prominent)
+      is_search_surface: r.is_search_surface !== false,
       cityName: r.cityName || r.city || '',
       cityId: r.cityId,
       is_tourist: true,
@@ -84,6 +93,11 @@ function transformToBusPlace(raw: unknown): BusPlace {
         .trim()
     : r.city || ''
   
+  // Determine if this is a depot/main stand (is_depot) - separate from is_search_surface
+  // is_depot: true means it's a main bus depot/stand (show "Depot" badge)
+  // is_search_surface: for UI styling only (prominent vs faded)
+  const isDepot = r.is_depot === true || (r.type === 'bus_stop' && r.stop_role === 'DEPOT')
+  
   return {
     place_id: r.id || r.place_id || `place_${stopName}`,
     name: stopName,
@@ -92,7 +106,9 @@ function transformToBusPlace(raw: unknown): BusPlace {
     district: r.city || r.district || '',
     state: r.state || 'Maharashtra',
     operator: r.operator || undefined,
-    is_depot: r.is_search_surface || r.is_depot || false,
+    is_depot: isDepot,
+    // is_search_surface is for UI styling only - NOT for filtering
+    is_search_surface: r.is_search_surface !== false,
     cityName: r.cityName || r.city || '',
     cityId: r.cityId,
   }
