@@ -235,9 +235,13 @@ function FlightVendorsContent() {
             )}
           </button>
 
-          <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll be redirected to the partner website to complete your booking.
-          </p>
+          {/* Pricing Disclaimer */}
+          <div className="flex items-start gap-2 mt-4 p-3 bg-[#F9F7F4] rounded-lg">
+            <AlertCircle className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-[#6B6B6B]">
+              Final price is shown on partner website. Prices may vary based on availability and booking time.
+            </p>
+          </div>
         </div>
       </div>
     </div>
