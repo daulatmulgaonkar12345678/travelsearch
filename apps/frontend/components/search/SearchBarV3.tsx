@@ -1284,19 +1284,30 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   handleHotelSearch
                 }
                 disabled={isDisabled}
-                className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg ${
+                className={`w-full mt-6 font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg ${
                   isDisabled
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : searchType === 'buses' 
-                      ? 'bg-orange-600 hover:bg-orange-700 text-white hover:shadow-xl'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-xl'
+                    ? 'bg-[#D1D5DB] text-[#6B7280] cursor-not-allowed'
+                    : 'text-white hover:shadow-xl'
                 }`}
+                style={!isDisabled ? {
+                  backgroundColor: currentColors.accent,
+                } : {}}
+                onMouseEnter={(e) => {
+                  if (!isDisabled) {
+                    e.currentTarget.style.backgroundColor = currentColors.accentHover
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDisabled) {
+                    e.currentTarget.style.backgroundColor = currentColors.accent
+                  }
+                }}
                 title={disabledReason || undefined}
               >
                 Search {searchType === 'flights' ? 'Flights' : searchType === 'trains' ? 'Trains' : searchType === 'buses' ? 'Buses' : 'Hotels'}
               </button>
               {isDisabled && disabledReason && (
-                <p className="text-center text-xs text-gray-500 mt-2">{disabledReason}</p>
+                <p className="text-center text-xs text-[#6B7280] mt-2">{disabledReason}</p>
               )}
             </div>
           )
