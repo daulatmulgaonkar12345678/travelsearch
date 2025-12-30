@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
     console.error('Bus autocomplete proxy error:', error)
     
     // Return fallback filtered results
+    // NOTE: All results are returned regardless of is_search_surface
     const queryLower = q.toLowerCase()
     const filtered = FALLBACK_BUS_DATA
       .filter(item => 
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
         state: item.state,
         cityName: item.city,
         cityId: item.id,
-        is_search_surface: true,
+        is_search_surface: item.is_search_surface, // Pass through for UI styling
       }))
 
     return NextResponse.json({
