@@ -652,3 +652,28 @@ test_priority: "high_first"
     - "Verify NO raw errors (404, 500) shown to users"
     - "Verify No Results state shows 'No buses/trains available' with Change Date button"
     - "Verify error state shows 'Something went wrong' or 'Service unavailable'"
+
+## Current Focus: Mobile UI/UX Polish & Service Theming
+
+- task: "Mobile-First UI Polish & Context-Aware Service Theming"
+  implemented: true
+  working: "pending"
+  files: 
+    - "/app/apps/frontend/lib/theme.ts"
+    - "/app/apps/frontend/app/globals.css"
+    - "/app/apps/frontend/components/layout/Navigation.tsx"
+    - "/app/apps/frontend/components/results/BusCard.tsx"
+    - "/app/apps/frontend/components/results/TrainCard.tsx"
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented comprehensive UI/UX overhaul: 1) Created theme.ts with service-specific accent colors, 2) Updated globals.css with eye-friendly color system, 3) Refactored Navigation with correct tab order and context-aware theming, 4) Mobile-optimized BusCard and TrainCard with stacked layouts and large tap targets"
+  test_requirements:
+    - "Verify mobile bus results page - cards fit viewport, no horizontal scroll"
+    - "Verify mobile train results page - cards fit viewport, readable text"
+    - "Verify desktop layouts unchanged - no regressions"
+    - "Verify tab order: Flights → Buses → Trains → Hotels everywhere"
+    - "Verify service theming: Each service has unique accent color"
+    - "Verify warm background colors (no pure white/blue)"
