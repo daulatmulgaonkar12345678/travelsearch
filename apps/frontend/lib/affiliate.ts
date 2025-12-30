@@ -174,15 +174,18 @@ export const VENDORS: Record<string, Vendor> = {
 
 /**
  * Get vendors available for a specific service
- * Returns vendors sorted with primary vendor first
+ * Returns vendors sorted by priority (primary first, then by priority number)
  */
 export function getVendorsForService(service: ServiceType): Vendor[] {
   const vendors = Object.values(VENDORS).filter(v => v.services.includes(service))
-  // Sort with primary vendor first
   return vendors.sort((a, b) => {
+    // Primary vendor always first
     if (a.isPrimary && !b.isPrimary) return -1
     if (!a.isPrimary && b.isPrimary) return 1
-    return 0
+    // Then sort by priority number (lower = higher priority)
+    const priorityA = a.priority ?? 999
+    const priorityB = b.priority ?? 999
+    return priorityA - priorityB
   })
 }
 
