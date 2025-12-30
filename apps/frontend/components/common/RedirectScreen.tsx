@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useMemo } from 'react'
-import { Plane, Building2, Lock } from 'lucide-react'
+import { Plane, Building2, Lock, Bus, Train } from 'lucide-react'
 
 interface RedirectScreenProps {
   vendor: {
@@ -9,9 +9,9 @@ interface RedirectScreenProps {
     logo?: string
   }
   redirectUrl: string
-  type: 'flight' | 'hotel'
+  type: 'flight' | 'hotel' | 'bus' | 'train'
   contextInfo?: {
-    route?: string // "PNQ → DEL"
+    route?: string // "PNQ → DEL" or "Pune → Mumbai"
     hotelName?: string // "JW Marriott Pune"
   }
   onRedirectComplete?: () => void
