@@ -129,7 +129,7 @@ function BusResultsContent() {
   const passengers = searchParams.get('passengers') || '1'
   
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ErrorType | null>(null)
   const [results, setResults] = useState<BusSearchResponse | null>(null)
   
   // Sorting (same options as flights)
