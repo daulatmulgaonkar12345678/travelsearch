@@ -319,7 +319,29 @@ test_priority: "high_first"
     - "Test GET /api/search/buses?origin=pune&destination=bangalore&departure_date=2025-12-30&passengers=1 - may have offers OR is_fallback=true (inter-state route)"
     - "Validate booking partners include redBus, MSRTC Official, AbhiBus, Paytm"
 
-## Current Focus: Service-Specific Loading and Transition Animations
+## Current Focus: Bus and Train Autocomplete Filter Removal Fix Testing
+
+- task: "Bus and Train Autocomplete Filter Removal Fix - Show ALL Results"
+  implemented: true
+  working: true
+  file: "/app/apps/frontend/components/search/BusLocationAutocomplete.tsx, /app/apps/frontend/components/search/TrainStationAutocomplete.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: false
+  status_history:
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL AUTOCOMPLETE FILTER REMOVAL TESTS PASSED (5/5): Complete validation of Bus and Train autocomplete filter removal fix successfully completed. CRITICAL VALIDATIONS: 1) Bus Autocomplete - Pune Query: ✅ Shows exactly 6 results as expected (Pune Swargate, Pune Shivajinagar, Pune Station, Pune (City), Pune University, Nashik Pune Highway), ✅ Items with is_search_surface=false (Pune University, Nashik Pune Highway) appear faded (opacity-75) but are fully visible and selectable, ✅ NO 'Depot' badge appears on city entry 'Pune', 2) Bus Autocomplete - Beed Query: ✅ Shows exactly 3 results as expected (Beed Bus Stand, Beed (City), Dusrbeed), ✅ Dusrbeed (is_search_surface=false) appears faded but visible, 3) Train Autocomplete - Mumbai Query: ✅ Shows 10 results including 'Mumbai (All Stations) ⭐' as first option with star indicator, ✅ All major stations (CSMT, BCT, LTT, DR, DDR, BDTS, PNVL, TNA, KYN) visible without filtering by is_major, ✅ NO filtering applied - all stations shown, 4) Race Condition Prevention: ✅ Rapid typing of 'pune' shows NO 'No cities found' flicker, ✅ Final results consistently show 6 items without race condition issues, 5) Selection Functionality: ✅ Faded items (is_search_surface=false) are fully selectable - Pune University selection works correctly. ACCEPTANCE CRITERIA CONFIRMED: ✅ ALL results from backend API are displayed regardless of is_search_surface value, ✅ Items with is_search_surface=false appear with faded styling (opacity-75) but remain selectable, ✅ NO race conditions or false 'No cities/stations found' messages, ✅ Train autocomplete shows all stations without filtering by is_major, ✅ Selection works for all items including faded ones. FILTER REMOVAL FIX IS PRODUCTION-READY: Backend returns all valid results, frontend displays all results with appropriate styling, no filtering applied based on is_search_surface or is_major flags."
+  test_requirements:
+    - "Test Bus Autocomplete - Pune Query: Should show ALL 6 results (Pune Swargate, Pune Shivajinagar, Pune Station, Pune (City), Pune University, Nashik Pune Highway)"
+    - "Test Bus Autocomplete - Beed Query: Should show ALL 3 results (Beed Bus Stand, Beed (City), Dusrbeed)"
+    - "Test Train Autocomplete - Mumbai Query: Should show 'Mumbai (All Stations) ⭐' first, followed by all major stations (CSMT, BCT, LTT, DR, etc.)"
+    - "Verify items with is_search_surface=false appear faded (opacity-75) but remain visible and selectable"
+    - "Verify NO 'Depot' badge appears on city entries"
+    - "Verify NO race conditions or false 'No cities/stations found' messages during rapid typing"
+    - "Verify selection functionality works for all items including faded ones"
+
+## Previous Focus: Service-Specific Loading and Transition Animations
 
 - task: "Service-Specific Loading and Transition Animations for Train and Bus Search"
   implemented: true
