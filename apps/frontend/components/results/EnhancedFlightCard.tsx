@@ -109,7 +109,6 @@ export default function EnhancedFlightCard({
   searchParams,
 }: EnhancedFlightCardProps) {
   const router = useRouter()
-  const [showVendors, setShowVendors] = useState(false)
   const [showStopDetails, setShowStopDetails] = useState(false)
 
   const firstSegment = offer.segments[0]
