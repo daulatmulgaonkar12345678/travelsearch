@@ -13,9 +13,15 @@
  * SERVICE THEMING:
  * - Uses warm clay accent (#C47A4A)
  * - Subtle card tint on hover/select
+ * 
+ * BOOKING FLOW:
+ * - Clicking "Book" navigates to /buses/vendors page with search context
+ * - User selects vendor on vendors page
+ * - Consistent UX across all services (Flights, Hotels, Buses, Trains)
  */
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Bus,
   ChevronDown,
@@ -25,12 +31,9 @@ import {
   BatteryCharging,
   Snowflake,
   Users,
-  AlertCircle,
   ExternalLink,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
-import RedirectTransition from '@/components/loading/RedirectTransition'
-import { validatePartnerUrl, logInvalidRedirect } from '@/lib/deepLinkValidator'
 
 interface BusOffer {
   offer_id: string
