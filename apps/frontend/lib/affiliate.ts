@@ -48,82 +48,97 @@ export interface Vendor {
   services: ServiceType[]
   logo?: string
   isPrimary?: boolean
+  priority?: number // Lower number = higher priority
 }
 
 export const VENDORS: Record<string, Vendor> = {
   // ============================================================
-  // HOTEL VENDORS - Agoda is PRIMARY
+  // HOTEL VENDORS - Priority Order: Udchalo, Agoda, Booking.com, MakeMyTrip, Skyscanner
   // ============================================================
+  udchalo_hotels: {
+    id: 'udchalo_hotels',
+    name: 'Udchalo',
+    services: ['hotels'],
+    isPrimary: true,
+    priority: 1,
+  },
   agoda: {
     id: 'agoda',
     name: 'Agoda',
     services: ['hotels'],
-    isPrimary: true,
+    priority: 2,
   },
   booking: {
     id: 'booking',
     name: 'Booking.com',
     services: ['hotels'],
+    priority: 3,
   },
   makemytrip_hotels: {
     id: 'makemytrip_hotels',
     name: 'MakeMyTrip',
     services: ['hotels'],
+    priority: 4,
   },
-  goibibo_hotels: {
-    id: 'goibibo_hotels',
-    name: 'Goibibo',
+  skyscanner_hotels: {
+    id: 'skyscanner_hotels',
+    name: 'Skyscanner Hotels',
     services: ['hotels'],
-  },
-  easemytrip_hotels: {
-    id: 'easemytrip_hotels',
-    name: 'EaseMyTrip',
-    services: ['hotels'],
+    priority: 5,
   },
   
   // ============================================================
-  // FLIGHT VENDORS - Skyscanner is PRIMARY (meta-search)
+  // FLIGHT VENDORS - Skyscanner (PRIMARY meta-search)
+  // REMOVED: Paytm (unstable), Ixigo (payment-level deep links)
   // ============================================================
   skyscanner: {
     id: 'skyscanner',
     name: 'Skyscanner',
     services: ['flights'],
     isPrimary: true,
+    priority: 1,
   },
   makemytrip_flights: {
     id: 'makemytrip_flights',
     name: 'MakeMyTrip',
     services: ['flights'],
+    priority: 2,
   },
   goibibo_flights: {
     id: 'goibibo_flights',
     name: 'Goibibo',
     services: ['flights'],
+    priority: 3,
   },
   easemytrip_flights: {
     id: 'easemytrip_flights',
     name: 'EaseMyTrip',
     services: ['flights'],
+    priority: 4,
   },
-  ixigo_flights: {
-    id: 'ixigo_flights',
-    name: 'Ixigo',
+  udchalo_flights: {
+    id: 'udchalo_flights',
+    name: 'Udchalo',
     services: ['flights'],
+    priority: 5,
   },
   
   // ============================================================
-  // BUS VENDORS - redBus is PRIMARY
+  // BUS VENDORS - redBus (PRIMARY)
+  // REMOVED: Ixigo (unstable deep links)
   // ============================================================
   redbus: {
     id: 'redbus',
     name: 'redBus',
     services: ['buses'],
     isPrimary: true,
+    priority: 1,
   },
   goibibo_bus: {
     id: 'goibibo_bus',
     name: 'Goibibo',
     services: ['buses'],
+    priority: 2,
   },
   easemytrip_bus: {
     id: 'easemytrip_bus',
