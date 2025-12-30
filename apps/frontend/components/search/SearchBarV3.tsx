@@ -1068,8 +1068,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               </div>
             </div>
             
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800">
+            <div className="p-3 bg-[#EEF1E8] border border-[#D4DBC9] rounded-lg">
+              <p className="text-sm text-[#4A5A3A]">
                 <strong>Note:</strong> Fares shown are average/estimated. We&apos;ll redirect you to IRCTC, ixigo, or Paytm for live availability & booking.
               </p>
             </div>
