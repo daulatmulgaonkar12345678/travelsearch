@@ -9,6 +9,8 @@ import TransportLoadingState from '@/components/loading/TransportLoadingState'
 import { Loader2, Train, ArrowLeft, AlertCircle, Filter, SlidersHorizontal } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { addRecentSearch, updateRecentSearchPrice } from '@/lib/unifiedRecentSearchStore'
+import NoResultsState from '@/components/common/NoResultsState'
+import ServiceError, { getErrorType, ErrorType } from '@/components/common/ServiceError'
 
 interface TrainOffer {
   offer_id: string
