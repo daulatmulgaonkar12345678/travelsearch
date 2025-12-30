@@ -414,6 +414,7 @@ export function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string 
 
 /**
  * Build train deep link for any vendor
+ * NOTE: Form-fill availability only - no payment-page redirects
  */
 export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams): string {
   switch (vendorId) {
