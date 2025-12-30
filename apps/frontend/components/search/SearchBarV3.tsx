@@ -821,6 +821,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       params.append('train_class', trainClass)
     }
     
+    // Clear modify search payload on successful submit
+    clearModifySearchPayload('trains')
     window.location.href = `/trains/results?${params}`
   }
 
