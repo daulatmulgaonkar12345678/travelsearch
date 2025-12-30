@@ -79,8 +79,15 @@ function FlightVendorsContent() {
     const vendor = FLIGHT_VENDORS.find(v => v.id === redirecting)
     return (
       <RedirectScreen
-        provider={vendor?.name || 'Partner'}
+        vendor={{
+          name: vendor?.name || 'Partner',
+          logo: vendor?.logo
+        }}
         redirectUrl={redirectUrl}
+        type="flight"
+        contextInfo={{
+          route: `${origin} → ${destination}`
+        }}
         onRedirectComplete={() => {
           setShowRedirectScreen(false)
           setRedirecting(null)
