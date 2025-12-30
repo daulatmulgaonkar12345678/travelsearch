@@ -342,7 +342,23 @@ export function buildPaytmBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
+ * MakeMyTrip Bus Deep Link
+ * Format: https://www.makemytrip.com/bus-tickets/...
+ */
+export function buildMakeMyTripBusUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  // MMT Bus format: city names as slugs
+  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-')
+  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-')
+  const dateFormatted = formatDDMMYYYY(date)
+  
+  return `https://www.makemytrip.com/bus-tickets/${fromSlug}-${toSlug}-bus.html?departDate=${dateFormatted}`
+}
+
+/**
  * Build bus deep link for any vendor
+ * NOTE: Form-fill search only - no direct seat or payment redirects
  */
 export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): string {
   switch (vendorId) {
@@ -350,6 +366,8 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): s
       return buildRedBusUrl(params)
     case 'paytm_bus':
       return buildPaytmBusUrl(params)
+    case 'makemytrip_bus':
+      return buildMakeMyTripBusUrl(params)
     default:
       return buildRedBusUrl(params)
   }
