@@ -680,33 +680,6 @@ export function validateTrainParams(params: TrainDeepLinkParams): string | null 
 }
 
 /**
- * Paytm Trains Deep Link (station codes or city names)
- * Format: https://tickets.paytm.com/trains/search?from=CSMT&to=PUNE...
- */
-function buildPaytmTrainsUrl(params: TrainDeepLinkParams): string {
-  const { fromStation, toStation, date } = params
-  
-  const fromEncoded = encodeURIComponent(fromStation)
-  const toEncoded = encodeURIComponent(toStation)
-  
-  return `https://tickets.paytm.com/trains/search?from=${fromEncoded}&to=${toEncoded}&date=${date}`
-}
-
-/**
- * MakeMyTrip Railways Deep Link (city names)
- * Format: https://www.makemytrip.com/railways/search?fromCity=Mumbai&toCity=Pune...
- */
-function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string {
-  const { fromCity, toCity, date } = params
-  
-  const dateFormatted = formatDDMMYYYYDash(date)
-  const fromEncoded = encodeURIComponent(fromCity)
-  const toEncoded = encodeURIComponent(toCity)
-  
-  return `https://www.makemytrip.com/railways/search?fromCity=${fromEncoded}&toCity=${toEncoded}&date=${dateFormatted}`
-}
-
-/**
  * Ixigo Trains Deep Link (station codes) - PRIMARY
  * Format: https://www.ixigo.com/search/result/train/...
  */
