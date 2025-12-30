@@ -74,14 +74,12 @@ interface TrainOffer {
 interface TrainCardProps {
   offer: TrainOffer
   index?: number
+  departureDate?: string // YYYY-MM-DD format for vendor page
 }
 
-export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
+export default function TrainCard({ offer, index = 0, departureDate }: TrainCardProps) {
+  const router = useRouter()
   const [showDetails, setShowDetails] = useState(false)
-  const [redirecting, setRedirecting] = useState<string | null>(null)
-  const [showRedirectTransition, setShowRedirectTransition] = useState(false)
-  const [pendingRedirectUrl, setPendingRedirectUrl] = useState<string | null>(null)
-  const [redirectError, setRedirectError] = useState<string | null>(null)
 
   const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
 
