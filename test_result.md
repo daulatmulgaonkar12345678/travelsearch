@@ -365,11 +365,11 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Bus and Train Autocomplete Filter Removal Fix testing completed successfully - all 5 critical test cases passed"
-  - "ALL results now displayed regardless of is_search_surface or is_major values"
-  - "Items with is_search_surface=false appear faded but remain fully selectable"
-  - "NO race conditions or false 'No cities/stations found' messages detected"
-  - "Filter removal fix is production-ready and fully functional"
+  - "Vendor Dropdown for Buses & Trains testing completed successfully - all 5 critical test scenarios passed"
+  - "Bus vendors page shows ONLY bus vendors (redBus, Paytm Bus) with zero cross-service contamination"
+  - "Train vendors page shows ONLY train vendors (Paytm Trains, MakeMyTrip Railways) with zero cross-service contamination"
+  - "Book Now button navigation, vendor selection, and missing parameters handling all working correctly"
+  - "Vendor dropdown implementation is production-ready and fully functional"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
