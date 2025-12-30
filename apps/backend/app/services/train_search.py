@@ -197,6 +197,58 @@ TRAIN_BOOKING_PARTNERS = [
     },
 ]
 
+
+def generate_train_booking_partners(
+    from_station: str,
+    to_station: str,
+    departure_date: str,
+) -> list:
+    """
+    Generate booking partner links for a train route.
+    
+    Properly populates URL templates with actual route data.
+    
+    Args:
+        from_station: Origin station code (e.g., 'CSTM', 'PUNE')
+        to_station: Destination station code
+        departure_date: Date in YYYY-MM-DD format
+    
+    Returns:
+        List of booking partners with valid URLs
+    """
+    # Normalize station codes for URLs
+    origin_slug = from_station.lower().replace('_', '-')
+    dest_slug = to_station.lower().replace('_', '-')
+    
+    # Get city names for better URL formatting
+    origin_city = get_city_name_for_station(from_station).lower().replace(' ', '-')
+    dest_city = get_city_name_for_station(to_station).lower().replace(' ', '-')
+    
+    booking_partners = []
+    for partner in TRAIN_BOOKING_PARTNERS:
+        url = partner["url_template"]
+        
+        # Replace placeholders with actual values
+        if partner.get("is_official"):
+            # IRCTC doesn't support deep linking to specific routes
+            pass
+        else:
+            url = url.format(
+                origin=origin_city,
+                destination=dest_city,
+                date=departure_date,
+            )
+        
+        booking_partners.append({
+            "name": partner["name"],
+            "url": url,
+            "priority": partner["priority"],
+            "is_official": partner.get("is_official", False),
+            "description": partner.get("description", ""),
+        })
+    
+    return booking_partners
+
 # ============================================================
 # CLASS DISPLAY NAMES
 # ============================================================
