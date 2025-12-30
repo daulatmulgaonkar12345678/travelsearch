@@ -300,14 +300,12 @@ def schedule_to_class_offers(
     elif arrival_dt <= departure_dt:
         arrival_dt += timedelta(days=1)
     
-    booking_partners = []
-    for partner in TRAIN_BOOKING_PARTNERS:
-        booking_partners.append({
-            "name": partner["name"],
-            "url": partner["url_template"],
-            "priority": partner["priority"],
-            "is_official": partner.get("is_official", False),
-        })
+    # Generate properly populated booking partner URLs
+    booking_partners = generate_train_booking_partners(
+        from_station=schedule.departure_station,
+        to_station=schedule.arrival_station,
+        departure_date=departure_date,
+    )
     
     for travel_class, base_fare in schedule.fares.items():
         fare_with_variation = add_fare_variation(base_fare, schedule.train_type)
