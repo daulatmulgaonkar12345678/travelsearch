@@ -123,38 +123,48 @@ function TrainVendorsContent() {
       <Navigation />
       
       <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Train Search Summary */}
+        {/* Train Search Summary with Modify Search */}
         <div className="bg-white rounded-xl border border-[#E6E1D8] p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-[#EEF1E8] rounded-lg flex items-center justify-center">
-              <Train className="w-6 h-6 text-[#7A8B5C]" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-semibold text-[#1A1A1A]">{origin}</span>
-                <ArrowRight className="w-5 h-5 text-[#6B6B6B]" />
-                <span className="text-xl font-semibold text-[#1A1A1A]">{destination}</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="w-12 h-12 bg-[#EEF1E8] rounded-lg flex items-center justify-center">
+                <Train className="w-6 h-6 text-[#7A8B5C]" />
               </div>
-              
-              {trainName && (
-                <div className="text-[#6B6B6B] mt-1">
-                  {trainName} {trainNumber && `• #${trainNumber}`}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-semibold text-[#1A1A1A]">{origin}</span>
+                  <ArrowRight className="w-5 h-5 text-[#6B6B6B]" />
+                  <span className="text-xl font-semibold text-[#1A1A1A]">{destination}</span>
                 </div>
-              )}
-              
-              <div className="flex items-center gap-4 mt-2 text-sm text-[#6B6B6B]">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{departureDate}</span>
+                
+                <div className="flex items-center gap-4 mt-2 text-sm text-[#6B6B6B]">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{departureDate}</span>
+                  </div>
                 </div>
+                
+                {parseFloat(price) > 0 && (
+                  <div className="mt-3">
+                    <span className="text-lg font-semibold text-[#7A8B5C]">
+                      {currency} {parseFloat(price).toLocaleString()}
+                    </span>
+                    <span className="text-xs text-[#6B6B6B] ml-2">(estimated)</span>
+                  </div>
+                )}
               </div>
-              
-              {parseFloat(price) > 0 && (
-                <div className="mt-3 text-lg font-semibold text-[#7A8B5C]">
-                  {currency} {parseFloat(price).toLocaleString()}
-                </div>
-              )}
             </div>
+            
+            {/* Modify Search Button */}
+            <ModifySearchButton 
+              service="trains"
+              searchParams={{
+                origin_city: originCity,
+                destination_city: destinationCity,
+                departure_date: departureDate,
+              }}
+              variant="compact"
+            />
           </div>
         </div>
 
