@@ -13,9 +13,15 @@
  * SERVICE THEMING:
  * - Uses muted olive green accent (#7A8B5C)
  * - Subtle card tint on hover/select
+ * 
+ * BOOKING FLOW:
+ * - Clicking "Book" navigates to /trains/vendors page with search context
+ * - User selects vendor on vendors page
+ * - Consistent UX across all services (Flights, Hotels, Buses, Trains)
  */
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Train,
   ChevronDown,
@@ -25,10 +31,7 @@ import {
   MapPin,
   Utensils,
   Info,
-  AlertCircle,
 } from 'lucide-react'
-import RedirectTransition from '@/components/loading/RedirectTransition'
-import { validatePartnerUrl, logInvalidRedirect } from '@/lib/deepLinkValidator'
 
 interface TrainOffer {
   offer_id: string
