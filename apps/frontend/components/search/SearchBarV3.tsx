@@ -113,7 +113,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   // Flights state with validated airports
-  const [tripType, setTripType] = useState<TripType>('roundtrip')
+  const [tripType, setTripType] = useState<TripType>('oneway')
   const [origin, setOrigin] = useState<Airport | null>(null)
   const [destination, setDestination] = useState<Airport | null>(null)
   const [departureDate, setDepartureDate] = useState(getTodayDate())
