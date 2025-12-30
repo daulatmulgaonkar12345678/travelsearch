@@ -314,7 +314,7 @@ function HotelResultsContent() {
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Search Summary */}
+        {/* Search Summary with Modify Search */}
       <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -325,12 +325,16 @@ function HotelResultsContent() {
               {checkIn} to {checkOut} • {roomsCount} room(s) • {offers.length} hotels found
             </p>
           </div>
-          <button
-            onClick={() => router.push('/hotels')}
-            className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-          >
-            Modify Search
-          </button>
+          <ModifySearchButton 
+            service="hotels"
+            searchParams={{
+              city,
+              check_in: checkIn,
+              check_out: checkOut,
+              adults: rooms[0]?.adults?.toString() || '2',
+            }}
+            variant="default"
+          />
         </div>
       </div>
 

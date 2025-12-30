@@ -311,7 +311,7 @@ function TrainResultsContent() {
             Back to search
           </button>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Train className="h-6 w-6 text-blue-600" />
@@ -323,6 +323,18 @@ function TrainResultsContent() {
                 {formatDate(departureDate)} • {passengers} passenger{parseInt(passengers) > 1 ? 's' : ''}
               </p>
             </div>
+            
+            {/* Modify Search + Filter buttons */}
+            <div className="flex items-center gap-2">
+              <ModifySearchButton 
+                service="trains"
+                searchParams={{
+                  origin_city: origin,
+                  destination_city: destination,
+                  departure_date: departureDate,
+                }}
+                variant="default"
+              />
             
             {/* Filter toggle button - Only show for actual train results */}
             {results && !results.is_fallback && (
@@ -343,6 +355,7 @@ function TrainResultsContent() {
                 )}
               </button>
             )}
+            </div>
           </div>
         </div>
         

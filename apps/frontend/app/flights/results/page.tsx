@@ -923,7 +923,35 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      {/* TrustStrip removed - TrustIndicators in results section provides trust signals */}
+      {/* Search Summary Header with Modify Search */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <span>{origin}</span>
+                <span className="text-gray-400">→</span>
+                <span>{destination}</span>
+              </div>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-600">{selectedDate}</span>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-600">{adults} adult{parseInt(adults) > 1 ? 's' : ''}</span>
+            </div>
+            <ModifySearchButton 
+              service="flights"
+              searchParams={{
+                origin,
+                destination,
+                departure_date: selectedDate,
+                return_date: returnDate,
+                adults,
+              }}
+              variant="default"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Flexible Date Bar */}
       {dateOptions.length > 0 && (

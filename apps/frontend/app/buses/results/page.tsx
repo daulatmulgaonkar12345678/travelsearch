@@ -343,7 +343,7 @@ function BusResultsContent() {
             Back to search
           </button>
           
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               {/* 5️⃣ Improved Route Header */}
               <div className="flex items-center gap-3 mb-2">
@@ -368,6 +368,18 @@ function BusResultsContent() {
               </div>
             </div>
             
+            {/* Modify Search + Filter buttons */}
+            <div className="flex items-center gap-2">
+              <ModifySearchButton 
+                service="buses"
+                searchParams={{
+                  origin_city: origin,
+                  destination_city: destination,
+                  departure_date: departureDate,
+                }}
+                variant="default"
+              />
+            
             {/* Filter toggle button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -385,6 +397,7 @@ function BusResultsContent() {
                 </span>
               )}
             </button>
+            </div>
           </div>
         </div>
         
