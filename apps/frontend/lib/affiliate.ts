@@ -577,34 +577,6 @@ function buildRedBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
- * Paytm Bus Deep Link (city names)
- * Format: https://tickets.paytm.com/bus/search?source=Pune&destination=Mumbai...
- */
-function buildPaytmBusUrl(params: BusDeepLinkParams): string {
-  const { fromCity, toCity, date } = params
-  
-  const fromEncoded = encodeURIComponent(fromCity)
-  const toEncoded = encodeURIComponent(toCity)
-  
-  return `https://tickets.paytm.com/bus/search?source=${fromEncoded}&destination=${toEncoded}&date=${date}`
-}
-
-/**
- * MakeMyTrip Bus Deep Link (city name slugs)
- * Format: https://www.makemytrip.com/bus-tickets/pune-mumbai-bus.html?departDate=...
- */
-function buildMakeMyTripBusUrl(params: BusDeepLinkParams): string {
-  const { fromCity, toCity, date } = params
-  
-  // MMT Bus format: city names as URL-safe slugs
-  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  const dateFormatted = formatDDMMYYYY(date)
-  
-  return `https://www.makemytrip.com/bus-tickets/${fromSlug}-${toSlug}-bus.html?departDate=${dateFormatted}`
-}
-
-/**
  * Goibibo Bus Deep Link (city names)
  * Format: https://www.goibibo.com/bus/...
  */
