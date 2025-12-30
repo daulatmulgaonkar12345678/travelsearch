@@ -132,7 +132,7 @@ export default function TrainCard({ offer, index = 0 }: TrainCardProps) {
 
   const handleRedirectComplete = useCallback(() => {
     if (pendingRedirectUrl) {
-      window.open(pendingRedirectUrl, '_blank')
+      window.open(pendingRedirectUrl, '_blank', 'noopener,noreferrer')
     }
     setShowRedirectTransition(false)
     setRedirecting(null)
