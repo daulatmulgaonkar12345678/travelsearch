@@ -35,7 +35,7 @@ function HotelVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // Build deep link for selected vendor
+      // Build deep link for selected vendor with validation
       const params: HotelDeepLinkParams = {
         hotelName: hotelName || city,
         city,
@@ -45,7 +45,14 @@ function HotelVendorsContent() {
         rooms: 1,
       }
 
-      const finalRedirectUrl = buildHotelDeepLink(vendorId, params)
+      const result = buildHotelDeepLink(vendorId, params)
+      
+      // BLOCK redirect if validation failed
+      if (!result.url) {
+        alert(`Cannot redirect: ${result.error}`)
+        setRedirecting(null)
+        return
+      }
 
       // Log click asynchronously (fire-and-forget)
       logAffiliateClick(
@@ -56,7 +63,7 @@ function HotelVendorsContent() {
       ).catch(() => {})
 
       // Show redirect screen
-      setRedirectUrl(finalRedirectUrl)
+      setRedirectUrl(result.url)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
