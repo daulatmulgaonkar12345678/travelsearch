@@ -1163,8 +1163,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               </div>
             </div>
             
-            <div className="p-3 bg-[#EEF1E8] border border-[#D4DBC9] rounded-lg">
-              <p className="text-sm text-[#4A5A3A]">
+            <div className="p-3 bg-[#F9EDE6] border border-[#E5C9B5] rounded-lg">
+              <p className="text-sm text-[#8B5A2B]">
                 <strong>Note:</strong> Fares shown are average/estimated. We&apos;ll redirect you to redBus, AbhiBus, or Paytm for live availability & booking.
               </p>
             </div>
