@@ -70,8 +70,15 @@ function HotelVendorsContent() {
     const vendor = HOTEL_VENDORS.find(v => v.id === redirecting)
     return (
       <RedirectScreen
-        provider={vendor?.name || 'Partner'}
+        vendor={{
+          name: vendor?.name || 'Partner',
+          logo: vendor?.logo
+        }}
         redirectUrl={redirectUrl}
+        type="hotel"
+        contextInfo={{
+          hotelName: hotelName || `Hotels in ${city}`
+        }}
         onRedirectComplete={() => {
           setShowRedirectScreen(false)
           setRedirecting(null)
