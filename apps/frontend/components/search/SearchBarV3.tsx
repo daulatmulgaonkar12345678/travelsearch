@@ -904,7 +904,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         onChange={(e) => setIncludeNearbyOrigin(e.target.checked)}
                         disabled={!origin}
                         data-testid="nearby-origin-checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-4 w-4 text-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <label 
                         htmlFor="nearby-origin" 
@@ -935,7 +935,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         onChange={(e) => setIncludeNearbyDestination(e.target.checked)}
                         disabled={!destination}
                         data-testid="nearby-destination-checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-4 w-4 text-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <label 
                         htmlFor="nearby-destination" 
