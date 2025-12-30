@@ -1,18 +1,32 @@
 'use client'
 
+/**
+ * BusCard - Mobile-First Result Card
+ * ===================================
+ * 
+ * MOBILE-FIRST DESIGN:
+ * - Stacked layout on mobile (flex-col)
+ * - No horizontal overflow
+ * - Large tap targets (min 44px)
+ * - Readable text on 360px screens
+ * 
+ * SERVICE THEMING:
+ * - Uses warm clay accent (#C47A4A)
+ * - Subtle card tint on hover/select
+ */
+
 import { useState, useCallback } from 'react'
 import {
   Bus,
   ChevronDown,
   ChevronUp,
-  Search,
   Clock,
   Wifi,
   BatteryCharging,
   Snowflake,
-  MapPin,
   Users,
   AlertCircle,
+  ExternalLink,
 } from 'lucide-react'
 import LikelyStops from './LikelyStops'
 import RedirectTransition from '@/components/loading/RedirectTransition'
@@ -59,18 +73,18 @@ interface BusOffer {
 
 interface BusCardProps {
   offer: BusOffer
-  index?: number  // For stagger animation
+  index?: number
 }
 
-// Button label mapping for each partner
+// Button label mapping
 const getPartnerButtonLabel = (partnerName: string): string => {
   const labels: Record<string, string> = {
-    'redBus': '🔍 Search on redBus',
-    'Paytm Bus': '🔍 Open Paytm Bus',
-    'AbhiBus': '🔍 Open AbhiBus',
-    'MSRTC Official': '🔍 Open MSRTC Official',
+    'redBus': 'redBus',
+    'Paytm Bus': 'Paytm',
+    'AbhiBus': 'AbhiBus',
+    'MSRTC Official': 'MSRTC',
   }
-  return labels[partnerName] || `🔍 Open ${partnerName}`
+  return labels[partnerName] || partnerName
 }
 
 export default function BusCard({ offer, index = 0 }: BusCardProps) {
@@ -90,59 +104,23 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
     })
   }
 
-  /**
-   * STRICT DURATION GUARD
-   * 
-   * Duration must ONLY be shown when we have REAL times.
-   * NO fallbacks, NO estimates, NO defaults.
-   * 
-   * PRODUCT PRINCIPLE: "Wrong time destroys trust faster than missing time ever will"
-   * 
-   * Returns null if duration cannot be computed safely.
-   */
   const computeSafeDuration = (departure: string, arrival: string): string | null => {
-    // Guard 1: Check for missing times
-    if (!departure || !arrival) {
-      console.warn("[Duration] Hidden: Missing times", { departure, arrival })
-      return null
-    }
+    if (!departure || !arrival) return null
     
-    // Guard 2: Check for invalid placeholder times
     const invalidTimes = ['0001-01-01T00:00:00', '0001-01-01', '1970-01-01']
-    if (invalidTimes.some(t => departure.includes(t) || arrival.includes(t))) {
-      console.warn("[Duration] Hidden: Invalid placeholder times", { departure, arrival })
-      return null
-    }
+    if (invalidTimes.some(t => departure.includes(t) || arrival.includes(t))) return null
     
     const depTime = new Date(departure)
     const arrTime = new Date(arrival)
     
-    // Guard 3: Check for invalid dates
-    if (isNaN(depTime.getTime()) || isNaN(arrTime.getTime())) {
-      console.warn("[Duration] Hidden: Invalid date parsing", { departure, arrival })
-      return null
-    }
+    if (isNaN(depTime.getTime()) || isNaN(arrTime.getTime())) return null
+    if (depTime.getTime() === arrTime.getTime()) return null
     
-    // Guard 4: Check if arrival equals departure (signals unknown arrival)
-    if (depTime.getTime() === arrTime.getTime()) {
-      console.warn("[Duration] Hidden: Arrival equals departure (unknown)", { departure, arrival })
-      return null
-    }
-    
-    // Calculate duration with next-day handling
     let diffMs = arrTime.getTime() - depTime.getTime()
+    if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000
     
-    // Handle next-day arrival (overnight journeys)
-    if (diffMs < 0) {
-      diffMs += 24 * 60 * 60 * 1000 // Add 24 hours
-    }
-    
-    // Guard 5: Sanity check - reject unrealistic durations (> 48 hours or < 15 mins)
     const hours = diffMs / (1000 * 60 * 60)
-    if (hours > 48 || hours < 0.25) {
-      console.warn("[Duration] Hidden: Unrealistic duration", { hours, departure, arrival })
-      return null
-    }
+    if (hours > 48 || hours < 0.25) return null
     
     const h = Math.floor(diffMs / (1000 * 60 * 60))
     const m = Math.round((diffMs % (1000 * 60 * 60)) / (1000 * 60))
@@ -151,7 +129,6 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
   }
 
   const handleBookingClick = (partner: BusOffer['booking_partners'][0]) => {
-    // MANDATORY: Validate URL before redirect
     const validation = validatePartnerUrl(partner.url)
     
     if (!validation.isValid) {
@@ -175,18 +152,13 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
     setPendingRedirectUrl(null)
   }, [pendingRedirectUrl])
 
-  // Sort booking partners by priority
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
-  
-  // Check if this is an estimated/state network result
   const isEstimatedResult = offer.provider === 'state_network' || offer.operator_name === 'Multiple Operators'
-  
-  // Calculate stagger class (max 8 levels)
   const staggerClass = `animate-stagger-${Math.min(index + 1, 8)}`
+  const duration = computeSafeDuration(offer.departure_time, offer.arrival_time)
 
   return (
     <>
-      {/* Pre-redirect transition overlay */}
       <RedirectTransition
         mode="bus"
         partnerName={redirecting || ''}
@@ -195,232 +167,239 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
         duration={500}
       />
       
-      <div className={`relative bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 animate-card-in opacity-0 ${staggerClass}`}>
-        <div className="p-4">
-          {/* Bus Info Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Bus className="h-5 w-5 text-orange-600" />
+      {/* MOBILE-FIRST CARD */}
+      <div 
+        className={`
+          relative bg-white border border-[#E6E1D8] rounded-xl 
+          shadow-sm hover:shadow-md transition-all duration-200 
+          animate-card-in opacity-0 ${staggerClass}
+          overflow-hidden
+        `}
+      >
+        {/* === HEADER: Operator + Bus Type === */}
+        <div className="p-4 pb-3 border-b border-[#F3EFEA]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Icon */}
+              <div className="w-10 h-10 bg-[#F9EDE6] rounded-lg flex items-center justify-center flex-shrink-0">
+                {isEstimatedResult ? (
+                  <Users className="h-5 w-5 text-[#C47A4A]" />
+                ) : (
+                  <Bus className="h-5 w-5 text-[#C47A4A]" />
+                )}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900">
-                    {/* 1️⃣ Operator Clarity: Add "Estimated Availability" for estimated results */}
-                    {isEstimatedResult ? (
-                    <>
-                      <span className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        Multiple Operators
-                        <span className="text-xs font-normal text-gray-500">(Estimated Availability)</span>
-                      </span>
-                    </>
-                  ) : (
-                    offer.operator_name
-                  )}
+              
+              {/* Operator Info */}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-[#2B2B2B] text-sm sm:text-base truncate">
+                  {isEstimatedResult ? 'Multiple Operators' : offer.operator_name}
+                </p>
+                <p className="text-xs sm:text-sm text-[#6B6B6B] truncate">
+                  {offer.bus_type_label}
                 </p>
               </div>
-              <p className="text-sm text-gray-500">{offer.bus_type_label}</p>
             </div>
+            
+            {/* Amenities Badges */}
+            {!offer.is_fallback && (
+              <div className="flex flex-wrap gap-1.5 flex-shrink-0">
+                {offer.is_ac && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded-full">
+                    <Snowflake className="h-3 w-3" /> AC
+                  </span>
+                )}
+                {offer.is_sleeper && (
+                  <span className="px-2 py-0.5 text-xs bg-purple-50 text-purple-700 rounded-full">
+                    Sleeper
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          
-          {/* Amenities badges */}
-          {!offer.is_fallback && (
-            <div className="flex gap-2">
-              {offer.is_ac && (
-                <span className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
-                  <Snowflake className="h-3 w-3" /> AC
-                </span>
-              )}
-              {offer.is_sleeper && (
-                <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
-                  Sleeper
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Route & Time with Trust Indicators */}
+        {/* === TIME & ROUTE SECTION (MOBILE OPTIMIZED) === */}
         {!offer.is_fallback && (
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1">
-              <p className="text-2xl font-bold text-gray-900">{formatTime(offer.departure_time)}</p>
-              <p className="text-sm text-gray-600">{offer.from_city}</p>
-              <p className="text-xs text-gray-400 truncate">{offer.from_station_name}</p>
-            </div>
-            
-            <div className="flex-1 flex flex-col items-center px-4">
-              {/* Duration - ONLY show if computeSafeDuration returns a value */}
-              {computeSafeDuration(offer.departure_time, offer.arrival_time) && (
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>{computeSafeDuration(offer.departure_time, offer.arrival_time)}</span>
+          <div className="p-4">
+            {/* Time Row - Horizontal on all screens */}
+            <div className="flex items-center justify-between mb-3">
+              {/* Departure */}
+              <div className="text-left">
+                <p className="text-xl sm:text-2xl font-bold text-[#2B2B2B]">
+                  {formatTime(offer.departure_time)}
+                </p>
+                <p className="text-xs sm:text-sm text-[#6B6B6B] truncate max-w-[100px] sm:max-w-none">
+                  {offer.from_city}
+                </p>
+              </div>
+              
+              {/* Duration */}
+              <div className="flex flex-col items-center px-2 sm:px-4 flex-1">
+                {duration && (
+                  <div className="flex items-center gap-1 text-xs sm:text-sm text-[#6B6B6B] mb-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{duration}</span>
+                  </div>
+                )}
+                <div className="w-full max-w-[120px] h-0.5 bg-[#E6E1D8] relative">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#C47A4A] rounded-full" />
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#C47A4A] rounded-full" />
                 </div>
-              )}
-              <div className="w-full h-0.5 bg-gray-200 my-1 relative">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-orange-500 rounded-full" />
+              </div>
+              
+              {/* Arrival */}
+              <div className="text-right">
+                {duration ? (
+                  <p className="text-xl sm:text-2xl font-bold text-[#2B2B2B]">
+                    {formatTime(offer.arrival_time)}
+                  </p>
+                ) : (
+                  <p className="text-base text-[#9CA3AF]">Arr. varies</p>
+                )}
+                <p className="text-xs sm:text-sm text-[#6B6B6B] truncate max-w-[100px] sm:max-w-none">
+                  {offer.to_city}
+                </p>
               </div>
             </div>
             
-            <div className="flex-1 text-right">
-              {/* Arrival time - ONLY show if different from departure (known arrival) */}
-              {computeSafeDuration(offer.departure_time, offer.arrival_time) ? (
-                <p className="text-2xl font-bold text-gray-900">{formatTime(offer.arrival_time)}</p>
-              ) : (
-                <p className="text-lg text-gray-400">Arr. varies</p>
-              )}
-              <p className="text-sm text-gray-600">{offer.to_city}</p>
-              <p className="text-xs text-gray-400 truncate">{offer.to_station_name}</p>
+            {/* Station names - stacked on mobile */}
+            <div className="flex justify-between text-xs text-[#9CA3AF] px-1">
+              <span className="truncate max-w-[45%]">{offer.from_station_name}</span>
+              <span className="truncate max-w-[45%] text-right">{offer.to_station_name}</span>
             </div>
           </div>
         )}
 
-        {/* 4️⃣ Fallback Message - Confidence-based explanation */}
+        {/* === FALLBACK MESSAGE === */}
         {offer.is_fallback && (
-          <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <Bus className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <div className="mx-4 my-3 p-3 bg-[#F3EFEA] border border-[#E6E1D8] rounded-lg">
+            <div className="flex items-start gap-2">
+              <Bus className="h-4 w-4 text-[#C47A4A] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-900 mb-1">Buses are available on this route</p>
-                <p className="text-sm text-gray-600">
-                  Live schedules may vary by operator and date. We've shown typical timings and fares based on common services.
+                <p className="font-medium text-[#2B2B2B] text-sm">Buses available on this route</p>
+                <p className="text-xs text-[#6B6B6B] mt-0.5">
+                  Live schedules shown on booking partner sites.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Price with Tooltip */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="relative">
-            <div className="flex items-baseline gap-2">
-              {/* 6️⃣ Visual Trust Indicator for Price */}
-              <span 
-                className="text-2xl font-bold text-green-600 cursor-help flex items-center gap-1"
-                onMouseEnter={() => setShowFareTooltip(true)}
-                onMouseLeave={() => setShowFareTooltip(false)}
-              >
-                ₹{Math.round(offer.avg_price).toLocaleString('en-IN')}
-              </span>
-              <span className="text-sm text-gray-500">/ seat</span>
+        {/* === PRICE + AMENITIES === */}
+        <div className="px-4 py-3 bg-[#FAFAF8] border-t border-[#F3EFEA]">
+          <div className="flex items-center justify-between">
+            {/* Price */}
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span 
+                  className="text-xl sm:text-2xl font-bold text-[#2E7D32] cursor-help"
+                  onMouseEnter={() => setShowFareTooltip(true)}
+                  onMouseLeave={() => setShowFareTooltip(false)}
+                >
+                  ₹{Math.round(offer.avg_price).toLocaleString('en-IN')}
+                </span>
+                <span className="text-xs sm:text-sm text-[#6B6B6B]">/ seat</span>
+              </div>
+              <p className="text-xs text-[#9CA3AF]">
+                {isEstimatedResult ? 'Estimated fare' : 'Starting from'}
+              </p>
             </div>
             
-            {/* 1️⃣ Pricing Clarity - Better label */}
-            <p className="text-xs text-gray-500 flex items-center gap-1">
-              💰 Estimated Fare • {offer.bus_type_label}
-            </p>
-            
-            {/* 7️⃣ Tooltip on hover */}
-            {showFareTooltip && (
-              <div className="absolute left-0 top-full mt-2 z-10 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg">
-                <p>This is an estimate based on common bus services.</p>
-                <p className="mt-1">Final price and seat availability are shown on the booking partner's site.</p>
-                <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
+            {/* Additional amenities */}
+            {!offer.is_fallback && (offer.has_wifi || offer.has_charging_point) && (
+              <div className="flex gap-2">
+                {offer.has_wifi && (
+                  <Wifi className="h-4 w-4 text-[#6B6B6B]" title="WiFi Available" />
+                )}
+                {offer.has_charging_point && (
+                  <BatteryCharging className="h-4 w-4 text-[#6B6B6B]" title="Charging Available" />
+                )}
               </div>
             )}
           </div>
           
-          {/* Additional amenities */}
-          {!offer.is_fallback && (
-            <div className="flex gap-2">
-              {offer.has_wifi && (
-                <div className="flex items-center gap-1 text-gray-500" title="WiFi Available">
-                  <Wifi className="h-4 w-4" />
-                </div>
-              )}
-              {offer.has_charging_point && (
-                <div className="flex items-center gap-1 text-gray-500" title="Charging Available">
-                  <BatteryCharging className="h-4 w-4" />
-                </div>
-              )}
+          {/* Fare Tooltip */}
+          {showFareTooltip && (
+            <div className="absolute left-4 mt-2 z-10 w-56 p-3 bg-[#2B2B2B] text-white text-xs rounded-lg shadow-lg">
+              <p>Estimated based on typical services.</p>
+              <p className="mt-1 text-[#9CA3AF]">Final price shown on partner site.</p>
             </div>
           )}
         </div>
 
-        {/* 1️⃣ Pricing Clarity - Additional info text */}
-        {isEstimatedResult && !offer.is_fallback && (
-          <p className="text-xs text-gray-400 mb-3">
-            Estimated fare based on typical services on this route. Actual fares, timings & seats shown on booking partner.
-          </p>
-        )}
-
-        {/* Expand Details Button */}
+        {/* === EXPAND DETAILS === */}
         {!offer.is_fallback && (
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="flex items-center gap-1 text-sm text-orange-600 hover:text-orange-800 mb-4"
+            className="w-full px-4 py-2 flex items-center justify-center gap-1 text-sm text-[#C47A4A] hover:bg-[#F9EDE6] transition"
           >
             {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             {showDetails ? 'Hide details' : 'Show details'}
           </button>
         )}
 
-        {/* Expanded Details */}
+        {/* === EXPANDED DETAILS === */}
         {showDetails && !offer.is_fallback && (
-          <div className="border-t pt-4 mb-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>Operator Type: {offer.operator_type === 'government' ? 'Government RTC' : 'Private'}</span>
-            </div>
-            {offer.frequency && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="h-4 w-4" />
-                <span>Frequency: {offer.frequency}</span>
-              </div>
-            )}
-            {offer.departure_window && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>Departures: {offer.departure_window}</span>
-              </div>
-            )}
+          <div className="px-4 pb-3 space-y-2 text-sm text-[#6B6B6B] border-t border-[#F3EFEA] pt-3">
+            <div>Operator: {offer.operator_type === 'government' ? 'Government RTC' : 'Private'}</div>
+            {offer.frequency && <div>Frequency: {offer.frequency}</div>}
+            {offer.departure_window && <div>Departures: {offer.departure_window}</div>}
           </div>
         )}
 
-        {/* Likely Stops on Route - Expandable Section */}
+        {/* === LIKELY STOPS === */}
         {!offer.is_fallback && (
-          <LikelyStops 
-            fromCity={offer.from_city} 
-            toCity={offer.to_city} 
-          />
+          <div className="px-4">
+            <LikelyStops fromCity={offer.from_city} toCity={offer.to_city} />
+          </div>
         )}
 
-        {/* 3️⃣ Booking Partners with Improved Button Labels */}
-        <div className="border-t pt-4 mt-3">
-          <p className="text-xs text-gray-500 mb-2">Book on:</p>
+        {/* === BOOKING PARTNERS (MOBILE OPTIMIZED) === */}
+        <div className="p-4 bg-[#F3EFEA] border-t border-[#E6E1D8]">
+          <p className="text-xs text-[#6B6B6B] mb-3">Book on partner sites:</p>
           
-          {/* Redirect Error Fallback UI */}
+          {/* Error message */}
           {redirectError && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{redirectError}</p>
+              <p className="text-xs text-red-700">{redirectError}</p>
             </div>
           )}
           
-          <div className="flex flex-wrap gap-2">
-            {sortedPartners.map(partner => (
+          {/* Buttons - Stack vertically on mobile, wrap on larger */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+            {sortedPartners.map((partner, idx) => (
               <button
                 key={partner.name}
                 onClick={() => handleBookingClick(partner)}
                 disabled={redirecting === partner.name}
-                className="flex items-center gap-1 px-3 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition disabled:opacity-50"
+                className={`
+                  flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 text-sm font-medium rounded-lg
+                  transition-all duration-200 min-h-[44px]
+                  ${idx === 0 
+                    ? 'bg-[#C47A4A] hover:bg-[#B06A3A] text-white' 
+                    : 'bg-white border border-[#C47A4A] text-[#C47A4A] hover:bg-[#F9EDE6]'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                `}
               >
                 {redirecting === partner.name ? (
-                  'Redirecting...'
+                  'Opening...'
                 ) : (
-                  getPartnerButtonLabel(partner.name)
+                  <>
+                    {getPartnerButtonLabel(partner.name)}
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </>
                 )}
               </button>
             ))}
           </div>
           
-          {/* 3️⃣ Helper text below buttons */}
-          <p className="mt-2 text-xs text-gray-400">
-            You'll be redirected to the operator's website for live availability and booking.
+          <p className="mt-3 text-xs text-[#9CA3AF]">
+            You'll be redirected for live availability & booking.
           </p>
         </div>
       </div>
-    </div>
     </>
   )
 }
