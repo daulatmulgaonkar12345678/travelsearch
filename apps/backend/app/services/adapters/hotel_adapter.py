@@ -2,6 +2,7 @@ from typing import List
 from datetime import datetime
 from app.models.hotel import HotelOffer, HotelSearchRequest
 from app.models.flight import FlightOffer, FlightSearchRequest
+from app.utils.travelpayouts_deeplinks import generate_hotel_deep_link, generate_hotel_booking_partners
 from .base import ProviderAdapter
 
 class HotelAdapter(ProviderAdapter):
@@ -30,6 +31,25 @@ class HotelAdapter(ProviderAdapter):
         check_out = datetime.fromisoformat(request.check_out)
         nights = (check_out - check_in).days
         
+        # Generate proper Travelpayouts deep link
+        deep_link_result = generate_hotel_deep_link(
+            city=request.city,
+            check_in=request.check_in,
+            check_out=request.check_out,
+            adults=request.adults or 2,
+            rooms=request.rooms or 1
+        )
+        travelpayouts_url = deep_link_result["url"]
+        
+        # Generate booking partners for this hotel search
+        booking_partners = generate_hotel_booking_partners(
+            city=request.city,
+            check_in=request.check_in,
+            check_out=request.check_out,
+            adults=request.adults or 2,
+            rooms=request.rooms or 1
+        )
+        
         offers = []
         
         # Trip.com offer
@@ -52,7 +72,8 @@ class HotelAdapter(ProviderAdapter):
                 "https://via.placeholder.com/400x300?text=Hotel+Room+1",
                 "https://via.placeholder.com/400x300?text=Hotel+Pool"
             ],
-            deep_link="https://mock-trip.com/book?hotel=001"
+            deep_link=travelpayouts_url,  # Use Travelpayouts redirect
+            booking_partners=booking_partners
         ))
         
         # Agoda offer - cheaper option
@@ -74,7 +95,8 @@ class HotelAdapter(ProviderAdapter):
             images=[
                 "https://via.placeholder.com/400x300?text=City+View+Room"
             ],
-            deep_link="https://mock-agoda.com/book?hotel=001"
+            deep_link=travelpayouts_url,  # Use Travelpayouts redirect
+            booking_partners=booking_partners
         ))
         
         # Booking.com offer - luxury option
@@ -98,7 +120,8 @@ class HotelAdapter(ProviderAdapter):
                 "https://via.placeholder.com/400x300?text=Hotel+Spa",
                 "https://via.placeholder.com/400x300?text=Restaurant"
             ],
-            deep_link="https://mock-booking.com/book?hotel=001"
+            deep_link=travelpayouts_url,  # Use Travelpayouts redirect
+            booking_partners=booking_partners
         ))
         
         # Filter by min_rating if specified
