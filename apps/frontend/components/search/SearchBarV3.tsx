@@ -719,6 +719,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       if (includeNearbyDestination) {
         params.append('include_nearby_destination', 'true')
       }
+      // Clear modify search payload on successful submit
+      clearModifySearchPayload('flights')
       window.location.href = `/flights/results?${params}`
     }
   }
