@@ -866,7 +866,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                             value={segment.date}
                             min={index === 0 ? getTodayDate() : multiCitySegments[index - 1]?.date}
                             onChange={(e) => handleMultiCitySegmentUpdate(segment.id, 'date', e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                           />
                         </div>
                       </div>
@@ -904,7 +904,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         onChange={(e) => setIncludeNearbyOrigin(e.target.checked)}
                         disabled={!origin}
                         data-testid="nearby-origin-checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <label 
                         htmlFor="nearby-origin" 
@@ -935,7 +935,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         onChange={(e) => setIncludeNearbyDestination(e.target.checked)}
                         disabled={!destination}
                         data-testid="nearby-destination-checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-4 w-4 text-blue-600 focus:ring-2 focus:ring-[#5F8D7E] border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                       <label 
                         htmlFor="nearby-destination" 
@@ -958,7 +958,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         value={departureDate}
                         min={getTodayDate()}
                         onChange={(e) => handleDepartureDateChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -975,7 +975,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                         min={departureDate}
                         onChange={(e) => handleReturnDateChange(e.target.value)}
                         disabled={tripType === 'oneway'}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -988,7 +988,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <button
                 data-testid="passenger-selector"
                 onClick={() => setShowPassengerModal(true)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
               >
                 <div className="flex items-center space-x-2">
                   <Users className="h-5 w-5 text-gray-400" />
@@ -1030,7 +1030,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     value={trainDate}
                     min={getTodayDate()}
                     onChange={(e) => handleTrainDateChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                   />
                 </div>
               </div>
@@ -1040,7 +1040,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   data-testid="train-class"
                   value={trainClass}
                   onChange={(e) => setTrainClass(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                 >
                   <option value="">All Classes</option>
                   <option value="SL">Sleeper (SL)</option>
@@ -1058,7 +1058,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                     data-testid="train-passengers"
                     value={trainPassengers}
                     onChange={(e) => setTrainPassengers(Number(e.target.value))}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                   >
                     {[1, 2, 3, 4, 5, 6].map(n => (
                       <option key={n} value={n}>{n} Passenger{n > 1 ? 's' : ''}</option>
@@ -1196,7 +1196,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 <button
                   data-testid="room-selector"
                   onClick={() => setShowRoomModal(true)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-left flex items-center justify-between hover:border-blue-500 focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                 >
                   <div className="flex items-center space-x-2">
                     <Users className="h-5 w-5 text-gray-400" />
