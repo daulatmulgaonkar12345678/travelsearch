@@ -159,9 +159,23 @@ export const VENDORS: Record<string, Vendor> = {
 
 /**
  * Get vendors available for a specific service
+ * Returns vendors sorted with primary vendor first
  */
 export function getVendorsForService(service: ServiceType): Vendor[] {
-  return Object.values(VENDORS).filter(v => v.services.includes(service))
+  const vendors = Object.values(VENDORS).filter(v => v.services.includes(service))
+  // Sort with primary vendor first
+  return vendors.sort((a, b) => {
+    if (a.isPrimary && !b.isPrimary) return -1
+    if (!a.isPrimary && b.isPrimary) return 1
+    return 0
+  })
+}
+
+/**
+ * Get the primary (default) vendor for a service
+ */
+export function getPrimaryVendor(service: ServiceType): Vendor | undefined {
+  return Object.values(VENDORS).find(v => v.services.includes(service) && v.isPrimary)
 }
 
 // ============================================================
