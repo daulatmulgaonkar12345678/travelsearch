@@ -860,7 +860,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                           <input
                             type="date"
                             value={segment.date}
@@ -908,7 +908,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       />
                       <label 
                         htmlFor="nearby-origin" 
-                        className={`text-sm select-none ${!origin ? 'text-gray-400' : 'text-gray-700 cursor-pointer'}`}
+                        className={`text-sm select-none ${!origin ? 'text-[#9CA3AF]' : 'text-gray-700 cursor-pointer'}`}
                       >
                         Add nearby airports (within 250 km)
                       </label>
@@ -939,7 +939,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       />
                       <label 
                         htmlFor="nearby-destination" 
-                        className={`text-sm select-none ${!destination ? 'text-gray-400' : 'text-gray-700 cursor-pointer'}`}
+                        className={`text-sm select-none ${!destination ? 'text-[#9CA3AF]' : 'text-gray-700 cursor-pointer'}`}
                       >
                         Add nearby airports (within 250 km)
                       </label>
@@ -951,7 +951,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Departure</label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                       <input
                         data-testid="departure-date-input"
                         type="date"
@@ -967,7 +967,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                       Return {tripType === 'oneway' && '(N/A)'}
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                       <input
                         data-testid="return-date-input"
                         type="date"
@@ -991,7 +991,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                 className="w-full px-4 py-3 border border-[#E6ECEA] rounded-xl text-left flex items-center justify-between hover:border-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
               >
                 <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-gray-400" />
+                  <Users className="h-5 w-5 text-[#9CA3AF]" />
                   <span>
                     {totalPassengers} passenger{totalPassengers !== 1 ? 's' : ''} • {cabinClass.replace('_', ' ')}
                   </span>
@@ -1023,7 +1023,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <input
                     type="date"
                     data-testid="train-date"
@@ -1053,7 +1053,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <select
                     data-testid="train-passengers"
                     value={trainPassengers}
@@ -1120,7 +1120,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <input
                     type="date"
                     data-testid="bus-date"
@@ -1148,7 +1148,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Passengers</label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#9CA3AF]" />
                   <select
                     data-testid="bus-passengers"
                     value={busPassengers}
@@ -1199,7 +1199,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
                   className="w-full px-4 py-3 border border-[#E6ECEA] rounded-xl text-left flex items-center justify-between hover:border-[#5F8D7E] focus:ring-2 focus:ring-[#5F8D7E] focus:border-transparent"
                 >
                   <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-[#9CA3AF]" />
                     <span>
                       {hotelRooms.rooms.length} room{hotelRooms.rooms.length !== 1 ? 's' : ''} • {totalGuests} guest
                       {totalGuests !== 1 ? 's' : ''}
