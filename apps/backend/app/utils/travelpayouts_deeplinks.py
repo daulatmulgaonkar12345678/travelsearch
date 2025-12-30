@@ -587,6 +587,26 @@ def generate_hotel_specific_booking_partners(
     ]
     
     return partners
+
+
+# Keep city-level function for fallback/discovery pages
+def generate_hotel_booking_partners(
+    city: str,
+    check_in: str,
+    check_out: str,
+    adults: int = 2,
+    rooms: int = 1
+) -> list:
+    """
+    Generate CITY-LEVEL booking partners (fallback for discovery pages).
+    
+    Use generate_hotel_specific_booking_partners() for individual hotel cards.
+    """
+    location = resolve_city_to_location(city) or {}
+    city_slug = city.lower().replace(" ", "-")
+    
+    # Generate Travelpayouts city-level deep link
+    deep_link_result = generate_hotel_deep_link(city, check_in, check_out, adults, rooms)
     
     partners = [
         {
@@ -594,29 +614,78 @@ def generate_hotel_specific_booking_partners(
             "url": deep_link_result["url"],
             "priority": 1,
             "is_official": False,
-            "description": "Compare hotel prices",
-            "is_fallback": deep_link_result.get("is_fallback", False)
+            "description": f"Compare hotels in {city}",
+            "is_hotel_specific": False
         },
         {
             "name": "Booking.com",
             "url": f"https://www.booking.com/searchresults.html?ss={city_slug}&checkin={check_in}&checkout={check_out}&group_adults={adults}&no_rooms={rooms}",
             "priority": 2,
             "is_official": False,
-            "description": "World's largest hotel booking site"
+            "description": f"Hotels in {city}",
+            "is_hotel_specific": False
         },
         {
             "name": "Agoda",
             "url": f"https://www.agoda.com/search?city={location.get('hotel_id', '')}&checkIn={check_in}&checkOut={check_out}&rooms={rooms}&adults={adults}",
             "priority": 3,
             "is_official": False,
-            "description": "Best prices in Asia"
+            "description": f"Hotels in {city}",
+            "is_hotel_specific": False
         },
         {
             "name": "MakeMyTrip",
-            "url": f"https://www.makemytrip.com/hotels/hotel-listing/?checkin={check_in.replace('-', '')}&checkout={check_out.replace('-', '')}&city={city_slug}&roomStayQualifier=2e0e",
+            "url": f"https://www.makemytrip.com/hotels/hotel-listing/?checkin={check_in.replace('-', '')}&checkout={check_out.replace('-', '')}&city={city_slug}&roomStayQualifier={adults}e0e",
             "priority": 4,
             "is_official": False,
-            "description": "India's leading travel platform"
+            "description": f"Hotels in {city}",
+            "is_hotel_specific": False
+        }
+    ]
+    
+    return partners
+
+
+# Flight booking partners
+def generate_flight_booking_partners(
+    origin: str,
+    destination: str,
+    departure_date: str,
+    return_date: Optional[str] = None,
+    adults: int = 1
+) -> list:
+    """Generate booking partner list for flights."""
+    deep_link_result = generate_flight_deep_link(
+        origin=origin,
+        destination=destination,
+        departure_date=departure_date,
+        return_date=return_date,
+        adults=adults
+    )
+    
+    partners = [
+        {
+            "name": "Aviasales",
+            "url": deep_link_result["url"],
+            "priority": 1,
+            "is_official": False,
+            "description": "Compare prices from 100+ airlines",
+            "is_fallback": deep_link_result.get("is_fallback", False)
+        },
+        {
+            "name": "Skyscanner",
+            "url": f"https://www.skyscanner.co.in/transport/flights/{origin.lower()}/{destination.lower()}/{departure_date.replace('-', '')}/" + 
+                   (f"{return_date.replace('-', '')}/" if return_date else ""),
+            "priority": 2,
+            "is_official": False,
+            "description": "Global flight comparison"
+        },
+        {
+            "name": "Google Flights",
+            "url": f"https://www.google.com/travel/flights?q=flights%20from%20{origin}%20to%20{destination}%20on%20{departure_date}",
+            "priority": 3,
+            "is_official": False,
+            "description": "Google flight search"
         }
     ]
     
