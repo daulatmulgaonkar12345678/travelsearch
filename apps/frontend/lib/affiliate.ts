@@ -382,7 +382,8 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
       url = buildEaseMyTripHotelUrl(params)
       break
     default:
-      url = buildBookingHotelUrl(params)
+      // Agoda is PRIMARY for hotels
+      url = buildAgodaHotelUrl(params)
   }
   
   return { url, error: null }
