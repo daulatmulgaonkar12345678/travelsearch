@@ -143,14 +143,6 @@ export default function TrainCard({ offer, index = 0, departureDate }: TrainCard
 
   return (
     <>
-      <RedirectTransition
-        mode="train"
-        partnerName={redirecting || ''}
-        isVisible={showRedirectTransition}
-        onComplete={handleRedirectComplete}
-        duration={500}
-      />
-      
       {/* MOBILE-FIRST CARD */}
       <div 
         className={`
