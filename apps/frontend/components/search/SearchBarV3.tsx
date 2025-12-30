@@ -695,42 +695,15 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     }
   }
 
-  // Service-specific accent colors - SOLID COLORS ONLY (no transparency)
-  const serviceColors = {
-    flights: {
-      accent: '#5F8D7E',           // Sage green
-      accentHover: '#4A7A6B',
-      bgSolid: '#E8F0ED',          // Solid light sage
-      borderSolid: '#B8D4CA',      // Darker solid border
-    },
-    buses: {
-      accent: '#C0703D',           // Clay terracotta
-      accentHover: '#A85F30',
-      bgSolid: '#F9EBE0',          // Solid light clay
-      borderSolid: '#E5C4A8',      // Darker solid border
-    },
-    trains: {
-      accent: '#6E8B5C',           // Olive green
-      accentHover: '#5C7A4A',
-      bgSolid: '#EBF0E6',          // Solid light olive
-      borderSolid: '#C4D4B8',      // Darker solid border
-    },
-    hotels: {
-      accent: '#C6A15B',           // Sand gold
-      accentHover: '#B59048',
-      bgSolid: '#F9F3E6',          // Solid light gold
-      borderSolid: '#E5D4A8',      // Darker solid border
-    },
-  }
-
-  const currentColors = serviceColors[searchType]
+  // ONE COLOR RULE: Blue (#2563EB) is the ONLY selection indicator
+  // No service-specific colors for selection state
 
   // Don't render until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="bg-white rounded-3xl shadow-xl border border-[#E6ECEA] overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
         <div className="h-96 flex items-center justify-center">
-          <div className="animate-pulse text-[#6B7280]">Loading...</div>
+          <div className="animate-pulse text-gray-400">Loading...</div>
         </div>
       </div>
     )
@@ -739,29 +712,20 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   return (
     <div 
       ref={searchFormRef} 
-      className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[#E6ECEA]"
+      className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200"
     >
-      {/* Tab Selector - Order: Flights → Buses → Trains → Hotels */}
-      {/* SOLID COLORS ONLY - No transparency, no blur */}
-      <div className="flex border-b border-[#E6ECEA] overflow-x-auto bg-white">
+      {/* Tab Selector - ONE COLOR RULE: Blue = Selected */}
+      {/* Order: Flights → Buses → Trains → Hotels */}
+      <div className="flex border-b border-gray-200 overflow-x-auto bg-white">
         {/* Flights Tab */}
         <button
           data-testid="flights-tab"
           onClick={() => setSearchType('flights')}
-          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
-          style={searchType === 'flights' ? {
-            backgroundColor: serviceColors.flights.bgSolid,
-            color: serviceColors.flights.accent,
-            borderBottom: `3px solid ${serviceColors.flights.accent}`,
-            borderLeft: `1px solid ${serviceColors.flights.borderSolid}`,
-            borderRight: `1px solid ${serviceColors.flights.borderSolid}`,
-          } : {
-            backgroundColor: '#FFFFFF',
-            color: '#6B7280',
-            borderBottom: '3px solid transparent',
-            borderLeft: '1px solid transparent',
-            borderRight: '1px solid transparent',
-          }}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+            searchType === 'flights'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+          }`}
         >
           <Plane className="h-5 w-5" />
           <span>Flights</span>
@@ -771,20 +735,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="buses-tab"
           onClick={() => setSearchType('buses')}
-          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
-          style={searchType === 'buses' ? {
-            backgroundColor: serviceColors.buses.bgSolid,
-            color: serviceColors.buses.accent,
-            borderBottom: `3px solid ${serviceColors.buses.accent}`,
-            borderLeft: `1px solid ${serviceColors.buses.borderSolid}`,
-            borderRight: `1px solid ${serviceColors.buses.borderSolid}`,
-          } : {
-            backgroundColor: '#FFFFFF',
-            color: '#6B7280',
-            borderBottom: '3px solid transparent',
-            borderLeft: '1px solid transparent',
-            borderRight: '1px solid transparent',
-          }}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+            searchType === 'buses'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+          }`}
         >
           <Bus className="h-5 w-5" />
           <span>Buses</span>
@@ -794,20 +749,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="trains-tab"
           onClick={() => setSearchType('trains')}
-          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
-          style={searchType === 'trains' ? {
-            backgroundColor: serviceColors.trains.bgSolid,
-            color: serviceColors.trains.accent,
-            borderBottom: `3px solid ${serviceColors.trains.accent}`,
-            borderLeft: `1px solid ${serviceColors.trains.borderSolid}`,
-            borderRight: `1px solid ${serviceColors.trains.borderSolid}`,
-          } : {
-            backgroundColor: '#FFFFFF',
-            color: '#6B7280',
-            borderBottom: '3px solid transparent',
-            borderLeft: '1px solid transparent',
-            borderRight: '1px solid transparent',
-          }}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+            searchType === 'trains'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+          }`}
         >
           <Train className="h-5 w-5" />
           <span>Trains</span>
@@ -817,20 +763,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         <button
           data-testid="hotels-tab"
           onClick={() => setSearchType('hotels')}
-          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
-          style={searchType === 'hotels' ? {
-            backgroundColor: serviceColors.hotels.bgSolid,
-            color: serviceColors.hotels.accent,
-            borderBottom: `3px solid ${serviceColors.hotels.accent}`,
-            borderLeft: `1px solid ${serviceColors.hotels.borderSolid}`,
-            borderRight: `1px solid ${serviceColors.hotels.borderSolid}`,
-          } : {
-            backgroundColor: '#FFFFFF',
-            color: '#6B7280',
-            borderBottom: '3px solid transparent',
-            borderLeft: '1px solid transparent',
-            borderRight: '1px solid transparent',
-          }}
+          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+            searchType === 'hotels'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+          }`}
         >
           <Hotel className="h-5 w-5" />
           <span>Hotels</span>
@@ -841,7 +778,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       <div className="p-6 animate-tab-content bg-white" key={searchType}>
         {searchType === 'flights' ? (
           <div className="space-y-4">
-            <TripTypeSelector value={tripType} onChange={setTripType} accentColor={currentColors.accent} />
+            <TripTypeSelector value={tripType} onChange={setTripType} />
 
             {/* Cabin Class - ALWAYS VISIBLE for all trip types */}
             <CabinClassSelector value={cabinClass} onChange={setCabinClass} />
