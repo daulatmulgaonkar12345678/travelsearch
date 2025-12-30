@@ -1210,8 +1210,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
             </div>
             
             {/* Note banner - consistent with Trains/Buses */}
-            <div className="p-3 bg-[#EEF1E8] border border-[#D4DBC9] rounded-lg">
-              <p className="text-sm text-[#4A5A3A]">
+            <div className="p-3 bg-[#F9F3E6] border border-[#E5D9B5] rounded-lg">
+              <p className="text-sm text-[#8B7A2B]">
                 <strong>Note:</strong> We compare prices from multiple hotel booking sites. You&apos;ll complete your booking on the partner website.
               </p>
             </div>
