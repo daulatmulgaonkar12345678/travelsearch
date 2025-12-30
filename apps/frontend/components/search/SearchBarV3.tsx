@@ -696,12 +696,11 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   // ONE COLOR RULE: Blue (#2563EB) is the ONLY selection indicator
-  // No service-specific colors for selection state
 
   // Don't render until mounted to prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
         <div className="h-96 flex items-center justify-center">
           <div className="animate-pulse text-gray-400">Loading...</div>
         </div>
@@ -711,87 +710,96 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
 
   return (
     <div ref={searchFormRef} className="relative">
-      {/* Tab Bar - sits above the card with single baseline */}
-      <div className="relative">
-        {/* Tabs container */}
-        <div className="flex">
-          {/* Flights Tab */}
-          <button
-            data-testid="flights-tab"
-            onClick={() => setSearchType('flights')}
-            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-              searchType === 'flights'
-                ? 'text-blue-600 z-10'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Plane className="h-5 w-5" />
-            <span>Flights</span>
-            {/* Selected tab: white background that overlaps baseline */}
-            {searchType === 'flights' && (
-              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
-            )}
-          </button>
-          
-          {/* Buses Tab */}
-          <button
-            data-testid="buses-tab"
-            onClick={() => setSearchType('buses')}
-            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-              searchType === 'buses'
-                ? 'text-blue-600 z-10'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Bus className="h-5 w-5" />
-            <span>Buses</span>
-            {searchType === 'buses' && (
-              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
-            )}
-          </button>
-          
-          {/* Trains Tab */}
-          <button
-            data-testid="trains-tab"
-            onClick={() => setSearchType('trains')}
-            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-              searchType === 'trains'
-                ? 'text-blue-600 z-10'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Train className="h-5 w-5" />
-            <span>Trains</span>
-            {searchType === 'trains' && (
-              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
-            )}
-          </button>
-          
-          {/* Hotels Tab */}
-          <button
-            data-testid="hotels-tab"
-            onClick={() => setSearchType('hotels')}
-            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-              searchType === 'hotels'
-                ? 'text-blue-600 z-10'
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Hotel className="h-5 w-5" />
-            <span>Hotels</span>
-            {searchType === 'hotels' && (
-              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
-            )}
-          </button>
-        </div>
+      {/* Tab Bar Container */}
+      <div className="relative flex">
+        {/* Flights Tab */}
+        <button
+          data-testid="flights-tab"
+          onClick={() => setSearchType('flights')}
+          className={`relative flex-1 min-w-[100px] py-3.5 px-4 flex items-center justify-center space-x-2 font-semibold text-sm transition-all duration-200 rounded-t-xl ${
+            searchType === 'flights'
+              ? 'bg-white text-blue-600 z-20'
+              : 'bg-transparent text-gray-400 hover:text-gray-600'
+          }`}
+          style={searchType === 'flights' ? {
+            borderTop: '1px solid #E5E7EB',
+            borderLeft: '1px solid #E5E7EB',
+            borderRight: '1px solid #E5E7EB',
+            borderBottom: 'none',
+            marginBottom: '-1px',
+          } : {}}
+        >
+          <Plane className="h-5 w-5" />
+          <span>Flights</span>
+        </button>
         
-        {/* Single continuous baseline - spans full width */}
-        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-300" />
+        {/* Buses Tab */}
+        <button
+          data-testid="buses-tab"
+          onClick={() => setSearchType('buses')}
+          className={`relative flex-1 min-w-[100px] py-3.5 px-4 flex items-center justify-center space-x-2 font-semibold text-sm transition-all duration-200 rounded-t-xl ${
+            searchType === 'buses'
+              ? 'bg-white text-blue-600 z-20'
+              : 'bg-transparent text-gray-400 hover:text-gray-600'
+          }`}
+          style={searchType === 'buses' ? {
+            borderTop: '1px solid #E5E7EB',
+            borderLeft: '1px solid #E5E7EB',
+            borderRight: '1px solid #E5E7EB',
+            borderBottom: 'none',
+            marginBottom: '-1px',
+          } : {}}
+        >
+          <Bus className="h-5 w-5" />
+          <span>Buses</span>
+        </button>
+        
+        {/* Trains Tab */}
+        <button
+          data-testid="trains-tab"
+          onClick={() => setSearchType('trains')}
+          className={`relative flex-1 min-w-[100px] py-3.5 px-4 flex items-center justify-center space-x-2 font-semibold text-sm transition-all duration-200 rounded-t-xl ${
+            searchType === 'trains'
+              ? 'bg-white text-blue-600 z-20'
+              : 'bg-transparent text-gray-400 hover:text-gray-600'
+          }`}
+          style={searchType === 'trains' ? {
+            borderTop: '1px solid #E5E7EB',
+            borderLeft: '1px solid #E5E7EB',
+            borderRight: '1px solid #E5E7EB',
+            borderBottom: 'none',
+            marginBottom: '-1px',
+          } : {}}
+        >
+          <Train className="h-5 w-5" />
+          <span>Trains</span>
+        </button>
+        
+        {/* Hotels Tab */}
+        <button
+          data-testid="hotels-tab"
+          onClick={() => setSearchType('hotels')}
+          className={`relative flex-1 min-w-[100px] py-3.5 px-4 flex items-center justify-center space-x-2 font-semibold text-sm transition-all duration-200 rounded-t-xl ${
+            searchType === 'hotels'
+              ? 'bg-white text-blue-600 z-20'
+              : 'bg-transparent text-gray-400 hover:text-gray-600'
+          }`}
+          style={searchType === 'hotels' ? {
+            borderTop: '1px solid #E5E7EB',
+            borderLeft: '1px solid #E5E7EB',
+            borderRight: '1px solid #E5E7EB',
+            borderBottom: 'none',
+            marginBottom: '-1px',
+          } : {}}
+        >
+          <Hotel className="h-5 w-5" />
+          <span>Hotels</span>
+        </button>
       </div>
 
-      {/* Card body - white background */}
-      <div className="bg-white rounded-b-3xl shadow-xl border border-gray-200 border-t-0">
-        {/* Search Form - with tab content animation */}
+      {/* Card Body - White background with border */}
+      <div className="relative bg-white rounded-b-2xl shadow-lg border border-gray-200 z-10">
+        {/* Search Form */}
         <div className="p-6 animate-tab-content" key={searchType}>
           {searchType === 'flights' ? (
             <div className="space-y-4">
