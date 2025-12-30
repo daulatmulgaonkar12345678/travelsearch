@@ -44,19 +44,22 @@ run_ui: true
   priority: "P1"
   needs_retesting: false
 
-## Current Focus: Align Vendor CTAs with Real Capabilities (P0) - IN PROGRESS
+## Current Focus: Align Vendor CTAs with Real Capabilities (P0) - COMPLETED
 
 - task: "Update CTA labels and vendor lists per product requirements"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/lib/affiliate.ts, /app/apps/frontend/app/*/vendors/page.tsx, /app/apps/frontend/components/results/*.tsx"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Updated vendor system per strict product requirements: 1) Hotels ONLY service with 'Book Now' (Agoda, MakeMyTrip, Booking.com), 2) Flights use 'View Flights' (MakeMyTrip, Paytm, Skyscanner added), 3) Buses use 'View Buses on {Vendor}' (redBus, Paytm Bus, MakeMyTrip Bus added), 4) Trains use 'Check Train Availability' (Paytm Trains, MakeMyTrip Railways). Added Skyscanner and MakeMyTrip Bus deep link builders. All CTAs now reflect realistic user expectations."
+    - working: true
+      agent: "main"
+      comment: "✅ ALL CTA ALIGNMENT VERIFIED: 1) Hotels vendors page shows 'Book Now' - ONLY service with this CTA (verified), 2) Flights vendors page shows 'View Flights' with 3 vendors (MakeMyTrip, Paytm, Skyscanner), 3) Buses vendors page shows 'View Buses on {Vendor}' with 3 vendors (redBus, Paytm Bus, MakeMyTrip Bus), 4) Trains vendors page shows 'Check Train Availability' with 2 vendors (Paytm Trains, MakeMyTrip Railways), 5) Bus results card shows 'View Buses' - NO 'Book Now', 6) Train results card shows 'Check Availability' - NO 'Book Now'. All CTAs aligned with real vendor capabilities."
   test_requirements:
     - "Hotels vendors page: Shows 'Book Now' button (ONLY service with this CTA)"
     - "Flights vendors page: Shows 'View Flights' button (NOT 'Book Now')"
