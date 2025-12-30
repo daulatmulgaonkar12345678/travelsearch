@@ -710,75 +710,92 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   return (
-    <div 
-      ref={searchFormRef} 
-      className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200"
-    >
-      {/* Tab Selector - ONE COLOR RULE: Blue = Selected */}
-      {/* Order: Flights → Buses → Trains → Hotels */}
-      <div className="flex border-b border-gray-200 overflow-x-auto bg-white">
-        {/* Flights Tab */}
-        <button
-          data-testid="flights-tab"
-          onClick={() => setSearchType('flights')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'flights'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Plane className="h-5 w-5" />
-          <span>Flights</span>
-        </button>
+    <div ref={searchFormRef} className="relative">
+      {/* Tab Bar - sits above the card with single baseline */}
+      <div className="relative">
+        {/* Tabs container */}
+        <div className="flex">
+          {/* Flights Tab */}
+          <button
+            data-testid="flights-tab"
+            onClick={() => setSearchType('flights')}
+            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+              searchType === 'flights'
+                ? 'text-blue-600 z-10'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Plane className="h-5 w-5" />
+            <span>Flights</span>
+            {/* Selected tab: white background that overlaps baseline */}
+            {searchType === 'flights' && (
+              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
+            )}
+          </button>
+          
+          {/* Buses Tab */}
+          <button
+            data-testid="buses-tab"
+            onClick={() => setSearchType('buses')}
+            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+              searchType === 'buses'
+                ? 'text-blue-600 z-10'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Bus className="h-5 w-5" />
+            <span>Buses</span>
+            {searchType === 'buses' && (
+              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
+            )}
+          </button>
+          
+          {/* Trains Tab */}
+          <button
+            data-testid="trains-tab"
+            onClick={() => setSearchType('trains')}
+            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+              searchType === 'trains'
+                ? 'text-blue-600 z-10'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Train className="h-5 w-5" />
+            <span>Trains</span>
+            {searchType === 'trains' && (
+              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
+            )}
+          </button>
+          
+          {/* Hotels Tab */}
+          <button
+            data-testid="hotels-tab"
+            onClick={() => setSearchType('hotels')}
+            className={`relative flex-1 min-w-[100px] py-3 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
+              searchType === 'hotels'
+                ? 'text-blue-600 z-10'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <Hotel className="h-5 w-5" />
+            <span>Hotels</span>
+            {searchType === 'hotels' && (
+              <span className="absolute inset-x-0 -bottom-[1px] h-[3px] bg-white" />
+            )}
+          </button>
+        </div>
         
-        {/* Buses Tab */}
-        <button
-          data-testid="buses-tab"
-          onClick={() => setSearchType('buses')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'buses'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Bus className="h-5 w-5" />
-          <span>Buses</span>
-        </button>
-        
-        {/* Trains Tab */}
-        <button
-          data-testid="trains-tab"
-          onClick={() => setSearchType('trains')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'trains'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Train className="h-5 w-5" />
-          <span>Trains</span>
-        </button>
-        
-        {/* Hotels Tab */}
-        <button
-          data-testid="hotels-tab"
-          onClick={() => setSearchType('hotels')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'hotels'
-              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-              : 'bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <Hotel className="h-5 w-5" />
-          <span>Hotels</span>
-        </button>
+        {/* Single continuous baseline - spans full width */}
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-300" />
       </div>
 
-      {/* Search Form - with tab content animation */}
-      <div className="p-6 animate-tab-content bg-white" key={searchType}>
-        {searchType === 'flights' ? (
-          <div className="space-y-4">
-            <TripTypeSelector value={tripType} onChange={setTripType} />
+      {/* Card body - white background */}
+      <div className="bg-white rounded-b-3xl shadow-xl border border-gray-200 border-t-0">
+        {/* Search Form - with tab content animation */}
+        <div className="p-6 animate-tab-content" key={searchType}>
+          {searchType === 'flights' ? (
+            <div className="space-y-4">
+              <TripTypeSelector value={tripType} onChange={setTripType} />
 
             {/* Cabin Class - ALWAYS VISIBLE for all trip types */}
             <CabinClassSelector value={cabinClass} onChange={setCabinClass} />
