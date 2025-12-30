@@ -700,3 +700,27 @@ test_priority: "high_first"
     - "Verify tab order: Flights → Buses → Trains → Hotels everywhere"
     - "Verify service theming: Each service has unique accent color"
     - "Verify warm background colors (no pure white/blue)"
+
+## Current Focus: Partner Deep-Link Navigation Fix (P0)
+
+- task: "Partner Deep-Link Navigation - Open in New Tab for All Services"
+  implemented: true
+  working: "pending"
+  files:
+    - "/app/apps/frontend/components/common/RedirectScreen.tsx"
+    - "/app/apps/frontend/components/results/BusCard.tsx"
+    - "/app/apps/frontend/components/results/TrainCard.tsx"
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Fixed partner deep-link navigation to open in new tab for all services. Changes: 1) RedirectScreen.tsx - changed window.location.href to window.open(url, '_blank', 'noopener,noreferrer'), 2) BusCard.tsx - added noopener,noreferrer security attributes, 3) TrainCard.tsx - added noopener,noreferrer security attributes. Flights and Hotels use RedirectScreen, so they are automatically fixed."
+  test_requirements:
+    - "Test Flights: Navigate to flight results, click 'Book' on any flight → should open partner site in NEW TAB"
+    - "Test Buses: Navigate to bus results (Pune→Mumbai), click 'redBus' button → should open redBus in NEW TAB"
+    - "Test Trains: Navigate to train results (PUNE→CSMT), click 'IRCTC' button → should open IRCTC in NEW TAB"
+    - "Test Hotels: Navigate to hotel results, click vendor 'Book Now' → should open partner site in NEW TAB"
+    - "Verify current page remains open after clicking any booking button"
+    - "Verify NO same-tab navigation occurs for any partner deep-link"
+    - "Verify noopener,noreferrer security attributes are applied (check browser dev tools)"
