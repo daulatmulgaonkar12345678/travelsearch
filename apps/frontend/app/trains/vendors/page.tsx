@@ -38,7 +38,7 @@ function TrainVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // Build deep link for selected vendor
+      // Build deep link for selected vendor with validation
       const params: TrainDeepLinkParams = {
         fromStation: origin,
         toStation: destination,
@@ -47,7 +47,14 @@ function TrainVendorsContent() {
         date: departureDate,
       }
 
-      const finalRedirectUrl = buildTrainDeepLink(vendorId, params)
+      const result = buildTrainDeepLink(vendorId, params)
+      
+      // BLOCK redirect if validation failed
+      if (!result.url) {
+        alert(`Cannot redirect: ${result.error}`)
+        setRedirecting(null)
+        return
+      }
 
       // Log click asynchronously (fire-and-forget)
       logAffiliateClick(
@@ -58,7 +65,7 @@ function TrainVendorsContent() {
       ).catch(() => {})
 
       // Show redirect screen
-      setRedirectUrl(finalRedirectUrl)
+      setRedirectUrl(result.url)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
