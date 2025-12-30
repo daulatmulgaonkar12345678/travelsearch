@@ -34,7 +34,7 @@ run_ui: true
     - "Verify NO cross-service redirect: Hotel vendor page must NOT generate flight URLs"
     - "Verify NO cross-service redirect: Flight vendor page must NOT generate hotel URLs"
 
-## Current Focus: Vendor Dropdown for Buses & Trains (P1) - IN PROGRESS
+## Current Focus: Vendor Dropdown for Buses & Trains (P1) - COMPLETED
 
 - task: "Implement and Verify Vendor Dropdown for Buses and Trains"
   implemented: true
