@@ -871,6 +871,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       params.append('bus_type', busType)
     }
     
+    // Clear modify search payload on successful submit
+    clearModifySearchPayload('buses')
     window.location.href = `/buses/results?${params}`
   }
 
