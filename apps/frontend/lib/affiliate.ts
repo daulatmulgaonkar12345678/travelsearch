@@ -694,6 +694,20 @@ function buildIxigoTrainsUrl(params: TrainDeepLinkParams): string {
 }
 
 /**
+ * MakeMyTrip Railways Deep Link (city names)
+ * Format: https://www.makemytrip.com/railways/search?fromCity=Mumbai&toCity=Pune...
+ */
+function buildMakeMyTripRailwaysUrl(params: TrainDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const dateFormatted = formatDDMMYYYYDash(date)
+  const fromEncoded = encodeURIComponent(fromCity)
+  const toEncoded = encodeURIComponent(toCity)
+  
+  return `https://www.makemytrip.com/railways/search?fromCity=${fromEncoded}&toCity=${toEncoded}&date=${dateFormatted}`
+}
+
+/**
  * Goibibo Trains Deep Link (city names)
  * Format: https://www.goibibo.com/trains/...
  */
