@@ -652,23 +652,12 @@ function buildEaseMyTripBusUrl(params: BusDeepLinkParams): string {
   return `https://www.easemytrip.com/bus/${fromSlug}-to-${toSlug}-bus.html?date=${dateFormatted}`
 }
 
-/**
- * Ixigo Bus Deep Link (city names)
- * Format: https://www.ixigo.com/search/result/bus/...
- */
-function buildIxigoBusUrl(params: BusDeepLinkParams): string {
-  const { fromCity, toCity, date } = params
-  
-  const fromEncoded = encodeURIComponent(fromCity)
-  const toEncoded = encodeURIComponent(toCity)
-  const dateFormatted = formatDDMMYYYY(date)
-  
-  return `https://www.ixigo.com/search/result/bus/${fromEncoded}/${toEncoded}/${dateFormatted}`
-}
+// REMOVED: Ixigo Bus (unstable deep links)
 
 /**
  * Build bus deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
+ * REMOVED: Ixigo (unstable deep links)
  */
 export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): DeepLinkResult {
   const validationError = validateBusParams(params)
@@ -686,9 +675,6 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): D
       break
     case 'easemytrip_bus':
       url = buildEaseMyTripBusUrl(params)
-      break
-    case 'ixigo_bus':
-      url = buildIxigoBusUrl(params)
       break
     default:
       // redBus is PRIMARY for buses
