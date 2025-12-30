@@ -7,7 +7,8 @@ import {
   FlightSearchPayload, 
   HotelSearchPayload, 
   BusSearchPayload, 
-  TrainSearchPayload 
+  TrainSearchPayload,
+  createAirportFromCode,
 } from '@/lib/modifySearchStore'
 
 interface ModifySearchButtonProps {
@@ -18,6 +19,10 @@ interface ModifySearchButtonProps {
     // Flights
     origin?: string
     destination?: string
+    origin_name?: string      // Full airport name if available
+    destination_name?: string
+    origin_city?: string
+    destination_city?: string
     return_date?: string
     adults?: string
     children?: string
@@ -31,8 +36,6 @@ interface ModifySearchButtonProps {
     hotel_name?: string
     rooms?: string
     // Buses/Trains
-    origin_city?: string
-    destination_city?: string
     passengers?: string
     bus_type?: string
     train_class?: string
@@ -49,7 +52,7 @@ interface ModifySearchButtonProps {
  * 2. Navigates to homepage with ?modify=true&tab={service}
  * 3. SearchBarV3 reads from localStorage and hydrates form state
  * 
- * This ensures data persists even if URL params are truncated.
+ * IMPORTANT: Stores FULL OBJECTS (not just codes) for validation
  */
 export default function ModifySearchButton({
   service,
@@ -69,15 +72,19 @@ export default function ModifySearchButton({
 
   /**
    * Save the search payload to localStorage before navigation
-   * This ensures the form can hydrate even if URL params are lost
+   * Creates full airport objects to pass validation on hydration
    */
   const savePayloadToStorage = () => {
     switch (service) {
       case 'flights': {
+        // Create full airport objects from codes
+        const originCode = searchParams.origin || ''
+        const destCode = searchParams.destination || ''
+        
         const payload: FlightSearchPayload = {
           service: 'flights',
-          origin: searchParams.origin || '',
-          destination: searchParams.destination || '',
+          origin: createAirportFromCode(originCode),
+          destination: createAirportFromCode(destCode),
           departure_date: searchParams.departure_date || '',
           return_date: searchParams.return_date,
           adults: parseInt(searchParams.adults || '1'),
@@ -91,9 +98,17 @@ export default function ModifySearchButton({
       }
         
       case 'hotels': {
+        // Store full hotel destination object
+        const city = searchParams.city || ''
         const payload: HotelSearchPayload = {
           service: 'hotels',
-          city: searchParams.city || '',
+          destination: {
+            type: 'city',
+            id: `city_${city.toLowerCase().replace(/\s+/g, '_')}`,
+            label: `${city}, India`,
+            city: city,
+            country: 'India',
+          },
           check_in: searchParams.check_in || searchParams.departure_date || '',
           check_out: searchParams.check_out || '',
           adults: parseInt(searchParams.adults || '2'),
