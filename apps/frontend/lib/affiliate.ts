@@ -327,6 +327,34 @@ function buildBookingHotelUrl(params: HotelDeepLinkParams): string {
 }
 
 /**
+ * Goibibo Hotel Deep Link (search-based)
+ * Format: https://www.goibibo.com/hotels/...
+ */
+function buildGoibiboHotelUrl(params: HotelDeepLinkParams): string {
+  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
+  
+  const citySlug = city.toLowerCase().replace(/\s+/g, '-')
+  const hotelNameEncoded = encodeURIComponent(hotelName)
+  
+  return `https://www.goibibo.com/hotels/search/?cc=IN&ci=${checkIn}&co=${checkOut}&r=1-${adults}-0&q=${hotelNameEncoded}%20${citySlug}`
+}
+
+/**
+ * EaseMyTrip Hotel Deep Link (search-based)
+ * Format: https://www.easemytrip.com/hotels/...
+ */
+function buildEaseMyTripHotelUrl(params: HotelDeepLinkParams): string {
+  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
+  
+  const citySlug = city.toLowerCase().replace(/\s+/g, '-')
+  const hotelNameEncoded = encodeURIComponent(hotelName)
+  const checkInFormatted = formatDDMMYYYYDash(checkIn)
+  const checkOutFormatted = formatDDMMYYYYDash(checkOut)
+  
+  return `https://www.easemytrip.com/hotels/search.html?city=${citySlug}&checkin=${checkInFormatted}&checkout=${checkOutFormatted}&rooms=${rooms}&adults=${adults}&q=${hotelNameEncoded}`
+}
+
+/**
  * Build hotel deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
  */
@@ -338,14 +366,20 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
   
   let url: string
   switch (vendorId) {
-    case 'makemytrip_hotels':
-      url = buildMakeMyTripHotelUrl(params)
-      break
     case 'agoda':
       url = buildAgodaHotelUrl(params)
       break
     case 'booking':
       url = buildBookingHotelUrl(params)
+      break
+    case 'makemytrip_hotels':
+      url = buildMakeMyTripHotelUrl(params)
+      break
+    case 'goibibo_hotels':
+      url = buildGoibiboHotelUrl(params)
+      break
+    case 'easemytrip_hotels':
+      url = buildEaseMyTripHotelUrl(params)
       break
     default:
       url = buildBookingHotelUrl(params)
