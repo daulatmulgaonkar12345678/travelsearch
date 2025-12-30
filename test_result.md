@@ -4,11 +4,34 @@
 ```yaml
 created_by: "main_agent"
 version: "1.0"
-test_sequence: 14
+test_sequence: 15
 run_ui: true
 ```
 
-## Current Focus: API Proxy Architecture Validation (P0) - COMPLETED
+## Current Focus: Vendor-Specific Deep-Link Verification (P0) - IN PROGRESS
+
+- task: "Verify Vendor Dropdown for Flights and Hotels"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/app/flights/vendors/page.tsx, /app/apps/frontend/app/hotels/vendors/page.tsx, /app/apps/frontend/lib/affiliate.ts"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Vendor-specific deep-linking system implemented. affiliate.ts library created with vendor definitions and deep link builders. Flights and Hotels vendor pages have dropdown selection. Needs verification that: 1) Flights redirect ONLY to MakeMyTrip or Paytm Flights, 2) Hotels redirect ONLY to MakeMyTrip Hotels, Agoda, or Booking.com, 3) No cross-service redirect (hotel→flight must never happen)"
+  test_requirements:
+    - "Test Flights Vendor Page: Navigate to /flights/vendors?origin=DEL&destination=BOM&departure_date=2025-01-15&adults=1 - verify page loads with vendor dropdown"
+    - "Test Flights Vendor Selection: Select MakeMyTrip, click Book - verify URL contains makemytrip.com/flight/search and NOT hotels"
+    - "Test Flights Vendor Selection: Select Paytm, click Book - verify URL contains tickets.paytm.com/flights/search"
+    - "Test Hotels Vendor Page: Navigate to /hotels/vendors?city=Mumbai&hotel_name=Taj&check_in=2025-01-15&check_out=2025-01-17 - verify page loads with vendor dropdown"
+    - "Test Hotels Vendor Selection: Select Booking.com, click Book - verify URL contains booking.com/searchresults.html and NOT flights"
+    - "Test Hotels Vendor Selection: Select Agoda, click Book - verify URL contains agoda.com/search"
+    - "Verify NO cross-service redirect: Hotel vendor page must NOT generate flight URLs"
+    - "Verify NO cross-service redirect: Flight vendor page must NOT generate hotel URLs"
+
+## Previous Focus: API Proxy Architecture Validation (P0) - COMPLETED
 
 - task: "API Proxy Architecture Validation - Next.js Proxy Routes"
   implemented: true
