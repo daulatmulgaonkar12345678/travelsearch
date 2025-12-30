@@ -1,19 +1,23 @@
 /**
  * Affiliate Link Builder
  * 
- * Builds affiliate URLs directly on the frontend for immediate redirects.
- * Uses Aviasales path-based deep links for direct search results.
+ * CRITICAL: All booking redirects MUST use the Travelpayouts redirect gateway.
+ * 
+ * ❌ NEVER use: aviasales.com/search/* (causes CORS errors from auth.avs.io)
+ * ✅ ALWAYS use: aviasales.tpx.lt/eqOxwsZu (handles JWT internally, no CORS)
+ * 
+ * This module builds affiliate URLs directly on the frontend for immediate redirects.
  * No backend dependency - ensures fast, reliable redirects to partner sites.
  */
 
 /**
- * Aviasales/Travelpayouts Configuration
+ * Travelpayouts Configuration
+ * 
+ * MANDATORY: Use ONLY the redirect gateway URL for all bookings.
  */
-const AVIASALES_CONFIG = {
-  // Direct domain for path-based deep links (more reliable)
-  directUrl: 'https://www.aviasales.com',
-  // Affiliate tracking URL
-  trackingUrl: 'https://aviasales.tpx.lt/eqOxwsZu',
+const TRAVELPAYOUTS_CONFIG = {
+  // REQUIRED: Travelpayouts redirect gateway (handles auth internally)
+  redirectGateway: 'https://aviasales.tpx.lt/eqOxwsZu',
   marker: '689331',
 }
 
@@ -32,92 +36,20 @@ export interface HotelSearchParams {
   checkIn: string
   checkOut: string
   adults?: number
-}
-
-/**
- * Format date from YYYY-MM-DD to DDMM for Aviasales path
- * Example: "2025-01-15" → "1501"
- */
-function formatDateForAviasales(dateStr: string): string {
-  if (!dateStr) return ''
-  const parts = dateStr.split('-')
-  if (parts.length !== 3) return ''
-  const day = parts[2]
-  const month = parts[1]
-  return `${day}${month}`
-}
-
-/**
- * Build Aviasales path-based deep link
- * 
- * Format: /search/{ORIGIN}{DDMM}{DEST}{passengers}
- * - One-way:    /search/BOM1501DEL1     (BOM → DEL, 15 Jan, 1 adult)
- * - Round-trip: /search/BOM1501DEL20011 (BOM → DEL, 15 Jan, return 20 Jan, 1 adult)
- * 
- * Passengers format: {adults}{children}{infants} (only if non-default)
- */
-function buildAviasalesSearchPath(params: FlightSearchParams): string {
-  const {
-    origin,
-    destination,
-    departDate,
-    returnDate,
-    adults = 1,
-    children = 0,
-    infants = 0,
-  } = params
-
-  const departDDMM = formatDateForAviasales(departDate)
-  if (!departDDMM) {
-    console.warn('Invalid depart date for Aviasales URL:', departDate)
-    return ''
-  }
-
-  // Build path: ORIGIN + DDMM + DEST + (return DDMM if round-trip) + passengers
-  let path = `${origin}${departDDMM}${destination}`
-  
-  if (returnDate) {
-    const returnDDMM = formatDateForAviasales(returnDate)
-    if (returnDDMM) {
-      path += returnDDMM
-    }
-  }
-  
-  // Add passenger count (simplified: just total adults for now)
-  // Full format would be: adults + children ages + infants
-  path += adults.toString()
-  
-  return `/search/${path}`
+  hotelName?: string  // For hotel-specific deep links
+  hotelId?: string    // Provider hotel ID if available
 }
 
 /**
  * Build Aviasales flight affiliate URL
- * Returns a direct deep link to Aviasales SEARCH RESULTS (not homepage)
  * 
- * Uses path-based deep links for reliable direct-to-results navigation:
- * - One-way:    aviasales.com/search/BOM1501DEL1
- * - Round-trip: aviasales.com/search/BOM1501DEL20011
+ * CRITICAL: Uses ONLY the Travelpayouts redirect gateway.
+ * NEVER uses aviasales.com directly (causes CORS errors).
+ * 
+ * @param params Flight search parameters
+ * @returns Travelpayouts redirect URL with all flight parameters
  */
 export function buildAviasalesFlightUrl(params: FlightSearchParams): string {
-  const searchPath = buildAviasalesSearchPath(params)
-  
-  if (!searchPath) {
-    // Fallback to query-param based URL if path building fails
-    return buildAviasalesFlightUrlFallback(params)
-  }
-  
-  // Build final URL with affiliate marker
-  const url = new URL(searchPath, AVIASALES_CONFIG.directUrl)
-  url.searchParams.set('marker', AVIASALES_CONFIG.marker)
-  
-  return url.toString()
-}
-
-/**
- * Fallback URL builder using query parameters
- * Used if path-based URL building fails
- */
-function buildAviasalesFlightUrlFallback(params: FlightSearchParams): string {
   const {
     origin,
     destination,
@@ -128,53 +60,103 @@ function buildAviasalesFlightUrlFallback(params: FlightSearchParams): string {
     infants = 0,
   } = params
 
-  let url = `${AVIASALES_CONFIG.trackingUrl}?`
-  url += `origin_iata=${encodeURIComponent(origin)}`
-  url += `&destination_iata=${encodeURIComponent(destination)}`
-  url += `&depart_date=${encodeURIComponent(departDate)}`
-
+  // Build URL with Travelpayouts redirect gateway
+  const url = new URL(TRAVELPAYOUTS_CONFIG.redirectGateway)
+  
+  // Flight parameters
+  url.searchParams.set('origin_iata', origin.toUpperCase())
+  url.searchParams.set('destination_iata', destination.toUpperCase())
+  url.searchParams.set('depart_date', departDate)
+  
   if (returnDate) {
-    url += `&return_date=${encodeURIComponent(returnDate)}`
+    url.searchParams.set('return_date', returnDate)
   }
-
-  if (adults > 1) {
-    url += `&adults=${adults}`
-  }
-
-  if (children > 0) {
-    url += `&children=${children}`
-  }
-
-  if (infants > 0) {
-    url += `&infants=${infants}`
-  }
-
-  url += `&marker=${AVIASALES_CONFIG.marker}`
-
-  return url
-}
-
-/**
- * Build Aviasales hotel affiliate URL
- * Returns a direct link to Aviasales Hotels with our affiliate marker
- */
-export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
-  const { city, checkIn, checkOut, adults = 2 } = params
-
-  // Aviasales hotel URL structure
-  const url = new URL('/hotels', AVIASALES_CONFIG.directUrl)
-  url.searchParams.set('destination', city)
-  url.searchParams.set('checkIn', checkIn)
-  url.searchParams.set('checkOut', checkOut)
+  
+  // Passenger count
   url.searchParams.set('adults', adults.toString())
-  url.searchParams.set('marker', AVIASALES_CONFIG.marker)
+  
+  if (children > 0) {
+    url.searchParams.set('children', children.toString())
+  }
+  
+  if (infants > 0) {
+    url.searchParams.set('infants', infants.toString())
+  }
+  
+  // Trip class (0 = economy)
+  url.searchParams.set('trip_class', '0')
 
   return url.toString()
 }
 
 /**
+ * Build hotel affiliate URL
+ * 
+ * Strategy:
+ * 1. If hotelName provided → Use Booking.com with hotel-specific search
+ * 2. If only city → Use Travelpayouts city-level hotel search
+ * 
+ * @param params Hotel search parameters
+ * @returns Booking URL (hotel-specific) or Travelpayouts URL (city-level)
+ */
+export function buildAviasalesHotelUrl(params: HotelSearchParams): string {
+  const { city, checkIn, checkOut, adults = 2, hotelName, hotelId } = params
+
+  // If hotel name provided, use Booking.com for hotel-specific search
+  if (hotelName) {
+    const hotelNameEncoded = encodeURIComponent(hotelName)
+    const cityEncoded = encodeURIComponent(city)
+    
+    return `https://www.booking.com/searchresults.html?ss=${hotelNameEncoded}%2C+${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&group_adults=${adults}&no_rooms=1`
+  }
+
+  // Fallback: City-level search via Travelpayouts
+  const url = new URL(TRAVELPAYOUTS_CONFIG.redirectGateway)
+  url.searchParams.set('type', 'hotel')
+  url.searchParams.set('destination', city)
+  url.searchParams.set('checkIn', checkIn)
+  url.searchParams.set('checkOut', checkOut)
+  url.searchParams.set('adults', adults.toString())
+
+  return url.toString()
+}
+
+/**
+ * Build hotel-specific affiliate URL
+ * 
+ * Uses Booking.com with hotel name search for precise hotel targeting.
+ * Falls back to city-level search if hotel name not provided.
+ * 
+ * @param hotelName Hotel name
+ * @param city City name
+ * @param checkIn Check-in date (YYYY-MM-DD)
+ * @param checkOut Check-out date (YYYY-MM-DD)
+ * @param adults Number of adults
+ * @returns Hotel-specific Booking.com URL
+ */
+export function buildHotelSpecificUrl(
+  hotelName: string,
+  city: string,
+  checkIn: string,
+  checkOut: string,
+  adults: number = 2
+): string {
+  if (!hotelName) {
+    // Fallback to city-level
+    return buildAviasalesHotelUrl({ city, checkIn, checkOut, adults })
+  }
+
+  const hotelNameEncoded = encodeURIComponent(hotelName)
+  const cityEncoded = encodeURIComponent(city)
+  
+  return `https://www.booking.com/searchresults.html?ss=${hotelNameEncoded}%2C+${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&group_adults=${adults}&no_rooms=1`
+}
+
+/**
  * Log affiliate click (fire-and-forget)
- * This is optional and should never block the redirect
+ * 
+ * This is optional and should NEVER block the redirect.
+ * If logging fails, the redirect MUST still proceed.
  */
 export async function logAffiliateClick(
   provider: string,
@@ -196,12 +178,10 @@ export async function logAffiliateClick(
       }),
       // Don't wait for response
       keepalive: true,
-    }).catch((err) => {
+    }).catch(() => {
       // Silently fail - logging should never break redirect
-      console.warn('Click logging failed (non-blocking):', err)
     })
-  } catch (err) {
+  } catch {
     // Silently fail - logging should never break redirect
-    console.warn('Click logging error (non-blocking):', err)
   }
 }
