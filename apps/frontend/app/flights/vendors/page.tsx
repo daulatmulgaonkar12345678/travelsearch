@@ -3,17 +3,20 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
-import { Plane, Clock, ArrowRight, Loader2, ExternalLink, Calendar, Users, Check } from 'lucide-react'
+import { Plane, ArrowRight, Loader2, ExternalLink, Calendar, Users, Check, AlertCircle } from 'lucide-react'
 import { 
   getVendorsForService, 
+  getPrimaryVendor,
   buildFlightDeepLink, 
   logAffiliateClick,
   type FlightDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
+import ModifySearchButton from '@/components/search/ModifySearchButton'
 
 // Flight-specific vendors only
 const FLIGHT_VENDORS = getVendorsForService('flights')
+const PRIMARY_VENDOR = getPrimaryVendor('flights')
 
 function FlightVendorsContent() {
   const searchParams = useSearchParams()
@@ -21,21 +24,16 @@ function FlightVendorsContent() {
   const [redirecting, setRedirecting] = useState<string | null>(null)
   const [redirectUrl, setRedirectUrl] = useState<string>('')
   const [showRedirectScreen, setShowRedirectScreen] = useState(false)
-  // Skyscanner is PRIMARY (default)
-  const [selectedVendor, setSelectedVendor] = useState<string>('skyscanner')
+  // Use primary vendor as default
+  const [selectedVendor, setSelectedVendor] = useState<string>(PRIMARY_VENDOR?.id || 'skyscanner')
 
-  // Get offer details from URL params
+  // Get search params
   const origin = searchParams.get('origin') || ''
   const destination = searchParams.get('destination') || ''
   const departureDate = searchParams.get('departure_date') || ''
   const returnDate = searchParams.get('return_date') || ''
-  const airline = searchParams.get('airline') || ''
-  const flightNumber = searchParams.get('flight_number') || ''
-  const departureTime = searchParams.get('departure_time') || ''
-  const arrivalTime = searchParams.get('arrival_time') || ''
   const price = searchParams.get('price') || '0'
   const currency = searchParams.get('currency') || 'INR'
-  const stops = searchParams.get('stops') || '0'
   const adults = searchParams.get('adults') || '1'
   const children = searchParams.get('children') || '0'
   const infants = searchParams.get('infants') || '0'
