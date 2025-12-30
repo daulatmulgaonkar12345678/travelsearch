@@ -47,13 +47,22 @@ export interface Vendor {
   name: string
   services: ServiceType[]
   logo?: string
+  isPrimary?: boolean
 }
 
 export const VENDORS: Record<string, Vendor> = {
-  // Hotel vendors (ONLY service with "Book Now")
+  // ============================================================
+  // HOTEL VENDORS - Agoda is PRIMARY
+  // ============================================================
   agoda: {
     id: 'agoda',
     name: 'Agoda',
+    services: ['hotels'],
+    isPrimary: true,
+  },
+  booking: {
+    id: 'booking',
+    name: 'Booking.com',
     services: ['hotels'],
   },
   makemytrip_hotels: {
@@ -61,57 +70,89 @@ export const VENDORS: Record<string, Vendor> = {
     name: 'MakeMyTrip',
     services: ['hotels'],
   },
-  booking: {
-    id: 'booking',
-    name: 'Booking.com',
+  goibibo_hotels: {
+    id: 'goibibo_hotels',
+    name: 'Goibibo',
+    services: ['hotels'],
+  },
+  easemytrip_hotels: {
+    id: 'easemytrip_hotels',
+    name: 'EaseMyTrip',
     services: ['hotels'],
   },
   
-  // Flight vendors - Skyscanner is PRIMARY
-  // Order: Skyscanner (primary), MakeMyTrip, Paytm
-  // NO Aviasales - removed completely
+  // ============================================================
+  // FLIGHT VENDORS - Skyscanner is PRIMARY (meta-search)
+  // ============================================================
   skyscanner: {
     id: 'skyscanner',
     name: 'Skyscanner',
     services: ['flights'],
+    isPrimary: true,
   },
   makemytrip_flights: {
     id: 'makemytrip_flights',
     name: 'MakeMyTrip',
     services: ['flights'],
   },
-  paytm_flights: {
-    id: 'paytm_flights',
-    name: 'Paytm',
+  goibibo_flights: {
+    id: 'goibibo_flights',
+    name: 'Goibibo',
+    services: ['flights'],
+  },
+  easemytrip_flights: {
+    id: 'easemytrip_flights',
+    name: 'EaseMyTrip',
+    services: ['flights'],
+  },
+  ixigo_flights: {
+    id: 'ixigo_flights',
+    name: 'Ixigo',
     services: ['flights'],
   },
   
-  // Bus vendors ("View Buses on {Vendor}" - Form-fill search only)
+  // ============================================================
+  // BUS VENDORS - redBus is PRIMARY
+  // ============================================================
   redbus: {
     id: 'redbus',
     name: 'redBus',
     services: ['buses'],
+    isPrimary: true,
   },
-  paytm_bus: {
-    id: 'paytm_bus',
-    name: 'Paytm Bus',
+  goibibo_bus: {
+    id: 'goibibo_bus',
+    name: 'Goibibo',
     services: ['buses'],
   },
-  makemytrip_bus: {
-    id: 'makemytrip_bus',
-    name: 'MakeMyTrip Bus',
+  easemytrip_bus: {
+    id: 'easemytrip_bus',
+    name: 'EaseMyTrip',
+    services: ['buses'],
+  },
+  ixigo_bus: {
+    id: 'ixigo_bus',
+    name: 'Ixigo',
     services: ['buses'],
   },
   
-  // Train vendors ("Check Train Availability" - Form-fill availability only)
-  paytm_trains: {
-    id: 'paytm_trains',
-    name: 'Paytm Trains',
+  // ============================================================
+  // TRAIN VENDORS - Ixigo is PRIMARY
+  // ============================================================
+  ixigo_trains: {
+    id: 'ixigo_trains',
+    name: 'Ixigo',
     services: ['trains'],
+    isPrimary: true,
   },
   makemytrip_railways: {
     id: 'makemytrip_railways',
     name: 'MakeMyTrip Railways',
+    services: ['trains'],
+  },
+  goibibo_trains: {
+    id: 'goibibo_trains',
+    name: 'Goibibo Trains',
     services: ['trains'],
   },
 }
