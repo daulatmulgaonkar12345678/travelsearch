@@ -151,10 +151,10 @@ function TrainVendorsContent() {
         {/* Vendor Selection */}
         <div className="bg-white rounded-xl border border-[#E6E1D8] p-6">
           <h2 className="text-lg font-semibold text-[#1A1A1A] mb-4">
-            Choose Booking Partner
+            Choose Train Availability Partner
           </h2>
           <p className="text-sm text-[#6B6B6B] mb-6">
-            Select a partner to check train availability and book. You&apos;ll be redirected to their site.
+            Select a partner to check seat availability. Login, CAPTCHA, and booking will happen on their site.
           </p>
 
           {/* Vendor List */}
@@ -184,7 +184,7 @@ function TrainVendorsContent() {
             ))}
           </div>
 
-          {/* Book Button */}
+          {/* Check Availability Button - NOT "Book Now" */}
           <button
             onClick={() => handleVendorClick(selectedVendor)}
             disabled={redirecting !== null}
@@ -198,13 +198,13 @@ function TrainVendorsContent() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Search on {TRAIN_VENDORS.find(v => v.id === selectedVendor)?.name}
+                Check Train Availability
               </>
             )}
           </button>
 
           <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll be redirected to the partner site to view live availability and book.
+            You&apos;ll see availability search with your route and date prefilled.
           </p>
         </div>
       </div>
