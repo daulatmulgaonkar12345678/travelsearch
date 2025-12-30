@@ -2,6 +2,13 @@
 
 import { Edit3 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { 
+  saveModifySearchPayload, 
+  FlightSearchPayload, 
+  HotelSearchPayload, 
+  BusSearchPayload, 
+  TrainSearchPayload 
+} from '@/lib/modifySearchStore'
 
 interface ModifySearchButtonProps {
   service: 'flights' | 'hotels' | 'buses' | 'trains'
@@ -15,14 +22,20 @@ interface ModifySearchButtonProps {
     adults?: string
     children?: string
     infants?: string
+    cabin_class?: string
+    trip_type?: string
     // Hotels
     city?: string
     check_in?: string
     check_out?: string
     hotel_name?: string
+    rooms?: string
     // Buses/Trains
     origin_city?: string
     destination_city?: string
+    passengers?: string
+    bus_type?: string
+    train_class?: string
   }
   variant?: 'default' | 'compact'
   className?: string
@@ -30,7 +43,13 @@ interface ModifySearchButtonProps {
 
 /**
  * ModifySearch Button - Opens search form with pre-filled values
- * Used on both results and vendor comparison pages
+ * 
+ * FLOW:
+ * 1. Saves search payload to localStorage (single source of truth)
+ * 2. Navigates to homepage with ?modify=true&tab={service}
+ * 3. SearchBarV3 reads from localStorage and hydrates form state
+ * 
+ * This ensures data persists even if URL params are truncated.
  */
 export default function ModifySearchButton({
   service,
@@ -41,50 +60,76 @@ export default function ModifySearchButton({
   const router = useRouter()
 
   const handleModifySearch = () => {
-    // Build query params for search page
-    const params = new URLSearchParams()
+    // Step 1: Save payload to localStorage (SINGLE SOURCE OF TRUTH)
+    savePayloadToStorage()
     
+    // Step 2: Navigate to homepage with modify flag
+    router.push(`/?tab=${service}&modify=true`)
+  }
+
+  /**
+   * Save the search payload to localStorage before navigation
+   * This ensures the form can hydrate even if URL params are lost
+   */
+  const savePayloadToStorage = () => {
     switch (service) {
-      case 'flights':
-        if (searchParams.origin) params.set('origin', searchParams.origin)
-        if (searchParams.destination) params.set('destination', searchParams.destination)
-        if (searchParams.departure_date) params.set('departure_date', searchParams.departure_date)
-        if (searchParams.return_date) params.set('return_date', searchParams.return_date)
-        if (searchParams.adults) params.set('adults', searchParams.adults)
-        if (searchParams.children) params.set('children', searchParams.children)
-        if (searchParams.infants) params.set('infants', searchParams.infants)
-        router.push(`/?tab=flights&modify=true&${params.toString()}`)
+      case 'flights': {
+        const payload: FlightSearchPayload = {
+          service: 'flights',
+          origin: searchParams.origin || '',
+          destination: searchParams.destination || '',
+          departure_date: searchParams.departure_date || '',
+          return_date: searchParams.return_date,
+          adults: parseInt(searchParams.adults || '1'),
+          children: searchParams.children ? parseInt(searchParams.children) : undefined,
+          infants: searchParams.infants ? parseInt(searchParams.infants) : undefined,
+          cabin_class: searchParams.cabin_class,
+          trip_type: searchParams.trip_type,
+        }
+        saveModifySearchPayload(payload)
         break
+      }
         
-      case 'hotels':
-        if (searchParams.city) params.set('city', searchParams.city)
-        if (searchParams.check_in) params.set('check_in', searchParams.check_in)
-        if (searchParams.check_out) params.set('check_out', searchParams.check_out)
-        if (searchParams.adults) params.set('adults', searchParams.adults)
-        router.push(`/?tab=hotels&modify=true&${params.toString()}`)
+      case 'hotels': {
+        const payload: HotelSearchPayload = {
+          service: 'hotels',
+          city: searchParams.city || '',
+          check_in: searchParams.check_in || searchParams.departure_date || '',
+          check_out: searchParams.check_out || '',
+          adults: parseInt(searchParams.adults || '2'),
+          rooms: searchParams.rooms ? parseInt(searchParams.rooms) : undefined,
+        }
+        saveModifySearchPayload(payload)
         break
+      }
         
-      case 'buses':
-        if (searchParams.origin_city || searchParams.origin) {
-          params.set('origin', searchParams.origin_city || searchParams.origin || '')
+      case 'buses': {
+        const payload: BusSearchPayload = {
+          service: 'buses',
+          origin: searchParams.origin_city || searchParams.origin || '',
+          destination: searchParams.destination_city || searchParams.destination || '',
+          departure_date: searchParams.departure_date || '',
+          passengers: searchParams.passengers ? parseInt(searchParams.passengers) : 1,
+          bus_type: searchParams.bus_type,
         }
-        if (searchParams.destination_city || searchParams.destination) {
-          params.set('destination', searchParams.destination_city || searchParams.destination || '')
-        }
-        if (searchParams.departure_date) params.set('departure_date', searchParams.departure_date)
-        router.push(`/?tab=buses&modify=true&${params.toString()}`)
+        saveModifySearchPayload(payload)
         break
+      }
         
-      case 'trains':
-        if (searchParams.origin_city || searchParams.origin) {
-          params.set('origin', searchParams.origin_city || searchParams.origin || '')
+      case 'trains': {
+        const payload: TrainSearchPayload = {
+          service: 'trains',
+          origin: searchParams.origin_city || searchParams.origin || '',
+          destination: searchParams.destination_city || searchParams.destination || '',
+          origin_city: searchParams.origin_city,
+          destination_city: searchParams.destination_city,
+          departure_date: searchParams.departure_date || '',
+          passengers: searchParams.passengers ? parseInt(searchParams.passengers) : 1,
+          train_class: searchParams.train_class,
         }
-        if (searchParams.destination_city || searchParams.destination) {
-          params.set('destination', searchParams.destination_city || searchParams.destination || '')
-        }
-        if (searchParams.departure_date) params.set('departure_date', searchParams.departure_date)
-        router.push(`/?tab=trains&modify=true&${params.toString()}`)
+        saveModifySearchPayload(payload)
         break
+      }
     }
   }
 
