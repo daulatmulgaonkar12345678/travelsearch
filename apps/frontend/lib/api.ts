@@ -38,34 +38,43 @@ export function buildApiUrl(path: string): string {
 export const apiUrl = buildApiUrl
 
 /**
- * Type-safe fetch wrapper for API calls
- * Handles:
- * - Base URL configuration
- * - Default headers
- * - Error handling
- * - Response parsing
+ * Raw fetch wrapper that returns Response object
+ * Use this when you need to check response.ok or handle errors manually
  */
-export async function apiFetch<T = any>(
+export async function apiFetch(
   path: string,
   options: RequestInit = {}
-): Promise<T> {
+): Promise<Response> {
   const url = buildApiUrl(path)
   
   const defaultHeaders: HeadersInit = {
     'Accept': 'application/json',
-    'Content-Type': 'application/json',
   }
   
-  const response = await fetch(url, {
+  // Only add Content-Type for non-GET requests with body
+  if (options.body) {
+    (defaultHeaders as Record<string, string>)['Content-Type'] = 'application/json'
+  }
+  
+  return fetch(url, {
     ...options,
     headers: {
       ...defaultHeaders,
       ...options.headers,
     },
   })
+}
+
+/**
+ * Type-safe fetch that parses JSON and throws on error
+ * Use this for simple cases where you just want the data
+ */
+export async function apiGet<T = any>(path: string): Promise<T> {
+  const response = await apiFetch(path)
   
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || `API Error: ${response.status}`)
   }
   
   return response.json()
