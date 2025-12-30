@@ -299,6 +299,25 @@ class AmadeusHotelsAdapter:
         """
         normalized = []
         
+        # Generate Travelpayouts deep link for this search
+        deep_link_result = generate_hotel_deep_link(
+            city=request.city,
+            check_in=request.check_in,
+            check_out=request.check_out,
+            adults=2,  # Default
+            rooms=len(request.rooms) if request.rooms else 1
+        )
+        travelpayouts_url = deep_link_result["url"]
+        
+        # Generate booking partners
+        booking_partners = generate_hotel_booking_partners(
+            city=request.city,
+            check_in=request.check_in,
+            check_out=request.check_out,
+            adults=2,
+            rooms=len(request.rooms) if request.rooms else 1
+        )
+        
         for hotel_data in hotels:
             try:
                 hotel_info = hotel_data.get("hotel", {})
@@ -357,9 +376,8 @@ class AmadeusHotelsAdapter:
                     if deadline:
                         cancellation_policy = f"Free cancellation until {deadline}"
                 
-                # Deep link
-                deep_link = f"{self.base_url}/booking/hotel?offer={best_offer.get('id')}"
-                
+                # Use Travelpayouts deep link (NOT Amadeus direct URL)
+                # This ensures proper affiliate tracking and working redirects
                 normalized.append(HotelOffer(
                     offer_id=f"AMADEUS-{hotel_id}-{best_offer.get('id')}",
                     provider="amadeus",
@@ -376,7 +394,8 @@ class AmadeusHotelsAdapter:
                     room_type=room_type,
                     cancellation_policy=cancellation_policy,
                     images=[],  # Amadeus requires separate API call for images
-                    deep_link=deep_link
+                    deep_link=travelpayouts_url,  # Use Travelpayouts redirect
+                    booking_partners=booking_partners  # Multiple booking options
                 ))
                 
             except Exception as e:
