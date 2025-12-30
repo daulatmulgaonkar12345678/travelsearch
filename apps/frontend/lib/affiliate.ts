@@ -538,20 +538,19 @@ function buildEaseMyTripFlightUrl(params: FlightDeepLinkParams): string {
 }
 
 /**
- * Ixigo Flight Deep Link (IATA codes) - Meta search
- * Format: https://www.ixigo.com/search/result/flight/...
+ * Udchalo Flight Deep Link (IATA codes) - Defense/Govt priority booking
+ * Format: https://www.udchalo.com/flights/search?...
  */
-function buildIxigoFlightUrl(params: FlightDeepLinkParams): string {
+function buildUdchaloFlightUrl(params: FlightDeepLinkParams): string {
   const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
   
-  const dateFormatted = formatDDMMYYYY(departDate)
-  
-  return `https://www.ixigo.com/search/result/flight/${origin.toUpperCase()}/${destination.toUpperCase()}/${dateFormatted}/-/${adults}/${children}/${infants}/e/0`
+  return `https://www.udchalo.com/flights/search?from=${origin.toUpperCase()}&to=${destination.toUpperCase()}&date=${departDate}&adults=${adults}&children=${children}&infants=${infants}&class=economy`
 }
 
 /**
  * Build flight deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
+ * REMOVED: Ixigo (payment-level deep links unstable)
  */
 export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkParams): DeepLinkResult {
   const validationError = validateFlightParams(params)
@@ -573,8 +572,8 @@ export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkPara
     case 'easemytrip_flights':
       url = buildEaseMyTripFlightUrl(params)
       break
-    case 'ixigo_flights':
-      url = buildIxigoFlightUrl(params)
+    case 'udchalo_flights':
+      url = buildUdchaloFlightUrl(params)
       break
     default:
       // Skyscanner is PRIMARY for flights
