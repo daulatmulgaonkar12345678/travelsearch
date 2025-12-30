@@ -1,85 +1,105 @@
 <analysis>**original_problem_statement:**
-The user's primary goal for this session was to perform a final series of pre-deployment quality and UX fixes across the travel aggregator application. The work spanned multiple features and user-provided directives, evolving significantly during the session.
+The user's initial goal was to fix a production-only autocomplete bug where valid results were being incorrectly filtered on the frontend. This evolved into a series of iterative, high-priority UI/UX refinement tasks to prepare the application for production.
 
-The key requirements were:
-1.  **Add Polished Animations:** Implement service-specific loading and redirect animations for Bus and Train searches to match the feel of Flights and Hotels.
-2.  **Enforce UI/UX Consistency:**
-    *   Fix broken Popular Hotel Destination cards that were causing errors.
-    *   Create a consistent UI experience where the active service tab () controls which Popular and Recent Searches sections are displayed.
-    - Remove distance display from the Bus UI to align with industry standards (e.g., redBus), showing only calculated travel duration.
-    - Fix a layout bug causing duplicate headers on the Hotel results page.
-3.  **Fix Critical Backend & Data Integrity Issues:**
-    *   Resolve an issue breaking redBus redirects by ensuring only parent City IDs are used, not specific bus stop names.
-    *   Eliminate a critical trust issue where Bus and Train results incorrectly showed a static, repeated duration (e.g., ~4h). The duration must now be strictly calculated from real departure/arrival times or be hidden entirely.
-4.  **Define Popular Card Behavior (Evolving Requirement):**
-    *   Initially, the requirement was to make all Popular cards (for Bus, Train, Hotel) navigate *directly* to a pre-filled results page.
-    *   **This was superseded by a final, non-negotiable directive:** Popular cards must **only prefill** the search form on the homepage and **NOT** automatically navigate or execute a search. The user must manually complete the form and click the Search button.
+The key requirements addressed in this session were:
+1.  **Production Correctness:**
+    *   Fix autocomplete logic to show all backend results, using  only for styling, not filtering.
+    *   Harden API proxy routes to fail fast in production if the backend is unreachable, removing all silent fallbacks for searches.
+    *   Fix 404 errors on search results pages by aligning frontend API calls with the correct backend routes (, ).
+2.  **User Experience (UX) Enhancements:**
+    *   Implement user-friendly No Results and Service Error pages for all search types (Bus, Train, Hotel).
+    *   Overhaul the mobile UI for result cards (, ) to be mobile-first, fixing layout, spacing, and tap-target issues.
+3.  **UI/Visual Identity Polish (Iterative):**
+    *   The user provided multiple, evolving directives to refine the UI, culminating in a Single Active Color Rule.
+    *   **Final State:** All selected/active UI elements (service tabs, trip-type buttons, search buttons) now use a single color (blue, ) for a calm, professional, and unambiguous user experience.
+    *   **Card-Attachment Design:** The service tabs were redesigned so the active tab has a solid white background and visually merges with the main search card, creating a premium card-attachment illusion.
+    *   **Eye-Friendly Theme:** The main page background was changed to a soft, non-straining sky blue ().
+4.  **Partner Deep-Link Behavior (Current Task):**
+    *   The user mandated that all partner checkout links (, ) must open in a new browser tab () for a non-disruptive user flow.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application has undergone significant UX and data integrity improvements.
-- **Animations:** Service-specific loading and redirect animations are implemented and working for Bus and Train searches.
-- **UI Consistency:** The homepage is now service-aware, showing the correct Popular Routes and Recent Searches based on the active URL tab. The duplicate header on the hotel results page is fixed. The Bus UI no longer displays distance, only calculated duration.
-- **Data Integrity:** The critical bug causing incorrect, static durations has been resolved. The backend no longer sends estimated durations, and the frontend correctly hides the duration UI if real schedule data is unavailable. The backend logic for redBus redirects is fixed to use city IDs, preventing broken links.
-- **Popular Cards (Current State - INCORRECT):** The Popular Routes/Locations cards for all services currently implement **direct navigation** to the results page. This was completed based on a previous user request but is now explicitly incorrect according to the final user directive.
+The application is a travel aggregator with a heavily refined and polished UI. The core search functionality is stable. A Single Active Color Rule (blue for all selections) has been successfully implemented across the main search interface, providing a consistent look and feel. The mobile experience for result cards has been fixed. API routes and error handling are now more robust. The previous agent was in the process of auditing and standardizing the partner deep-link behavior to ensure all external links open in a new tab.
 
 **Last working item**:
--   **Last item agent was working:** The user provided a final, critical directive to change the behavior of all Popular Routes/Locations cards. The new requirement is that clicking a card should **only prefill** the search form on the homepage and **NOT** navigate to the results page or auto-execute a search. The agent acknowledged this requirement but the session ended before implementation could begin.
--   **Status:** NOT STARTED
+-   **Last item agent was working:** Standardizing the partner deep-link navigation behavior across all services (Flights, Buses, Trains, Hotels). The agent's investigation revealed that flight redirections were happening in the same tab, violating the user's explicit requirement.
+-   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Frontend testing agent (to verify the new UX flow across all services on the homepage) and screenshots.
+-   **Which testing method agent to use?** Frontend testing agent. The agent must test the Book or View Deal functionality for each of the four services to verify that the partner site correctly opens in a new browser tab.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** Recent Search Robustness Verification (P2)
+-   **Issue 1:** Standardize Partner Deep-Link Navigation (P0)
+-   **Issue 2:** Recent Search Robustness Verification (P2)
+-   **Issue 3:** Obsolete Code Cleanup (P3)
 
-  **Issues Detail:**
-  -   **Issue 1:**
-     -   **Description:** The Recent Searches list on the homepage doesn't always update reliably after a new search. This was a carry-over issue that was not prioritized in this session.
-     -   **Attempted fixes:** A minor refactor was done to  to fix a client-side rendering error, but the core reliability issue was not investigated.
-     -   **Next debug checklist:** Investigate the Zustand state management or  interaction in  to ensure the component reliably re-renders when the search history is updated.
-     -   **Why fix this issue and what will be achieved with the fix?** To ensure a reliable and consistent user experience for a core convenience feature.
-     -   **Status:** NOT STARTED
-     -   **Is recurring issue?** Y
-     -   **Should Test frontend/backend/both after fix?** frontend
-     -   **Blocked on other issue:** None
+**Issues Detail:**
+-   **Issue 1:**
+    -   **Description:** Ensure all partner checkout links open in a new browser tab using . The current implementation is inconsistent. Specifically,  (used for flights) incorrectly uses , causing navigation in the same tab.
+    -   **Attempted fixes:** The agent identified the incorrect implementation in  and confirmed that other components like  and  already use .
+    -   **Next debug checklist:**
+        1.  Modify : Replace  with .
+        2.  Audit  to confirm its deep-link behavior and fix if necessary.
+        3.  Ensure  is present in all  calls for security.
+        4.  Test the end-to-end booking flow for all four services (Flights, Buses, Trains, Hotels).
+    -   **Why fix this issue and what will be achieved with the fix?** To meet a strict user requirement for a non-disruptive, high-trust checkout flow, which is critical for user retention and conversion.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on other issue:** None
+
+-   **Issue 2:**
+    -   **Description:** The Recent Searches list on the homepage does not always update reliably after a new search is performed. This is a carry-over issue from a previous session.
+    -   **Attempted fixes:** None in this session.
+    -   **Next debug checklist:** Investigate the Zustand state management and  interaction within  to debug the state update/re-rendering logic.
+    -   **Why fix this issue and what will be achieved with the fix?** To ensure a core convenience feature is reliable and improves the user experience.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Blocked on other issue:** None
+
+-   **Issue 3:**
+    -   **Description:** Obsolete files identified in a previous handover still exist in the codebase, adding unnecessary clutter.
+    -   **Attempted fixes:** None in this session.
+    -   **Next debug checklist:**
+        1.  Delete 
+        2.  Delete 
+        3.  Delete 
+    -   **Why fix this issue and what will be achieved with the fix?** To improve code hygiene and reduce confusion for future development.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both (to ensure no regressions)
+    -   **Blocked on other issue:** None
 
 **In progress Task List**:
 -   None.
 
 **Upcoming and Future Tasks**
 **Upcoming Tasks:**
-*   **(P0) Refactor Popular Cards to Prefill Only**: This is the highest priority task, directly from the user's final message. The current implementation (direct navigation) must be removed.
-    *   **Files to modify:** , .
-    *   **Goal:** Clicking a popular card should only update the state of the search form on the homepage and not trigger any navigation or API calls.
-*   **(P2) Implement Track Price Backend & Email Alerts:**
-    *   Integrate the Resend API.
-    *   Create a background job to check for price drops on saved bus searches.
-    *   Implement email notifications.
+-   **(P2) Implement Track Price Backend & Email Alerts:**
+    -   Integrate the Resend API.
+    -   Create a background job to check for price drops on saved bus searches.
+    -   Implement email notifications.
 
 **Future Tasks:**
-*   Implement the 6-month SEO roadmap from .
-*   Expand the admin dashboard to display analytics from the  endpoint.
-*   Implement an advanced deep-linking strategy for sharing searches.
+-   Implement the 6-month SEO roadmap from .
+-   Expand the admin dashboard to display analytics from the  endpoint.
+-   Implement an advanced deep-linking strategy for sharing searches.
 
 **Completed work in this session**
--   **Critical Duration Fix (Bus & Train):**
-    -   **Backend:** Removed the  function and all distance-based duration calculation logic from .
-    -   **Frontend:** Updated  and  to hide the duration UI if the duration value is invalid or 0.
--   **redBus Redirect URL Fix:**
-    -   **Backend:** Modified  and  to correctly resolve bus stop names to their parent city IDs for generating deep links.
-    -   **Frontend:** Updated  to handle the new data structure from the autocomplete API.
--   **Hotel Results Page Layout Fix:** Refactored  to remove the duplicate rendering of the  and  components.
--   **UI Consistency & Animations:**
-    -   Created  and  for consistent loading/redirect animations.
-    -   Updated  and  to render Popular sections conditionally based on the active service tab.
-    -   Updated  to filter searches by the active service.
-    -   Removed distance display from  and the bus results page.
--   **Popular Cards Direct Navigation (Implemented, but now OBSOLETE):** Modified  to make popular cards navigate directly to results pages. **This behavior must be reverted and replaced.**
+-   **UI/UX Overhaul - Single Active Color Rule:** Refactored the entire search UI to use a single color (blue) for all active/selected states (, ), creating a calm, professional, and unambiguous user experience.
+-   **Card-Attachment Tab Design:** Implemented a new service tab design where the selected tab visually merges with the main search card below it, while non-selected tabs appear detached.
+-   **Eye-Friendly Theming:** Replaced the harsh white page background with a soft sky blue () to reduce eye strain.
+-   **Production Correctness & UX:**
+    -   Fixed the search results flow by aligning API calls with backend routes and implementing user-friendly No Results and Service Error components (, ).
+    -   Hardened API proxy routes to fail fast in production if  is missing, enforced by a new startup guard ().
+    -   Resolved the autocomplete bug by ensuring  is used for styling only, not filtering.
+-   **Mobile UI Polish:** Re-wrote Bus and Train result cards (, ) with a mobile-first approach, fixing all layout and overflow issues.
+-   **Default Trip Type:** Changed the default flight trip type to One-way as per user requirements.
 
 **Earlier issues found/mentioned but not fixed**
--   **Recent Search Robustness Verification:** Same as the pending issue. This is a P2 task that has been deferred.
+-   The issues related to Recent Search Robustness and Code Cleanup have been carried over and are documented in the **All Pending/In progress Issue list**.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -88,74 +108,78 @@ The application has undergone significant UX and data integrity improvements.
 
 
 **Key Technical Concepts**
--   **Prefill, Don't Auto-Search:** The final, definitive product decision for Popular card interactions. The goal is to assist the user in starting a search, not to execute one for them. This requires updating the UI state without triggering navigation or API calls.
--   **Data Honesty (Strict Duration):** A core principle established in this session. The application must not show estimated or fallback data (like travel duration) if real data is unavailable. The UI must hide the information instead of presenting something potentially incorrect.
--   **URL-Driven UI State:** The use of the  URL query parameter was reinforced as the single source of truth for controlling the visibility of service-specific components on the homepage.
--   **Defensive Redirects:** A client-side guard () was implemented to prevent users from being sent to broken or  partner URLs, improving the reliability of the affiliate booking flow.
+-   **Single Active Color Rule:** A design principle enforced across the UI where a single color (blue) is used to signify any selected or active state, improving clarity and creating a calm, professional aesthetic.
+-   **Card-Attachment Illusion:** A CSS technique using positioning, , and borders to make an active UI tab appear visually connected to the content card below it, while inactive tabs remain detached.
+-   **Mobile-First Responsive Design:** Prioritizing mobile layouts using Tailwind CSS's responsive prefixes () to ensure a functional and clean UI on small screens that scales up gracefully.
+-   **Robust Environment Handling:** Using a dedicated module () to validate the presence of critical environment variables () during the build or server startup process in production, preventing silent failures.
+-   **Declarative Error/Empty States:** Using dedicated React components (, ) to handle different API response scenarios (e.g.,  with , or a  error) in a clean, reusable way.
 
 **key DB schema**
--   No changes were made to the data schema. Data continues to be sourced from version-controlled JSON files.
+-   No changes made to the database schema.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
+-   **Files to be Fixed Immediately:**
+    -   : Needs to be changed from  to .
+    -   : Needs to be audited for its deep-link behavior.
+-   **Key Modified Files:**
+    -   : The heart of the UI changes, containing the new tab design and color logic.
+    -   : Updated to use the single blue color for the active service.
+    -   : Rewritten for mobile-first responsiveness.
+    -    (and other results pages): Updated to use the new error handling components.
 -   **Key New Files:**
-    -   : Reusable loading animation component for Bus/Train.
-    -   : Reusable pre-redirect animation component.
-    -   : Utility to prevent redirects to invalid URLs.
--   **Key Modified Files (for last task):**
-    -   : **Needs complete rework** to switch from direct navigation to prefill-only behavior.
-    -   : Will need to be the target for the prefill state update.
--   **Key Modified Files (for completed work):**
-    -   : Root of the incorrect duration logic; now fixed.
-    -   : Fixed to remove duplicate headers.
-    -    / : Updated to enforce honest duration.
+    -   : Enforces production environment variables.
+    -   : For user-friendly empty search results.
+    -   : For user-friendly API errors.
 
 **Areas that need refactoring**:
--   **:** The current logic implements direct navigation, which is now incorrect. It must be refactored to support a prefill-only event-based system that updates 's state without causing a page navigation.
--   **Dead Code (Carried Over):** The following files were identified for deletion in the previous fork but were not addressed. They should be removed to reduce codebase clutter:
-    -    (The active router is ).
-    -    (Replaced by more specific autocomplete components).
-    -    (Replaced by URL-driven state).
+-   The obsolete files listed under  should be deleted to clean up the codebase.
 
 **key api endpoints**
--   No new API endpoints were created. The logic of existing search and autocomplete endpoints was improved for data integrity.
+-    (Frontend uses  which is proxied to the backend)
+-    (Frontend uses  which is proxied to the backend)
+-   
+-   
 
 **Critical Info for New Agent**
--   **IMMEDIATE PRIORITY:** The most critical task is to implement the user's final directive (Chat Message 447). The current behavior of Popular cards (direct navigation) is WRONG. You must refactor  and  so that clicking a popular card **only prefills the search form on the homepage** and does **not** navigate.
--   **DO NOT RE-INTRODUCE ESTIMATIONS:** The logic for calculating Bus/Train duration is now strict. It relies on real  and . Do not add back any form of estimation, heuristics, or distance-based calculations. If data is invalid, the duration must be hidden.
--   The hotel layout, redBus redirect, and animation tasks are complete and should not be revisited.
+-   **IMMEDIATE PRIORITY:** The current active task is to fix the partner deep-link behavior. You must ensure that clicking Book or View Deal for **all** services (Flights, Buses, Trains, Hotels) opens the partner website in a **new browser tab**. Start by fixing .
+-   **UI Design Principle:** Adhere strictly to the Single Active Color Rule. **Blue () is the only color for indicating active/selected states**. Do not re-introduce service-specific colors (green, orange, gold) for selection styling. The UI should remain calm, professional, and unambiguous.
+-   **Production Safety:** The application is now designed to fail fast in production if the  is not set. All search fallback data has been removed for production environments to prevent inconsistent behavior.
 
 **documents and test reports created in this job**
--    was updated and used by the testing agent. No other persistent documents were created.
+-    was updated multiple times to guide the testing agent.
+-   New component files: , , .
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Final/Critical):** Change all Popular cards to PREFILL the search form only; DO NOT navigate or auto-search. (NOT STARTED)
-2.  **User:** Fix all Popular cards to navigate DIRECTLY to a valid results page. (Completed, but now obsolete)
-3.  **User:** Fix the incorrect ~4h duration on Bus/Train results; duration must be real or hidden. (Completed)
-4.  **User:** Final pre-deployment check: fix hotel deep links, fix duration issue, add redirect safety guards. (Completed)
-5.  **User:** Fix redBus searches by ensuring only CITY IDs are used in redirect URLs, not bus stop names. (Completed)
-6.  **User:** Fix duplicate header on the Hotel results page. (Completed)
-7.  **User:** Remove the distance (km) display from the Bus UI. (Completed)
-8.  **User:** Fix Hotel popular cards error, create service consistency layer for the UI. (Completed)
-9.  **User:** Add service-specific loading/transition animations for Bus and Train searches. (Completed)
-10. **Agent:** Acknowledged the final prefill-only requirement.
+1.  **User:** Fix partner deep-links to open in a new tab. (IN PROGRESS)
+2.  **User:** Finalize service tabs to look like they are inside the card with a solid white background. (Completed)
+3.  **User:** Implement a card-attachment design with a single baseline and overlapping selected tab. (Completed)
+4.  **User:** Enforce a single active color rule (BLUE) for all selections. (Completed)
+5.  **User:** Change the default flight trip type to One-way and use service-aware colors for the selector. (Completed)
+6.  **User:** Remove all transparency from service tabs and use solid colors for clarity. (Completed)
+7.  **User:** Refine the search card UI with an eye-friendly, low blue-light color theme. (Completed)
+8.  **User:** Implement context-aware service theming and fix mobile UI for result cards. (Completed)
+9.  **User:** Fix search 404s and implement a user-friendly No results UI. (Completed)
+10. **User:** Harden production API routes to never use fallback data and fail fast if the backend is down. (Completed)
 
 **Project Health Check:**
--   **Broken:** The Popular Routes/Locations feature. Its current implementation (direct navigation) is now incorrect based on the user's final, explicit instructions.
--   **Mocked:** None.
+-   **Broken:** The partner checkout flow for flights is broken, as it navigates in the same tab instead of opening a new one. The behavior for hotels is unaudited.
+-   **Mocked:** None. Mock/fallback data for production search has been explicitly removed.
 
 **3rd Party Integrations**
 -   **redBus, Paytm, AbhiBus:** Deep linking for bus results.
 -   **IRCTC, RailYatri, ConfirmTkt:** Deep linking for train results.
--   **Resend:** **PLANNED** for a future Track Price feature.
+-   **Various Airlines/OTAs:** Deep linking for flight results.
+-   **Various Hotel Providers:** Deep linking for hotel results.
+-   **Resend:** PLANNED for a future Track Price feature.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES. The agent used screenshots,  commands, and the  subagent to validate all fixes up to the direct navigation implementation.
+-   **Testing agent used after significant changes:** YES. It was used successfully to validate the major UI/UX and error handling changes.
 -   **Troubleshoot agent used after agent stuck in loop:** NO.
 -   **Test files created:** None.
--   **Known regressions:** None.
+-   **Known regressions:** The flight redirection flow is a known regression from the user's requirement.
 
 **Credentials to test flow:**
 -   **Admin Login:**
@@ -163,6 +187,6 @@ The application has undergone significant UX and data integrity improvements.
     -   Password: 
 
 **What agent forgot to execute**
--   **The primary undone task is implementing the final user directive to change Popular Card behavior from direct navigation to prefill only.** The agent acknowledged the request but the session ended before work began.
--   The P2 task to investigate the reliability of the Recent Searches feature was not addressed.
--   The code cleanup tasks (deleting obsolete files) from the previous handover were not performed.</analysis>
+-   The agent did not complete the full audit and fix for the partner deep-link navigation across all four services.
+-   The agent did not perform the deferred code cleanup (deleting obsolete files).
+-   The agent did not address the long-standing Recent Searches robustness issue.</analysis>

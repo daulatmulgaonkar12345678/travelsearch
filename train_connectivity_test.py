@@ -16,7 +16,7 @@ import sys
 import os
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://tripdeals-6.preview.emergentagent.com"
+BACKEND_URL = "https://booking-ux-polish.preview.emergentagent.com"
 
 class TrainConnectivityTester:
     def __init__(self):
