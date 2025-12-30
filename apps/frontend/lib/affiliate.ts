@@ -2,30 +2,39 @@
  * Vendor Deep Link Builder
  * 
  * CRITICAL RULES:
- * 1. Use SEARCH-LEVEL deep links only (no session tokens, no encoded IDs)
- * 2. Each vendor only supports specific services
- * 3. Frontend only does: window.open(deepLink, "_blank")
- * 4. Never fetch, proxy, or iframe vendor URLs
- * 5. If a vendor link is unstable, disable the vendor instead of guessing
+ * 1. Use GLOBAL IDENTIFIERS ONLY:
+ *    - Flights: IATA airport codes (DEL, BOM, etc.)
+ *    - Trains: IRCTC station codes or city names
+ *    - Buses: City names only (no vendor-specific IDs)
+ *    - Hotels: Search-based deep links using hotel name + city
  * 
- * SUPPORTED FLOWS & VENDORS (LOCKED):
+ * 2. NEVER:
+ *    - Fetch or store vendor-specific IDs (MMT, Paytm, Agoda IDs)
+ *    - Scrape vendor websites
+ *    - Rely on internal vendor IDs
  * 
- * HOTELS (Direct Booking - "Book Now"):
- *   - Agoda, MakeMyTrip Hotels, Booking.com
- *   - Hotel-specific deep links with dates, guests, rooms prefilled
+ * 3. DEEP LINKS MUST:
+ *    - Open vendor search pages
+ *    - Prefill dates, locations, and passengers
+ *    - Let vendor resolve internal IDs
  * 
- * FLIGHTS (Search Flow - "View Flights"):
- *   - MakeMyTrip Flights, Paytm Flights, Skyscanner
- *   - Search-level deep links only (route, date, passengers, cabin)
+ * 4. VALIDATION:
+ *    - If any required parameter is missing or undefined, BLOCK redirect
+ *    - Return null instead of opening broken pages
  * 
- * BUS (Form-Fill Search - "View Buses on {Vendor}"):
- *   - redBus, Paytm Bus, MakeMyTrip Bus
- *   - Search-level deep links (source, destination, date)
- * 
- * TRAIN (Availability Search - "Check Train Availability"):
- *   - Paytm Trains, MakeMyTrip Railways
- *   - Search-level deep links (from, to, date)
+ * 5. EXECUTION:
+ *    - Frontend only does: window.open(deepLink, "_blank")
+ *    - Never fetch, proxy, or iframe vendor URLs
  */
+
+// ============================================================
+// VALIDATION RESULT TYPE
+// ============================================================
+
+export interface DeepLinkResult {
+  url: string | null
+  error: string | null
+}
 
 // ============================================================
 // VENDOR DEFINITIONS
@@ -110,6 +119,36 @@ export const VENDORS: Record<string, Vendor> = {
  */
 export function getVendorsForService(service: ServiceType): Vendor[] {
   return Object.values(VENDORS).filter(v => v.services.includes(service))
+}
+
+// ============================================================
+// PARAMETER VALIDATION HELPERS
+// ============================================================
+
+/**
+ * Check if a string parameter is valid (not null, undefined, or empty)
+ */
+function isValidString(value: string | null | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+/**
+ * Check if a date string is valid (YYYY-MM-DD format)
+ */
+function isValidDate(dateStr: string | null | undefined): boolean {
+  if (!isValidString(dateStr)) return false
+  const regex = /^\d{4}-\d{2}-\d{2}$/
+  if (!regex.test(dateStr)) return false
+  const date = new Date(dateStr)
+  return !isNaN(date.getTime())
+}
+
+/**
+ * Check if IATA airport code is valid (3 uppercase letters)
+ */
+function isValidIATACode(code: string | null | undefined): boolean {
+  if (!isValidString(code)) return false
+  return /^[A-Z]{3}$/.test(code.toUpperCase())
 }
 
 // ============================================================
