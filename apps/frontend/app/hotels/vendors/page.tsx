@@ -33,11 +33,13 @@ function HotelVendorsContent() {
       setRedirecting(vendorId)
 
       // Build affiliate URL DIRECTLY on frontend (no backend call)
+      // Pass hotelName for hotel-specific deep link
       const finalRedirectUrl = buildAviasalesHotelUrl({
         city,
         checkIn,
         checkOut,
-        adults: 2, // Default, can be extracted from search params if needed
+        adults: 2,
+        hotelName: hotelName || undefined, // Hotel-specific if name available
       })
 
       // Log click asynchronously (fire-and-forget, won't block redirect)
