@@ -215,13 +215,13 @@ function FlightVendorsContent() {
             ) : (
               <>
                 <ExternalLink className="w-5 h-5" />
-                Book on {FLIGHT_VENDORS.find(v => v.id === selectedVendor)?.name}
+                View Flights
               </>
             )}
           </button>
 
           <p className="text-xs text-[#6B6B6B] text-center mt-4">
-            You&apos;ll be redirected to the partner site to complete your booking.
+            You&apos;ll see flight search results on the partner site.
           </p>
         </div>
       </div>
