@@ -12,7 +12,7 @@ import sys
 import os
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://deeplink-proxy.preview.emergentagent.com"
+BACKEND_URL = "https://travelhub-revamp.preview.emergentagent.com"
 
 class TrainSearchTester:
     def __init__(self):

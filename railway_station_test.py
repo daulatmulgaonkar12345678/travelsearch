@@ -12,7 +12,7 @@ import sys
 import os
 
 # Backend URL - using production URL from frontend config
-BACKEND_URL = "https://deeplink-proxy.preview.emergentagent.com"
+BACKEND_URL = "https://travelhub-revamp.preview.emergentagent.com"
 
 class RailwayStationTester:
     def __init__(self):

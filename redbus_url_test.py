@@ -25,7 +25,7 @@ from typing import Dict, Any, List
 import time
 
 # Backend URL Configuration
-BACKEND_URL = "https://deeplink-proxy.preview.emergentagent.com"
+BACKEND_URL = "https://travelhub-revamp.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class RedBusURLTester:
