@@ -399,85 +399,194 @@ def generate_hotel_deep_link(
     }
 
 
-# ============================================================
-# BOOKING PARTNER GENERATORS
-# ============================================================
-
-def generate_flight_booking_partners(
-    origin: str,
-    destination: str,
-    departure_date: str,
-    return_date: Optional[str] = None,
-    adults: int = 1
-) -> list:
-    """
-    Generate booking partner list for flights.
-    
-    Returns:
-        List of booking partner dicts with properly formatted URLs
-    """
-    # Generate primary Travelpayouts deep link
-    deep_link_result = generate_flight_deep_link(
-        origin=origin,
-        destination=destination,
-        departure_date=departure_date,
-        return_date=return_date,
-        adults=adults
-    )
-    
-    partners = [
-        {
-            "name": "Aviasales",
-            "url": deep_link_result["url"],
-            "priority": 1,
-            "is_official": False,
-            "description": "Compare prices from 100+ airlines",
-            "is_fallback": deep_link_result.get("is_fallback", False)
-        },
-        {
-            "name": "Skyscanner",
-            "url": f"https://www.skyscanner.co.in/transport/flights/{origin.lower()}/{destination.lower()}/{departure_date.replace('-', '')}/" + 
-                   (f"{return_date.replace('-', '')}/" if return_date else ""),
-            "priority": 2,
-            "is_official": False,
-            "description": "Global flight comparison"
-        },
-        {
-            "name": "Google Flights",
-            "url": f"https://www.google.com/travel/flights?q=flights%20from%20{origin}%20to%20{destination}%20on%20{departure_date}",
-            "priority": 3,
-            "is_official": False,
-            "description": "Google flight search"
-        }
-    ]
-    
-    return partners
-
-
-def generate_hotel_booking_partners(
+def generate_hotel_specific_deep_link(
+    hotel_name: str,
     city: str,
     check_in: str,
     check_out: str,
     adults: int = 2,
-    rooms: int = 1
-) -> list:
+    rooms: int = 1,
+    hotel_id: Optional[str] = None,
+    provider: str = "amadeus"
+) -> Dict:
     """
-    Generate booking partner list for hotels.
+    Generate HOTEL-SPECIFIC deep link (not city-level).
+    
+    This is the critical function that ensures each hotel card links to 
+    a UNIQUE booking page, not a generic city search.
+    
+    Strategy:
+    1. Use hotel name + city for search-based providers (Booking.com, Google)
+    2. Use hotel ID if available for direct links
+    3. Fall back to city-level only if hotel name is unavailable
+    
+    Args:
+        hotel_name: Full hotel name (e.g., "Taj Mahal Palace")
+        city: City name
+        check_in: Check-in date YYYY-MM-DD
+        check_out: Check-out date YYYY-MM-DD
+        adults: Number of adults
+        rooms: Number of rooms
+        hotel_id: Optional provider-specific hotel ID
+        provider: Source provider (amadeus, booking, etc.)
     
     Returns:
-        List of booking partner dicts with properly formatted URLs
+        Dict with {success: bool, url: str, is_hotel_specific: bool}
     """
-    # Generate primary Travelpayouts deep link
-    deep_link_result = generate_hotel_deep_link(
-        city=city,
-        check_in=check_in,
-        check_out=check_out,
-        adults=adults,
-        rooms=rooms
+    from urllib.parse import quote_plus
+    
+    if not hotel_name:
+        # Fall back to city-level if no hotel name
+        return generate_hotel_deep_link(city, check_in, check_out, adults, rooms)
+    
+    # Clean hotel name for URL encoding
+    hotel_name_clean = hotel_name.strip()
+    hotel_name_encoded = quote_plus(hotel_name_clean)
+    city_encoded = quote_plus(city)
+    
+    # Primary: Booking.com hotel-specific search
+    # This searches for the exact hotel name in the city
+    booking_url = (
+        f"https://www.booking.com/searchresults.html"
+        f"?ss={hotel_name_encoded}%2C+{city_encoded}"
+        f"&checkin={check_in}"
+        f"&checkout={check_out}"
+        f"&group_adults={adults}"
+        f"&no_rooms={rooms}"
+        f"&nflt=ht_id%3D204"  # Hotels only filter
     )
     
-    location = deep_link_result.get("location") or {}
+    logger.info(f"Generated hotel-specific deep link for '{hotel_name}' in {city}")
+    
+    return {
+        "success": True,
+        "url": booking_url,
+        "error": None,
+        "is_fallback": False,
+        "is_hotel_specific": True,
+        "hotel_name": hotel_name,
+        "city": city
+    }
+
+
+def generate_hotel_specific_booking_partners(
+    hotel_name: str,
+    city: str,
+    check_in: str,
+    check_out: str,
+    adults: int = 2,
+    rooms: int = 1,
+    hotel_id: Optional[str] = None,
+    provider: str = "amadeus"
+) -> list:
+    """
+    Generate booking partner list for a SPECIFIC HOTEL.
+    
+    CRITICAL: Each partner URL must uniquely identify the hotel, not just the city.
+    This ensures clicking different hotel cards leads to different booking pages.
+    
+    Args:
+        hotel_name: Full hotel name
+        city: City name
+        check_in: Check-in date YYYY-MM-DD
+        check_out: Check-out date YYYY-MM-DD
+        adults: Number of adults
+        rooms: Number of rooms
+        hotel_id: Optional provider-specific hotel ID
+        provider: Source provider
+    
+    Returns:
+        List of booking partners with hotel-specific URLs
+    """
+    from urllib.parse import quote_plus
+    
+    hotel_name_clean = hotel_name.strip() if hotel_name else city
+    hotel_name_encoded = quote_plus(hotel_name_clean)
+    city_encoded = quote_plus(city)
     city_slug = city.lower().replace(" ", "-")
+    
+    # Get city location data for some providers
+    location = resolve_city_to_location(city) or {}
+    
+    partners = [
+        # 1. Booking.com - HOTEL SPECIFIC
+        {
+            "name": "Booking.com",
+            "url": (
+                f"https://www.booking.com/searchresults.html"
+                f"?ss={hotel_name_encoded}%2C+{city_encoded}"
+                f"&checkin={check_in}"
+                f"&checkout={check_out}"
+                f"&group_adults={adults}"
+                f"&no_rooms={rooms}"
+            ),
+            "priority": 1,
+            "is_official": False,
+            "description": f"Book {hotel_name_clean} on Booking.com",
+            "is_hotel_specific": True
+        },
+        # 2. Google Hotels - HOTEL SPECIFIC
+        {
+            "name": "Google Hotels",
+            "url": (
+                f"https://www.google.com/travel/hotels/{city_slug}"
+                f"?q={hotel_name_encoded}+{city_encoded}"
+                f"&dates={check_in.replace('-', '')}+to+{check_out.replace('-', '')}"
+            ),
+            "priority": 2,
+            "is_official": False,
+            "description": f"Compare prices for {hotel_name_clean}",
+            "is_hotel_specific": True
+        },
+        # 3. TripAdvisor - HOTEL SPECIFIC SEARCH
+        {
+            "name": "TripAdvisor",
+            "url": (
+                f"https://www.tripadvisor.in/Search"
+                f"?q={hotel_name_encoded}+{city_encoded}"
+                f"&searchSessionId=hotel_search"
+            ),
+            "priority": 3,
+            "is_official": False,
+            "description": f"Reviews for {hotel_name_clean}",
+            "is_hotel_specific": True
+        },
+        # 4. Agoda - HOTEL SPECIFIC (uses hotel name search)
+        {
+            "name": "Agoda",
+            "url": (
+                f"https://www.agoda.com/search"
+                f"?city={location.get('hotel_id', '')}"
+                f"&checkIn={check_in}"
+                f"&checkOut={check_out}"
+                f"&rooms={rooms}"
+                f"&adults={adults}"
+                f"&textToSearch={hotel_name_encoded}"
+            ),
+            "priority": 4,
+            "is_official": False,
+            "description": f"Best prices for {hotel_name_clean}",
+            "is_hotel_specific": True
+        },
+        # 5. MakeMyTrip - HOTEL SPECIFIC SEARCH
+        {
+            "name": "MakeMyTrip",
+            "url": (
+                f"https://www.makemytrip.com/hotels/hotel-listing/"
+                f"?checkin={check_in.replace('-', '')}"
+                f"&checkout={check_out.replace('-', '')}"
+                f"&city={city_slug}"
+                f"&searchText={hotel_name_encoded}"
+                f"&roomStayQualifier={adults}e0e"
+            ),
+            "priority": 5,
+            "is_official": False,
+            "description": f"Book {hotel_name_clean} on MMT",
+            "is_hotel_specific": True
+        }
+    ]
+    
+    return partners
     
     partners = [
         {
