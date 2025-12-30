@@ -299,11 +299,12 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
 
 // ============================================================
 // FLIGHT DEEP LINKS
+// Uses: IATA airport codes only (DEL, BOM, etc.)
 // ============================================================
 
 export interface FlightDeepLinkParams {
-  origin: string      // IATA code
-  destination: string // IATA code
+  origin: string      // IATA code (3 letters)
+  destination: string // IATA code (3 letters)
   departDate: string  // YYYY-MM-DD
   returnDate?: string // YYYY-MM-DD (for round trip)
   adults?: number
@@ -313,66 +314,99 @@ export interface FlightDeepLinkParams {
 }
 
 /**
- * MakeMyTrip Flight Deep Link (search level only)
- * Format: https://www.makemytrip.com/flight/search?itinerary=...
+ * Validate flight deep link parameters
+ * Returns error message if validation fails, null if valid
  */
-export function buildMakeMyTripFlightUrl(params: FlightDeepLinkParams): string {
+export function validateFlightParams(params: FlightDeepLinkParams): string | null {
+  if (!isValidString(params.origin)) {
+    return 'Origin airport code is required'
+  }
+  if (!isValidIATACode(params.origin)) {
+    return `Invalid origin airport code: ${params.origin} (must be 3 letters)`
+  }
+  if (!isValidString(params.destination)) {
+    return 'Destination airport code is required'
+  }
+  if (!isValidIATACode(params.destination)) {
+    return `Invalid destination airport code: ${params.destination} (must be 3 letters)`
+  }
+  if (!isValidDate(params.departDate)) {
+    return 'Valid departure date is required (YYYY-MM-DD)'
+  }
+  if (params.returnDate && !isValidDate(params.returnDate)) {
+    return 'Invalid return date format (YYYY-MM-DD)'
+  }
+  return null
+}
+
+/**
+ * MakeMyTrip Flight Deep Link (search level only, IATA codes)
+ * Format: https://www.makemytrip.com/flight/search?itinerary=DEL-BOM-...
+ */
+function buildMakeMyTripFlightUrl(params: FlightDeepLinkParams): string {
   const { origin, destination, departDate, returnDate, adults = 1, children = 0, infants = 0 } = params
   
   const dateFormatted = formatDDMMYYYY(departDate)
   const tripType = returnDate ? 'R' : 'O'
-  const intl = origin.length === 3 && destination.length === 3 ? 'false' : 'true'
   
-  let itinerary = `${origin}-${destination}-${dateFormatted}`
+  let itinerary = `${origin.toUpperCase()}-${destination.toUpperCase()}-${dateFormatted}`
   if (returnDate) {
-    itinerary += `_${destination}-${origin}-${formatDDMMYYYY(returnDate)}`
+    itinerary += `_${destination.toUpperCase()}-${origin.toUpperCase()}-${formatDDMMYYYY(returnDate)}`
   }
   
-  return `https://www.makemytrip.com/flight/search?itinerary=${itinerary}&tripType=${tripType}&paxType=A-${adults}_C-${children}_I-${infants}&intl=${intl}&cabinClass=E`
+  return `https://www.makemytrip.com/flight/search?itinerary=${itinerary}&tripType=${tripType}&paxType=A-${adults}_C-${children}_I-${infants}&intl=false&cabinClass=E`
 }
 
 /**
- * Paytm Flight Deep Link
- * Format: https://tickets.paytm.com/flights/search?from=...
+ * Paytm Flight Deep Link (IATA codes)
+ * Format: https://tickets.paytm.com/flights/search?from=DEL&to=BOM...
  */
-export function buildPaytmFlightUrl(params: FlightDeepLinkParams): string {
+function buildPaytmFlightUrl(params: FlightDeepLinkParams): string {
   const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
   
-  return `https://tickets.paytm.com/flights/search?from=${origin}&to=${destination}&date=${departDate}&adults=${adults}&children=${children}&infants=${infants}&class=economy`
+  return `https://tickets.paytm.com/flights/search?from=${origin.toUpperCase()}&to=${destination.toUpperCase()}&date=${departDate}&adults=${adults}&children=${children}&infants=${infants}&class=economy`
 }
 
 /**
- * Skyscanner Flight Deep Link (Search results page)
- * Format: https://www.skyscanner.co.in/transport/flights/...
+ * Skyscanner Flight Deep Link (IATA codes)
+ * Format: https://www.skyscanner.co.in/transport/flights/del/bom/...
  */
-export function buildSkyscannerFlightUrl(params: FlightDeepLinkParams): string {
+function buildSkyscannerFlightUrl(params: FlightDeepLinkParams): string {
   const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
   
   // Skyscanner format: YYMMDD
   const [year, month, day] = departDate.split('-')
   const dateFormatted = `${year.slice(2)}${month}${day}`
   
-  // Skyscanner cabin class: economy, premiumeconomy, business, first
-  const cabinClass = 'economy'
-  
-  return `https://www.skyscanner.co.in/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${dateFormatted}/?adults=${adults}&children=${children}&infants=${infants}&cabinclass=${cabinClass}&preferdirects=false&outboundaltsenabled=false&inboundaltsenabled=false`
+  return `https://www.skyscanner.co.in/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${dateFormatted}/?adults=${adults}&children=${children}&infants=${infants}&cabinclass=economy&preferdirects=false&outboundaltsenabled=false&inboundaltsenabled=false`
 }
 
 /**
- * Build flight deep link for any vendor
- * NOTE: Search-level links only - no reviewDetails, itineraryId, rKey, or session URLs
+ * Build flight deep link with validation
+ * Returns null if parameters are invalid - BLOCKS redirect
  */
-export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkParams): string {
+export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkParams): DeepLinkResult {
+  const validationError = validateFlightParams(params)
+  if (validationError) {
+    return { url: null, error: validationError }
+  }
+  
+  let url: string
   switch (vendorId) {
     case 'makemytrip_flights':
-      return buildMakeMyTripFlightUrl(params)
+      url = buildMakeMyTripFlightUrl(params)
+      break
     case 'paytm_flights':
-      return buildPaytmFlightUrl(params)
+      url = buildPaytmFlightUrl(params)
+      break
     case 'skyscanner':
-      return buildSkyscannerFlightUrl(params)
+      url = buildSkyscannerFlightUrl(params)
+      break
     default:
-      return buildMakeMyTripFlightUrl(params)
+      url = buildMakeMyTripFlightUrl(params)
   }
+  
+  return { url, error: null }
 }
 
 // ============================================================
