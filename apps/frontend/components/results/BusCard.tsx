@@ -145,7 +145,7 @@ export default function BusCard({ offer, index = 0 }: BusCardProps) {
 
   const handleRedirectComplete = useCallback(() => {
     if (pendingRedirectUrl) {
-      window.open(pendingRedirectUrl, '_blank')
+      window.open(pendingRedirectUrl, '_blank', 'noopener,noreferrer')
     }
     setShowRedirectTransition(false)
     setRedirecting(null)
