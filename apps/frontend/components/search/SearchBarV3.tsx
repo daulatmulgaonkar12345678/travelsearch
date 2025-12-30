@@ -695,31 +695,31 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
     }
   }
 
-  // Service-specific accent colors (muted, eye-friendly)
+  // Service-specific accent colors - SOLID COLORS ONLY (no transparency)
   const serviceColors = {
     flights: {
-      accent: '#5F8D7E',
+      accent: '#5F8D7E',           // Sage green
       accentHover: '#4A7A6B',
-      bg: 'rgba(95,141,126,0.08)',
-      border: 'rgba(95,141,126,0.25)',
+      bgSolid: '#E8F0ED',          // Solid light sage
+      borderSolid: '#B8D4CA',      // Darker solid border
     },
     buses: {
-      accent: '#C0703D',
+      accent: '#C0703D',           // Clay terracotta
       accentHover: '#A85F30',
-      bg: 'rgba(192,112,61,0.08)',
-      border: 'rgba(192,112,61,0.25)',
+      bgSolid: '#F9EBE0',          // Solid light clay
+      borderSolid: '#E5C4A8',      // Darker solid border
     },
     trains: {
-      accent: '#6E8B5C',
+      accent: '#6E8B5C',           // Olive green
       accentHover: '#5C7A4A',
-      bg: 'rgba(110,139,92,0.08)',
-      border: 'rgba(110,139,92,0.25)',
+      bgSolid: '#EBF0E6',          // Solid light olive
+      borderSolid: '#C4D4B8',      // Darker solid border
     },
     hotels: {
-      accent: '#C6A15B',
+      accent: '#C6A15B',           // Sand gold
       accentHover: '#B59048',
-      bg: 'rgba(198,161,91,0.08)',
-      border: 'rgba(198,161,91,0.25)',
+      bgSolid: '#F9F3E6',          // Solid light gold
+      borderSolid: '#E5D4A8',      // Darker solid border
     },
   }
 
@@ -739,78 +739,98 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   return (
     <div 
       ref={searchFormRef} 
-      className="rounded-3xl shadow-xl overflow-hidden transition-all duration-300"
-      style={{
-        backgroundColor: currentColors.bg,
-        border: `1px solid ${currentColors.border}`,
-      }}
+      className="bg-white rounded-3xl shadow-xl overflow-hidden border border-[#E6ECEA]"
     >
       {/* Tab Selector - Order: Flights → Buses → Trains → Hotels */}
-      <div className="flex border-b border-[#E6ECEA] overflow-x-auto bg-white/80">
+      {/* SOLID COLORS ONLY - No transparency, no blur */}
+      <div className="flex border-b border-[#E6ECEA] overflow-x-auto bg-white">
+        {/* Flights Tab */}
         <button
           data-testid="flights-tab"
           onClick={() => setSearchType('flights')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'flights'
-              ? 'border-b-2 animate-tab-indicator'
-              : 'text-[#6B7280] hover:text-[#2B2B2B] hover:bg-[#F4F7F6]'
-          }`}
+          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
           style={searchType === 'flights' ? {
-            backgroundColor: serviceColors.flights.bg,
+            backgroundColor: serviceColors.flights.bgSolid,
             color: serviceColors.flights.accent,
-            borderBottomColor: serviceColors.flights.accent,
-          } : {}}
+            borderBottom: `3px solid ${serviceColors.flights.accent}`,
+            borderLeft: `1px solid ${serviceColors.flights.borderSolid}`,
+            borderRight: `1px solid ${serviceColors.flights.borderSolid}`,
+          } : {
+            backgroundColor: '#FFFFFF',
+            color: '#6B7280',
+            borderBottom: '3px solid transparent',
+            borderLeft: '1px solid transparent',
+            borderRight: '1px solid transparent',
+          }}
         >
           <Plane className="h-5 w-5" />
           <span>Flights</span>
         </button>
+        
+        {/* Buses Tab */}
         <button
           data-testid="buses-tab"
           onClick={() => setSearchType('buses')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'buses'
-              ? 'border-b-2 animate-tab-indicator'
-              : 'text-[#6B7280] hover:text-[#2B2B2B] hover:bg-[#F4F7F6]'
-          }`}
+          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
           style={searchType === 'buses' ? {
-            backgroundColor: serviceColors.buses.bg,
+            backgroundColor: serviceColors.buses.bgSolid,
             color: serviceColors.buses.accent,
-            borderBottomColor: serviceColors.buses.accent,
-          } : {}}
+            borderBottom: `3px solid ${serviceColors.buses.accent}`,
+            borderLeft: `1px solid ${serviceColors.buses.borderSolid}`,
+            borderRight: `1px solid ${serviceColors.buses.borderSolid}`,
+          } : {
+            backgroundColor: '#FFFFFF',
+            color: '#6B7280',
+            borderBottom: '3px solid transparent',
+            borderLeft: '1px solid transparent',
+            borderRight: '1px solid transparent',
+          }}
         >
           <Bus className="h-5 w-5" />
           <span>Buses</span>
         </button>
+        
+        {/* Trains Tab */}
         <button
           data-testid="trains-tab"
           onClick={() => setSearchType('trains')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'trains'
-              ? 'border-b-2 animate-tab-indicator'
-              : 'text-[#6B7280] hover:text-[#2B2B2B] hover:bg-[#F4F7F6]'
-          }`}
+          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
           style={searchType === 'trains' ? {
-            backgroundColor: serviceColors.trains.bg,
+            backgroundColor: serviceColors.trains.bgSolid,
             color: serviceColors.trains.accent,
-            borderBottomColor: serviceColors.trains.accent,
-          } : {}}
+            borderBottom: `3px solid ${serviceColors.trains.accent}`,
+            borderLeft: `1px solid ${serviceColors.trains.borderSolid}`,
+            borderRight: `1px solid ${serviceColors.trains.borderSolid}`,
+          } : {
+            backgroundColor: '#FFFFFF',
+            color: '#6B7280',
+            borderBottom: '3px solid transparent',
+            borderLeft: '1px solid transparent',
+            borderRight: '1px solid transparent',
+          }}
         >
           <Train className="h-5 w-5" />
           <span>Trains</span>
         </button>
+        
+        {/* Hotels Tab */}
         <button
           data-testid="hotels-tab"
           onClick={() => setSearchType('hotels')}
-          className={`flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200 ${
-            searchType === 'hotels'
-              ? 'border-b-2 animate-tab-indicator'
-              : 'text-[#6B7280] hover:text-[#2B2B2B] hover:bg-[#F4F7F6]'
-          }`}
+          className="flex-1 min-w-[100px] py-4 px-4 flex items-center justify-center space-x-2 font-medium transition-all duration-200"
           style={searchType === 'hotels' ? {
-            backgroundColor: serviceColors.hotels.bg,
+            backgroundColor: serviceColors.hotels.bgSolid,
             color: serviceColors.hotels.accent,
-            borderBottomColor: serviceColors.hotels.accent,
-          } : {}}
+            borderBottom: `3px solid ${serviceColors.hotels.accent}`,
+            borderLeft: `1px solid ${serviceColors.hotels.borderSolid}`,
+            borderRight: `1px solid ${serviceColors.hotels.borderSolid}`,
+          } : {
+            backgroundColor: '#FFFFFF',
+            color: '#6B7280',
+            borderBottom: '3px solid transparent',
+            borderLeft: '1px solid transparent',
+            borderRight: '1px solid transparent',
+          }}
         >
           <Hotel className="h-5 w-5" />
           <span>Hotels</span>
