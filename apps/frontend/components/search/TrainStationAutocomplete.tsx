@@ -2,40 +2,57 @@
 
 /**
  * TrainStationAutocomplete - STATION-FIRST ARCHITECTURE
+ * =====================================================
  * 
- * 🔴 CONTRACT (NON-NEGOTIABLE):
+ * Uses shared useAutocomplete hook for:
+ * - State machine (IDLE | LOADING | HAS_RESULTS | NO_RESULTS)
+ * - Race condition prevention
+ * - Response normalization
+ * - Credit-saving debounce
+ * 
+ * CONTRACT:
  * - Only station codes (CSMT, PUNE) or _ALL tokens (MUMBAI_ALL) are valid
- * - Raw city names (Mumbai, Pune) are NEVER valid inputs
  * - User MUST select from dropdown - free text is disabled
- * 
- * This component:
- * 1. Fetches from /api/trains/autocomplete which returns station-first format
- * 2. Shows "City (All Stations) ⭐" first, then individual stations
- * 3. Stores the `value` field (e.g., "MUMBAI_ALL" or "CSMT") for API submission
- * 4. Never allows raw city name submission
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Train, AlertCircle, Star, Building2 } from 'lucide-react'
+import { useAutocomplete } from '@/hooks/useAutocomplete'
 
 // Type for dropdown options from backend
 export interface TrainStationOption {
   value: string        // "MUMBAI_ALL" or "CSMT" - THIS is what we submit
-  label: string        // "Mumbai (All Stations) ⭐" or "CSMT – Chhatrapati Shivaji Maharaj Terminus"
+  label: string        // Display label
   type: "city_all" | "station"
   city?: string
-  station_count?: number  // Only for city_all
-  is_major?: boolean      // Only for stations
+  station_count?: number
+  is_major?: boolean
   is_recommended?: boolean
 }
 
 interface TrainStationAutocompleteProps {
-  value: TrainStationOption | null  // The selected option
+  value: TrainStationOption | null
   onChange: (option: TrainStationOption | null) => void
   placeholder?: string
   label?: string
   testId?: string
   disabled?: boolean
+}
+
+/**
+ * Transform raw API result to TrainStationOption
+ */
+function transformToTrainStation(raw: unknown): TrainStationOption {
+  const r = raw as Record<string, any>
+  return {
+    value: r.value || r.id || r.station_code || '',
+    label: r.label || r.name || r.station_name || '',
+    type: r.type === 'city_all' ? 'city_all' : 'station',
+    city: r.city,
+    station_count: r.station_count,
+    is_major: r.is_major,
+    is_recommended: r.is_recommended,
+  }
 }
 
 export default function TrainStationAutocomplete({
@@ -47,15 +64,27 @@ export default function TrainStationAutocomplete({
   disabled = false,
 }: TrainStationAutocompleteProps) {
   const [query, setQuery] = useState(value?.label || '')
-  const [suggestions, setSuggestions] = useState<TrainStationOption[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
   
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Shared autocomplete hook
+  const {
+    state,
+    results: suggestions,
+    isLoading,
+    search,
+    clear,
+    shouldShowNoResults,
+  } = useAutocomplete<TrainStationOption>({
+    endpoint: '/api/trains/autocomplete',
+    minQueryLength: 1, // Train allows 1 char
+    debounceMs: 400,
+    limit: 10,
+    transform: transformToTrainStation,
+  })
 
   // Sync query with value
   useEffect(() => {
@@ -69,7 +98,7 @@ export default function TrainStationAutocomplete({
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setShowDropdown(false)
-        // If user clicked away without selecting, reset to last valid selection
+        // Reset to last valid selection if clicked away
         if (!value) {
           setQuery('')
         } else {
@@ -81,80 +110,31 @@ export default function TrainStationAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [value])
 
-  /**
-   * Fetch suggestions from backend /api/trains/autocomplete
-   * Backend returns station-first format with CITY_ALL options
-   */
-  const fetchSuggestions = async (searchQuery: string) => {
-    if (searchQuery.length < 1) {
-      setSuggestions([])
-      return
-    }
-
-    setIsLoading(true)
-    setHasError(false)
-    
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
-      const response = await fetch(
-        `${apiBase}/api/trains/autocomplete?q=${encodeURIComponent(searchQuery)}&limit=10`
-      )
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions')
-      }
-      
-      const data = await response.json()
-      
-      // Map backend response to TrainStationOption
-      const options: TrainStationOption[] = data.results.map((r: any) => ({
-        value: r.value,
-        label: r.label,
-        type: r.type,
-        city: r.city,
-        station_count: r.station_count,
-        is_major: r.is_major,
-        is_recommended: r.is_recommended,
-      }))
-      
-      setSuggestions(options)
-    } catch (error) {
-      console.error('Train autocomplete error:', error)
-      setHasError(true)
-      setSuggestions([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle input change
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setQuery(newValue)
     setSelectedIndex(-1)
     setShowDropdown(true)
 
-    // Clear selection when user types (they need to re-select)
+    // Clear selection when user types
     if (value) {
       onChange(null)
     }
 
-    // Debounce search
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current)
-    }
+    // Trigger search via hook
+    search(newValue)
+  }, [value, onChange, search])
 
-    debounceTimer.current = setTimeout(() => {
-      fetchSuggestions(newValue)
-    }, 150)
-  }
-
-  const handleSelectOption = (option: TrainStationOption) => {
+  // Handle dropdown selection
+  const handleSelectOption = useCallback((option: TrainStationOption) => {
     setQuery(option.label)
     setShowDropdown(false)
     onChange(option)
-  }
+  }, [onChange])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // Keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showDropdown || suggestions.length === 0) return
 
     switch (e.key) {
@@ -178,18 +158,27 @@ export default function TrainStationAutocomplete({
         setShowDropdown(false)
         break
     }
-  }
+  }, [showDropdown, suggestions, selectedIndex, handleSelectOption])
 
-  const handleFocus = () => {
+  // Handle focus
+  const handleFocus = useCallback(() => {
     if (query.length >= 1) {
       setShowDropdown(true)
-      fetchSuggestions(query)
+      search(query)
     }
-  }
+  }, [query, search])
 
-  // Validation: is a valid option selected?
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => clear()
+  }, [clear])
+
+  // Validation state (DECOUPLED from autocomplete)
   const isValid = value !== null
   const showValidationHint = query.length >= 2 && !value && !showDropdown
+
+  // Empty state check via hook (use minQueryLength of 2 for display)
+  const showNoResults = showDropdown && query.length >= 2 && shouldShowNoResults(query)
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -233,7 +222,7 @@ export default function TrainStationAutocomplete({
         )}
       </div>
 
-      {/* Validation hint - MUST select from dropdown */}
+      {/* Validation hint - DECOUPLED from autocomplete */}
       {showValidationHint && (
         <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
@@ -241,7 +230,7 @@ export default function TrainStationAutocomplete({
         </p>
       )}
 
-      {/* Dropdown */}
+      {/* Dropdown - only show when HAS_RESULTS */}
       {showDropdown && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto animate-dropdown-open">
           <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
@@ -261,7 +250,6 @@ export default function TrainStationAutocomplete({
               }`}
             >
               <div className="flex items-center gap-3">
-                {/* Icon - Different for city_all vs station */}
                 <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
                   option.type === 'city_all' 
                     ? 'bg-amber-100' 
@@ -299,14 +287,11 @@ export default function TrainStationAutocomplete({
         </div>
       )}
 
-      {/* No results */}
-      {showDropdown && query.length >= 2 && suggestions.length === 0 && !isLoading && (
+      {/* No results - ONLY via state machine */}
+      {showNoResults && (
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
           <div className="text-center text-gray-500 text-sm">
-            {hasError 
-              ? 'Failed to load suggestions. Please try again.' 
-              : `No stations found for "${query}"`
-            }
+            No stations found for "{query}"
           </div>
         </div>
       )}
