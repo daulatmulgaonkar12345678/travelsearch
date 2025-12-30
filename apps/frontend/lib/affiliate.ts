@@ -67,7 +67,14 @@ export const VENDORS: Record<string, Vendor> = {
     services: ['hotels'],
   },
   
-  // Flight vendors ("View Flights" - Skyscanner-like search flow)
+  // Flight vendors - Skyscanner is PRIMARY
+  // Order: Skyscanner (primary), MakeMyTrip, Paytm
+  // NO Aviasales - removed completely
+  skyscanner: {
+    id: 'skyscanner',
+    name: 'Skyscanner',
+    services: ['flights'],
+  },
   makemytrip_flights: {
     id: 'makemytrip_flights',
     name: 'MakeMyTrip',
@@ -76,11 +83,6 @@ export const VENDORS: Record<string, Vendor> = {
   paytm_flights: {
     id: 'paytm_flights',
     name: 'Paytm',
-    services: ['flights'],
-  },
-  skyscanner: {
-    id: 'skyscanner',
-    name: 'Skyscanner',
     services: ['flights'],
   },
   
