@@ -154,14 +154,6 @@ export default function BusCard({ offer, index = 0, departureDate }: BusCardProp
 
   return (
     <>
-      <RedirectTransition
-        mode="bus"
-        partnerName={redirecting || ''}
-        isVisible={showRedirectTransition}
-        onComplete={handleRedirectComplete}
-        duration={500}
-      />
-      
       {/* MOBILE-FIRST CARD */}
       <div 
         className={`
