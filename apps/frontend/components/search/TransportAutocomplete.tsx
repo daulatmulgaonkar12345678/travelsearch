@@ -167,10 +167,9 @@ export default function TransportAutocomplete({
     try {
       // For BUS mode: Use backend autocomplete API with state bias
       if (mode === 'bus') {
-        // Use API base URL from environment or relative path
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
+        // ALWAYS use relative URL - Next.js API routes proxy to backend
         const response = await fetch(
-          `${apiBase}/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
+          `/api/autocomplete/bus?q=${encodeURIComponent(searchQuery)}&mode=bus&limit=15`
         )
         
         if (response.ok) {
