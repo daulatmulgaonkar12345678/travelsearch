@@ -166,8 +166,11 @@ function BusResultsContent() {
         const response = await apiFetch(`/api/search/buses?${params}`)
         
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.detail || 'Failed to search buses')
+          // Log for developers, show friendly error to users
+          const errorData = await response.json().catch(() => ({}))
+          console.error('[BusSearch] API Error:', response.status, errorData)
+          setError(getErrorType(response.status))
+          return
         }
         
         const data: BusSearchResponse = await response.json()
@@ -190,7 +193,8 @@ function BusResultsContent() {
         }
         
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        console.error('[BusSearch] Fetch error:', err)
+        setError(getErrorType(undefined, err instanceof Error ? err : undefined))
       } finally {
         setLoading(false)
       }
