@@ -782,6 +782,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         params.append(`room_${roomIdx}_child_${childIdx}_age`, age.toString())
       })
     })
+    // Clear modify search payload on successful submit
+    clearModifySearchPayload('hotels')
     window.location.href = `/hotels/results?${params}`
   }
 
