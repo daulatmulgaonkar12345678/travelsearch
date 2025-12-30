@@ -1277,6 +1277,7 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         {/* Search Button Microcopy */}
         <SearchButtonMicrocopy />
       </div>
+      </div>
 
       {showPassengerModal && (
         <AdvancedPassengerModal
