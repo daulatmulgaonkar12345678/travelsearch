@@ -38,15 +38,18 @@ run_ui: true
 
 - task: "Implement and Verify Vendor Dropdown for Buses and Trains"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/app/buses/vendors/page.tsx, /app/apps/frontend/app/trains/vendors/page.tsx, /app/apps/frontend/components/results/BusCard.tsx, /app/apps/frontend/components/results/TrainCard.tsx"
   stuck_count: 0
   priority: "P1"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented vendor dropdown pages for Buses and Trains. Created /buses/vendors and /trains/vendors pages similar to Flights/Hotels. Updated BusCard and TrainCard to navigate to vendor pages instead of direct redirect. RedirectScreen updated to support bus and train types with appropriate animations and colors. Vendors: Buses (redBus, Paytm Bus), Trains (Paytm Trains, MakeMyTrip Railways)."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL VENDOR DROPDOWN IMPLEMENTATION TESTS PASSED (5/5 SCENARIOS): Complete validation of vendor dropdown implementation for buses and trains successfully completed. CRITICAL VALIDATIONS: 1) Bus Results → Vendors Flow: ✅ Bus search (Pune→Mumbai) loads results correctly, ✅ 'Book Now' button navigates to /buses/vendors with correct URL parameters (origin=Pune, destination=Mumbai, departure_date=2025-12-31, price=272), ✅ Bus vendors page shows route summary 'Pune → Mumbai', ✅ 'Choose Booking Partner' section visible, ✅ Shows ONLY bus vendors (redBus, Paytm Bus) - found 2 bus vendor options, ✅ NO flight/hotel vendors found - ZERO cross-service contamination, 2) Bus Vendor Selection: ✅ redBus pre-selected with check mark and orange highlighting, ✅ 'Search on redBus' button functional, ✅ Vendor selection dropdown works correctly, 3) Train Vendors Page: ✅ Train vendors page loads with CSMT → PUNE route summary, ✅ Shows train details 'Deccan Express • #11007', ✅ 'Choose Booking Partner' section visible, ✅ Shows ONLY train vendors (Paytm Trains, MakeMyTrip Railways) - found 2 train vendor options, ✅ NO flight/bus/hotel vendors found - ZERO cross-service contamination, ✅ Paytm Trains pre-selected with 'Search on Paytm Trains' button ready, 4) Missing Parameters Handling: ✅ Bus vendors page without params shows 'Missing Bus Details' error with 'Search Buses' recovery button, ✅ Train vendors page without params shows 'Missing Train Details' error with 'Search Trains' recovery button, 5) URL Parameter Validation: ✅ All vendor pages receive correct search context (origin, destination, departure_date, price, currency, operator/train details). ACCEPTANCE CRITERIA CONFIRMED: ✅ Bus vendors page shows ONLY bus vendors (redBus, Paytm Bus), ✅ Train vendors page shows ONLY train vendors (Paytm Trains, MakeMyTrip Railways), ✅ NO cross-service contamination (bus page never shows flight/hotel vendors, train page never shows flight/bus vendors), ✅ 'Book Now' button on result cards navigates to vendors page with search context, ✅ Vendor selection dropdown works with visual feedback (check marks, button label updates), ✅ Missing params show appropriate error states with recovery navigation. VENDOR DROPDOWN IMPLEMENTATION IS PRODUCTION-READY: Complete separation of bus and train vendors, proper error handling, functional navigation flow, and zero cross-service contamination confirmed."
   test_requirements:
     - "Test Bus Results Page: Navigate to bus results (Pune→Mumbai), verify 'Book Now' button navigates to /buses/vendors page"
     - "Test Bus Vendors Page: Verify page shows bus vendors ONLY (redBus, Paytm Bus) - NO flight/hotel vendors"
