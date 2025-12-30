@@ -261,7 +261,11 @@ export default function RedirectScreen({
               />
             </div>
           ) : (
-            <h2 className="text-3xl font-bold text-blue-600 mb-2">
+            <h2 className={`text-3xl font-bold mb-2 ${
+              type === 'bus' ? 'text-[#C47A4A]' :
+              type === 'train' ? 'text-[#7A8B5C]' :
+              type === 'hotel' ? 'text-[#E6B54A]' : 'text-blue-600'
+            }`}>
               {vendor.name}
             </h2>
           )}
