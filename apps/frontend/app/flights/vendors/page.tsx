@@ -43,7 +43,7 @@ function FlightVendorsContent() {
     try {
       setRedirecting(vendorId)
 
-      // Build deep link for selected vendor
+      // Build deep link for selected vendor with validation
       const params: FlightDeepLinkParams = {
         origin,
         destination,
@@ -54,7 +54,14 @@ function FlightVendorsContent() {
         infants: parseInt(infants, 10),
       }
 
-      const finalRedirectUrl = buildFlightDeepLink(vendorId, params)
+      const result = buildFlightDeepLink(vendorId, params)
+      
+      // BLOCK redirect if validation failed
+      if (!result.url) {
+        alert(`Cannot redirect: ${result.error}`)
+        setRedirecting(null)
+        return
+      }
 
       // Log click asynchronously (fire-and-forget)
       logAffiliateClick(
@@ -65,7 +72,7 @@ function FlightVendorsContent() {
       ).catch(() => {})
 
       // Show redirect screen
-      setRedirectUrl(finalRedirectUrl)
+      setRedirectUrl(result.url)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
