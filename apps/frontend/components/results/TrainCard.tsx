@@ -317,18 +317,18 @@ export default function TrainCard({ offer, index = 0, departureDate }: TrainCard
           </div>
         )}
 
-        {/* === BOOKING BUTTON (Navigates to Vendors Page) === */}
+        {/* === CHECK AVAILABILITY BUTTON (Navigates to Vendors Page) === */}
         <div className="p-4 bg-[#EEF1E8] border-t border-[#E6E1D8]">
           <button
             onClick={handleBookClick}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg bg-[#7A8B5C] hover:bg-[#697A4C] text-white transition-all duration-200 min-h-[44px]"
           >
             <ExternalLink className="h-4 w-4" />
-            Book Now
+            Check Availability
           </button>
           
           <p className="mt-3 text-xs text-[#9CA3AF] text-center">
-            Compare on Paytm Trains, MakeMyTrip & more
+            View on Paytm Trains or MakeMyTrip
           </p>
         </div>
 
