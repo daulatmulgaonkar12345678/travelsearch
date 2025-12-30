@@ -341,18 +341,18 @@ export default function BusCard({ offer, index = 0, departureDate }: BusCardProp
           </div>
         )}
 
-        {/* === BOOKING BUTTON (Navigates to Vendors Page) === */}
+        {/* === VIEW BUSES BUTTON (Navigates to Vendors Page) === */}
         <div className="p-4 bg-[#F3EFEA] border-t border-[#E6E1D8]">
           <button
             onClick={handleBookClick}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg bg-[#C47A4A] hover:bg-[#B06A3A] text-white transition-all duration-200 min-h-[44px]"
           >
             <ExternalLink className="h-4 w-4" />
-            Book Now
+            View Buses
           </button>
           
           <p className="mt-3 text-xs text-[#9CA3AF] text-center">
-            Compare prices on redBus, Paytm & more
+            Compare on redBus, Paytm Bus & MakeMyTrip
           </p>
         </div>
       </div>
