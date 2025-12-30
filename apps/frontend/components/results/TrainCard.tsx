@@ -317,49 +317,19 @@ export default function TrainCard({ offer, index = 0, departureDate }: TrainCard
           </div>
         )}
 
-        {/* === BOOKING PARTNERS (MOBILE OPTIMIZED) === */}
+        {/* === BOOKING BUTTON (Navigates to Vendors Page) === */}
         <div className="p-4 bg-[#EEF1E8] border-t border-[#E6E1D8]">
-          <p className="text-xs text-[#6B6B6B] mb-3">Check availability:</p>
+          <button
+            onClick={handleBookClick}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg bg-[#7A8B5C] hover:bg-[#697A4C] text-white transition-all duration-200 min-h-[44px]"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Book Now
+          </button>
           
-          {/* Error message */}
-          {redirectError && (
-            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-red-700">{redirectError}</p>
-            </div>
-          )}
-          
-          {/* Buttons - Stack vertically on mobile */}
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
-            {sortedPartners.map((partner, idx) => (
-              <button
-                key={partner.name}
-                onClick={() => handleBookingClick(partner)}
-                disabled={redirecting === partner.name}
-                className={`
-                  flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 text-sm font-medium rounded-lg
-                  transition-all duration-200 min-h-[44px]
-                  ${partner.is_official 
-                    ? 'bg-[#2E7D32] hover:bg-[#256929] text-white' 
-                    : idx === 0 && !sortedPartners.some(p => p.is_official)
-                      ? 'bg-[#7A8B5C] hover:bg-[#697A4C] text-white'
-                      : 'bg-white border border-[#7A8B5C] text-[#7A8B5C] hover:bg-[#EEF1E8]'
-                  }
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                `}
-              >
-                {redirecting === partner.name ? (
-                  'Opening...'
-                ) : (
-                  <>
-                    {partner.name}
-                    {partner.is_official && <span className="text-xs">(Official)</span>}
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </>
-                )}
-              </button>
-            ))}
-          </div>
+          <p className="mt-3 text-xs text-[#9CA3AF] text-center">
+            Compare on Paytm Trains, MakeMyTrip & more
+          </p>
         </div>
 
         {/* Disclaimer */}
