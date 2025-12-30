@@ -116,29 +116,25 @@ export default function TrainCard({ offer, index = 0, departureDate }: TrainCard
     return `${h}h ${m}m`
   }
 
-  const handleBookingClick = (partner: TrainOffer['booking_partners'][0]) => {
-    const validation = validatePartnerUrl(partner.url)
+  // Navigate to vendors page for booking
+  const handleBookClick = () => {
+    // Get departure date from offer or prop
+    const date = departureDate || new Date().toISOString().split('T')[0]
     
-    if (!validation.isValid) {
-      logInvalidRedirect(partner.name, partner.url, validation.error || 'Unknown error')
-      setRedirectError(`We couldn't open ${partner.name}. Please try another option.`)
-      setTimeout(() => setRedirectError(null), 5000)
-      return
-    }
+    const params = new URLSearchParams({
+      origin: offer.from_station,
+      destination: offer.to_station,
+      origin_city: offer.from_city,
+      destination_city: offer.to_city,
+      departure_date: date,
+      price: offer.avg_price.toString(),
+      currency: offer.currency || 'INR',
+      train_name: offer.train_name || '',
+      train_number: offer.train_number || '',
+    })
     
-    setRedirecting(partner.name)
-    setPendingRedirectUrl(partner.url)
-    setShowRedirectTransition(true)
+    router.push(`/trains/vendors?${params.toString()}`)
   }
-
-  const handleRedirectComplete = useCallback(() => {
-    if (pendingRedirectUrl) {
-      window.open(pendingRedirectUrl, '_blank', 'noopener,noreferrer')
-    }
-    setShowRedirectTransition(false)
-    setRedirecting(null)
-    setPendingRedirectUrl(null)
-  }, [pendingRedirectUrl])
 
   const sortedPartners = [...offer.booking_partners].sort((a, b) => a.priority - b.priority)
   const cardClass = offer.selected_class_display || offer.selected_class || 
