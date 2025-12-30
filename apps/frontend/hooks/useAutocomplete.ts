@@ -105,13 +105,13 @@ export function useAutocomplete<T>({
     setState('LOADING')
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || ''
+      // ALWAYS use relative URLs - Next.js API routes proxy to backend
       const params = new URLSearchParams({
         q: query,
         limit: String(limit),
         ...extraParams,
       })
-      const url = `${apiBase}${endpoint}?${params.toString()}`
+      const url = `${endpoint}?${params.toString()}`
 
       const response = await fetch(url, {
         signal: abortControllerRef.current.signal,
