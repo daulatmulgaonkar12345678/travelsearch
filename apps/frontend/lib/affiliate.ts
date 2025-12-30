@@ -373,6 +373,32 @@ function buildEaseMyTripHotelUrl(params: HotelDeepLinkParams): string {
 }
 
 /**
+ * Udchalo Hotel Deep Link (search-based) - Priority booking
+ * Format: https://www.udchalo.com/hotels/search?...
+ */
+function buildUdchaloHotelUrl(params: HotelDeepLinkParams): string {
+  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
+  
+  const cityEncoded = encodeURIComponent(city)
+  const hotelNameEncoded = encodeURIComponent(hotelName)
+  
+  return `https://www.udchalo.com/hotels/search?city=${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&rooms=${rooms}&adults=${adults}&q=${hotelNameEncoded}`
+}
+
+/**
+ * Skyscanner Hotels Deep Link (meta search)
+ * Format: https://www.skyscanner.co.in/hotels/search?...
+ */
+function buildSkyscannerHotelUrl(params: HotelDeepLinkParams): string {
+  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
+  
+  const cityEncoded = encodeURIComponent(city)
+  const hotelNameEncoded = encodeURIComponent(hotelName)
+  
+  return `https://www.skyscanner.co.in/hotels/search?entity_id=&checkin=${checkIn}&checkout=${checkOut}&rooms=${rooms}&adults=${adults}&query=${hotelNameEncoded}%20${cityEncoded}`
+}
+
+/**
  * Build hotel deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
  */
@@ -384,6 +410,9 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
   
   let url: string
   switch (vendorId) {
+    case 'udchalo_hotels':
+      url = buildUdchaloHotelUrl(params)
+      break
     case 'agoda':
       url = buildAgodaHotelUrl(params)
       break
@@ -392,6 +421,9 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
       break
     case 'makemytrip_hotels':
       url = buildMakeMyTripHotelUrl(params)
+      break
+    case 'skyscanner_hotels':
+      url = buildSkyscannerHotelUrl(params)
       break
     case 'goibibo_hotels':
       url = buildGoibiboHotelUrl(params)
