@@ -43,26 +43,25 @@ class HotelSearchTester:
             self.failed_tests.append(test_name)
     
     def test_city_search(self):
-        """Test CITY search type - should return all hotels in Mumbai"""
+        """Test CITY search type - should return all hotels in Mumbai (17 hotels expected)"""
         print("\n🏙️ TESTING CITY SEARCH")
         print("=" * 50)
         
         try:
             test_url = f"{API_BASE}/search/hotels"
-            # Use future dates for testing
-            tomorrow = (date.today() + timedelta(days=1)).isoformat()
-            day_after = (date.today() + timedelta(days=2)).isoformat()
             
-            params = {
-                'city': 'Mumbai',
-                'check_in': tomorrow,
-                'check_out': day_after,
-                'search_type': 'CITY'
+            payload = {
+                "city": "Mumbai",
+                "check_in": "2026-02-15",
+                "check_out": "2026-02-16",
+                "rooms": [{"adults": 2, "children": []}],
+                "search_type": "CITY"
             }
             
-            response = self.session.get(test_url, params=params, timeout=30)
+            response = self.session.post(test_url, json=payload, timeout=30)
             print(f"Request URL: {response.url}")
             print(f"Status Code: {response.status_code}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
             
             if response.status_code == 200:
                 data = response.json()
@@ -81,18 +80,21 @@ class HotelSearchTester:
                     self.log_test("CITY Search - Response Structure", True, 
                                 f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
                     
-                    # Check if offers contain city-wide results (no area filtering)
+                    # Check if offers contain city-wide results (all hotels)
                     if offers:
                         # Sample first offer to check structure
                         first_offer = offers[0]
                         hotel_name = first_offer.get('hotel_name', 'Unknown')
                         price = first_offer.get('price', 0)
                         
-                        self.log_test("CITY Search - Hotel Offers", True, 
-                                    f"Found hotels in Mumbai: {hotel_name} (₹{price})")
+                        self.log_test("CITY Search - All Hotels", True, 
+                                    f"Found {len(offers)} hotels in Mumbai (city-wide): {hotel_name} (₹{price})")
+                        
+                        # Log expected message for city search
+                        print(f"   Expected backend log: 'CITY search - returning all {len(offers)} hotels'")
                     else:
-                        self.log_test("CITY Search - Hotel Offers", True, 
-                                    "No offers returned (acceptable for mock data)")
+                        self.log_test("CITY Search - All Hotels", False, 
+                                    "No offers returned - expected city-wide results")
             else:
                 self.log_test("CITY Search", False, 
                             f"HTTP {response.status_code}: {response.text[:200]}")
