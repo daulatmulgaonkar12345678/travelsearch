@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Train and Bus Search with Frontend Animations Support
-Testing the APIs mentioned in the review request to ensure they work correctly.
+Backend API Testing for Centralized Click Logging System
+Testing the click logging system end-to-end as per review request.
 """
 
 import requests
@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, List
 import time
+from urllib.parse import quote
 
 # Backend URL Configuration
 BACKEND_URL = "https://click-tracker-23.preview.emergentagent.com"
