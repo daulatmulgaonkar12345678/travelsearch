@@ -16,7 +16,7 @@ from urllib.parse import quote, unquote
 BACKEND_URL = "https://travelsearch-backend.onrender.com"
 API_BASE = f"{BACKEND_URL}/api"
 
-class HotelSearchTester:
+class CityFirstHotelSearchTester:
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
