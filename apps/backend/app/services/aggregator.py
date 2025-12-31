@@ -282,7 +282,7 @@ class SearchAggregator:
         return all_offers
     
     async def search_hotels(self, request: HotelSearchRequest) -> List[HotelOffer]:
-        """Search hotels from configured provider"""
+        """Search hotels from configured provider with search intent filtering"""
         # Build cache key with search intent to prevent collisions
         # Format: hotels::{city}::{check_in}::{check_out}::{rooms}::{search_type}::{area|hotel_id}
         cache_key_parts = [
@@ -319,14 +319,115 @@ class SearchAggregator:
             logger.warning(f"Unknown hotel provider: {self.hotel_provider}, defaulting to Amadeus")
             offers = await self.amadeus_hotels.search_hotels(request)
         
+        # Apply search intent filtering
+        filtered_offers = self._filter_hotels_by_intent(offers, request)
+        
         # Rank results
-        ranked_offers = self.ranking.rank_hotels(offers)
+        ranked_offers = self.ranking.rank_hotels(filtered_offers)
         
         # Cache
         await self.cache.set(cache_key, ranked_offers, ttl=settings.cache_ttl)
         
-        logger.info(f"Returning {len(ranked_offers)} hotel offers")
+        logger.info(f"Returning {len(ranked_offers)} hotel offers (search_type={request.search_type})")
         return ranked_offers
+    
+    def _filter_hotels_by_intent(
+        self, 
+        offers: List[HotelOffer], 
+        request: HotelSearchRequest
+    ) -> List[HotelOffer]:
+        """
+        Filter hotels based on search intent (CITY/AREA/HOTEL).
+        
+        - CITY: Return all hotels (no filtering)
+        - AREA: Filter to hotels in the specified area (by area_name or coordinates)
+        - HOTEL: Filter to the specific hotel (by hotel_id or hotel_name)
+        """
+        search_type = request.search_type or "CITY"
+        
+        # CITY search: return all hotels
+        if search_type == "CITY":
+            logger.info(f"CITY search - returning all {len(offers)} hotels")
+            return offers
+        
+        # AREA search: filter by area
+        if search_type == "AREA" and request.area:
+            area_lower = request.area.lower()
+            filtered = []
+            
+            for hotel in offers:
+                # Match by area_name field
+                hotel_area = getattr(hotel, 'area_name', None) or getattr(hotel, 'area', None) or ''
+                if area_lower in hotel_area.lower():
+                    filtered.append(hotel)
+                    continue
+                
+                # Match by address containing area name
+                hotel_address = getattr(hotel, 'address', '') or ''
+                if area_lower in hotel_address.lower():
+                    filtered.append(hotel)
+                    continue
+                
+                # Match by coordinates (if available) - within ~5km radius
+                if request.latitude and request.longitude:
+                    hotel_lat = getattr(hotel, 'latitude', None)
+                    hotel_lng = getattr(hotel, 'longitude', None)
+                    if hotel_lat and hotel_lng:
+                        distance = self._calculate_distance(
+                            request.latitude, request.longitude,
+                            hotel_lat, hotel_lng
+                        )
+                        if distance <= 5.0:  # 5km radius
+                            filtered.append(hotel)
+            
+            logger.info(f"AREA search for '{request.area}' - filtered {len(offers)} -> {len(filtered)} hotels")
+            return filtered
+        
+        # HOTEL search: filter to specific hotel
+        if search_type == "HOTEL":
+            hotel_id = request.hotel_id
+            hotel_name = request.hotel_name
+            
+            exact_matches = []
+            
+            for hotel in offers:
+                # Match by hotel_id (exact match)
+                if hotel_id:
+                    offer_id = getattr(hotel, 'hotel_id', None) or getattr(hotel, 'offer_id', '')
+                    if hotel_id.lower() == offer_id.lower():
+                        exact_matches.append(hotel)
+                        continue
+                
+                # Match by hotel_name (case-insensitive)
+                if hotel_name:
+                    offer_name = getattr(hotel, 'hotel_name', '') or ''
+                    if hotel_name.lower() == offer_name.lower():
+                        exact_matches.append(hotel)
+                        continue
+                    # Also try partial match
+                    if hotel_name.lower() in offer_name.lower() or offer_name.lower() in hotel_name.lower():
+                        exact_matches.append(hotel)
+            
+            logger.info(f"HOTEL search for '{hotel_name or hotel_id}' - found {len(exact_matches)} exact matches")
+            return exact_matches
+        
+        # Default: return all offers
+        return offers
+    
+    def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Calculate distance between two coordinates in kilometers (Haversine formula)"""
+        import math
+        R = 6371  # Earth's radius in km
+        
+        lat1_rad = math.radians(lat1)
+        lat2_rad = math.radians(lat2)
+        delta_lat = math.radians(lat2 - lat1)
+        delta_lon = math.radians(lon2 - lon1)
+        
+        a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        
+        return R * c
     
     def _deduplicate_flights(self, offers: List[FlightOffer]) -> List[FlightOffer]:
         """Remove duplicate flight offers"""
