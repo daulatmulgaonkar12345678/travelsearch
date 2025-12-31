@@ -932,6 +932,10 @@ export function buildTrackedRedirectUrl(params: RedirectParams): string {
   if (params.checkOut) searchParams.set('check_out', params.checkOut)
   if (params.price !== undefined) searchParams.set('price', params.price.toString())
   
+  // Search intent params (for analytics)
+  if (params.searchType) searchParams.set('search_type', params.searchType)
+  if (params.area) searchParams.set('area', params.area)
+  
   return `/api/redirect?${searchParams.toString()}`
 }
 
