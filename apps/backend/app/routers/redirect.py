@@ -93,9 +93,8 @@ async def log_click_event(event: ClickEvent, db=None):
         if len(click_buffer) > 1000:
             click_buffer.pop(0)
         
-        # Persist to database if available
-        if db is not None:
-            await persist_click_to_db(event, db)
+        # Persist to database
+        await persist_click_to_db(event)
             
     except Exception as e:
         # Never let logging failures affect the redirect
