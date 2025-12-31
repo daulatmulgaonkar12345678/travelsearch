@@ -340,8 +340,11 @@ class SearchAggregator:
         Filter hotels based on search intent (CITY/AREA/HOTEL).
         
         - CITY: Return all hotels (no filtering)
-        - AREA: Filter to hotels in the specified area (by area_name or coordinates)
-        - HOTEL: Filter to the specific hotel (by hotel_id or hotel_name)
+        - AREA: Filter to hotels in the specified area (by hotel name containing area, address, or coordinates)
+        - HOTEL: Filter to the specific hotel (by hotel_id or hotel_name - exact or partial match)
+        
+        Note: Amadeus hotel data often lacks area_name and coordinates, so we use
+        hotel_name pattern matching as a fallback.
         """
         search_type = request.search_type or "CITY"
         
@@ -356,15 +359,21 @@ class SearchAggregator:
             filtered = []
             
             for hotel in offers:
-                # Match by area_name field
+                # Match by area_name field (if available)
                 hotel_area = getattr(hotel, 'area_name', None) or getattr(hotel, 'area', None) or ''
-                if area_lower in hotel_area.lower():
+                if hotel_area and area_lower in hotel_area.lower():
+                    filtered.append(hotel)
+                    continue
+                
+                # Match by hotel_name containing area name
+                hotel_name = getattr(hotel, 'hotel_name', '') or ''
+                if area_lower in hotel_name.lower():
                     filtered.append(hotel)
                     continue
                 
                 # Match by address containing area name
                 hotel_address = getattr(hotel, 'address', '') or ''
-                if area_lower in hotel_address.lower():
+                if hotel_address and area_lower in hotel_address.lower():
                     filtered.append(hotel)
                     continue
                 
@@ -389,27 +398,36 @@ class SearchAggregator:
             hotel_name = request.hotel_name
             
             exact_matches = []
+            partial_matches = []
             
             for hotel in offers:
-                # Match by hotel_id (exact match)
+                offer_name = getattr(hotel, 'hotel_name', '') or ''
+                offer_id = getattr(hotel, 'hotel_id', None) or getattr(hotel, 'offer_id', '')
+                
+                # Exact match by hotel_id
                 if hotel_id:
-                    offer_id = getattr(hotel, 'hotel_id', None) or getattr(hotel, 'offer_id', '')
                     if hotel_id.lower() == offer_id.lower():
                         exact_matches.append(hotel)
                         continue
                 
                 # Match by hotel_name (case-insensitive)
                 if hotel_name:
-                    offer_name = getattr(hotel, 'hotel_name', '') or ''
-                    if hotel_name.lower() == offer_name.lower():
+                    hotel_name_lower = hotel_name.lower()
+                    offer_name_lower = offer_name.lower()
+                    
+                    # Exact match
+                    if hotel_name_lower == offer_name_lower:
                         exact_matches.append(hotel)
                         continue
-                    # Also try partial match
-                    if hotel_name.lower() in offer_name.lower() or offer_name.lower() in hotel_name.lower():
-                        exact_matches.append(hotel)
+                    
+                    # Partial match (either contains the other)
+                    if hotel_name_lower in offer_name_lower or offer_name_lower in hotel_name_lower:
+                        partial_matches.append(hotel)
             
-            logger.info(f"HOTEL search for '{hotel_name or hotel_id}' - found {len(exact_matches)} exact matches")
-            return exact_matches
+            # Prefer exact matches, fall back to partial matches
+            result = exact_matches if exact_matches else partial_matches
+            logger.info(f"HOTEL search for '{hotel_name or hotel_id}' - found {len(exact_matches)} exact, {len(partial_matches)} partial matches")
+            return result
         
         # Default: return all offers
         return offers
