@@ -8,7 +8,33 @@ test_sequence: 17
 run_ui: true
 ```
 
-## Current Focus: Industry-Proven Click Tracking (Redirect-First Model) - COMPLETED ✅
+## Current Focus: Search-Engine-First SEO Architecture - IN PROGRESS
+
+- task: "SEO Architecture Implementation - Server-rendered pages with schema markup"
+  implemented: true
+  working: "pending"
+  file: "Multiple files in /app/apps/frontend/components/seo/ and /app/apps/frontend/app/"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented comprehensive SEO architecture: 1) JSON-LD Schema components for Flights, Hotels, Buses, Trains (Product, BreadcrumbList, FAQPage), 2) Enhanced page templates with FAQ sections and price indicators, 3) Created 5 Bus route SEO pages and 5 Train route SEO pages, 4) Updated sitemap.ts to include all 72 SEO pages, 5) Enhanced robots.txt with proper crawling rules. All pages render H1, content, and schemas server-side."
+  test_requirements:
+    - "Verify all SEO pages render H1 without JavaScript"
+    - "Verify JSON-LD schema is present in HTML source"
+    - "Verify sitemap.xml includes all 72 URLs"
+    - "Verify robots.txt has correct allow/disallow rules"
+    - "Test Bus SEO page (e.g., /buses/pune-to-mumbai)"
+    - "Test Train SEO page (e.g., /trains/mumbai-to-delhi)"
+    - "Test Flight SEO page (e.g., /flights/mumbai-to-goa)"
+    - "Test Hotel SEO page (e.g., /hotels/goa)"
+    - "Verify FAQ section renders on each page type"
+    - "Verify internal links are present (related routes, cities)"
+    - "Verify CTA buttons link to search flow"
+
+## Previous Focus: Industry-Proven Click Tracking (Redirect-First Model) - COMPLETED ✅
 
 - task: "Industry-Proven Click Tracking - Redirect-First, Non-Blocking Implementation"
   implemented: true
