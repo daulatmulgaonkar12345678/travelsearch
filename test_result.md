@@ -1025,6 +1025,14 @@ test_priority: "high_first"
 
 ## Agent Communication
 
+- agent: "main"
+  message: "Two major changes implemented: 1) Vendor Updates - Udchalo removed, new defaults (Booking.com, IRCTC, MSRTC), 2) Hotel Smart Search - City/Area/Hotel autocomplete with type icons. Needs comprehensive testing of vendor pages and smart search functionality."
+- agent: "testing"
+  message: "✅ ALL VENDOR UPDATES + HOTEL SMART SEARCH TESTS PASSED (6/6 SCENARIOS): Complete validation completed successfully."
+- agent: "main"
+  message: "AREA search fix implemented: Hotel smart search now properly preserves AREA metadata (type, lat/lng) throughout the search flow. This fixes the issue where AREA selections were being treated as CITY searches. Need comprehensive testing of all search types: CITY, AREA, HOTEL, and modify search regression."
+- agent: "testing"
+  message: "✅ ALL AREA SEARCH FIX VERIFICATION TESTS PASSED (4/4 SCENARIOS): CRITICAL FIX CONFIRMED - AREA selections no longer treated as CITY searches. Hotel smart search now properly handles all three destination types (CITY/AREA/HOTEL) with correct metadata preservation. All search flows working perfectly with no regressions."
 - agent: "testing"
   message: "✅ VENDOR-SPECIFIC DEEP-LINK VERIFICATION COMPLETE: All 4 critical test scenarios passed successfully. MAJOR FINDINGS: 1) Flights vendor page shows ONLY flight vendors (MakeMyTrip, Paytm) with zero cross-service contamination, 2) Hotels vendor page shows ONLY hotel vendors (MakeMyTrip, Agoda, Booking.com) with zero cross-service contamination, 3) Vendor selection dropdowns work correctly with proper button labeling, 4) Missing parameters show appropriate error states with recovery navigation, 5) Deep link generation confirmed working through redirect screen functionality. CRITICAL ISSUE RESOLVED: Fixed RedirectScreen component interface mismatch that was causing JavaScript errors. The vendor-specific deep-linking system is production-ready with complete separation of flight and hotel vendors, proper error handling, and functional redirect system. No further testing required for this feature."
 - agent: "testing"
