@@ -1117,3 +1117,24 @@ test_priority: "high_first"
     - "Test Route Display: Flight clicks show 'DEL → BOM' format, Hotel clicks show 'Hotel Name, City' format"
     - "Test Refresh: Click Refresh button on click logs section, verify logs are refreshed"
     - "Test End-to-End: Full flow - vendor page click → redirect → admin UI shows log"
+
+## Current Focus: Hotel Smart Search Intent Preservation (P0)
+
+- task: "Hotel Smart Search - Preserve CITY/AREA/HOTEL intent end-to-end"
+  implemented: true
+  working: pending
+  file: "/app/apps/frontend/app/hotels/results/page.tsx, /app/apps/frontend/app/hotels/vendors/page.tsx, /app/apps/backend/app/services/aggregator.py, /app/apps/backend/app/routers/redirect.py, /app/apps/frontend/lib/affiliate.ts"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented search intent preservation. TASK 1: Frontend results page now extracts search_type, area, lat, lng, hotel_id, hotel_name from URL and includes them in API request. TASK 2: Backend already had routing logic. TASK 3: Cache keys now include search_type and area/hotel_id to prevent collisions. TASK 4: Added contextual banner on results page for AREA/HOTEL searches. TASK 5: Click logs now include search_type and area fields."
+  test_requirements:
+    - "Test CITY Search: Select Mumbai city, verify URL has search_type=CITY, results show 'Hotels in Mumbai'"
+    - "Test AREA Search: Select 'Bandra' area, verify URL has search_type=AREA&area=Bandra, results show green banner 'Area Search' with 'Showing hotels in Bandra, Mumbai'"
+    - "Test HOTEL Search: Select a specific hotel, verify URL has search_type=HOTEL&hotel_id=xxx, results show purple banner 'Specific Hotel Search'"
+    - "Test Cache Isolation: Do CITY search for Mumbai, then AREA search for Bandra Mumbai - should get different results"
+    - "Test Click Logging: Click vendor on AREA search, verify click log includes search_type=AREA and area=Bandra"
+    - "Test Modify Search: On AREA results page, click Modify Search, verify form pre-fills with area selection"
