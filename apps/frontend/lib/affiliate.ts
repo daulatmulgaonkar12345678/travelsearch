@@ -53,11 +53,12 @@ export interface Vendor {
 
 export const VENDORS: Record<string, Vendor> = {
   // ============================================================
-  // HOTEL VENDORS - Priority Order: Udchalo, Agoda, Booking.com, MakeMyTrip, Skyscanner
+  // HOTEL VENDORS - Priority Order: Booking.com (PRIMARY), Agoda, MakeMyTrip
+  // REMOVED: Udchalo (discontinued)
   // ============================================================
-  udchalo_hotels: {
-    id: 'udchalo_hotels',
-    name: 'Udchalo',
+  booking: {
+    id: 'booking',
+    name: 'Booking.com',
     services: ['hotels'],
     isPrimary: true,
     priority: 1,
@@ -68,28 +69,16 @@ export const VENDORS: Record<string, Vendor> = {
     services: ['hotels'],
     priority: 2,
   },
-  booking: {
-    id: 'booking',
-    name: 'Booking.com',
-    services: ['hotels'],
-    priority: 3,
-  },
   makemytrip_hotels: {
     id: 'makemytrip_hotels',
     name: 'MakeMyTrip',
     services: ['hotels'],
-    priority: 4,
-  },
-  skyscanner_hotels: {
-    id: 'skyscanner_hotels',
-    name: 'Skyscanner Hotels',
-    services: ['hotels'],
-    priority: 5,
+    priority: 3,
   },
   
   // ============================================================
   // FLIGHT VENDORS - Skyscanner (PRIMARY meta-search)
-  // REMOVED: Paytm (unstable), Ixigo (payment-level deep links)
+  // REMOVED: Udchalo (discontinued), Paytm (unstable), Ixigo (payment-level deep links)
   // ============================================================
   skyscanner: {
     id: 'skyscanner',
@@ -116,44 +105,38 @@ export const VENDORS: Record<string, Vendor> = {
     services: ['flights'],
     priority: 4,
   },
-  udchalo_flights: {
-    id: 'udchalo_flights',
-    name: 'Udchalo',
-    services: ['flights'],
-    priority: 5,
-  },
   
   // ============================================================
-  // BUS VENDORS - redBus (PRIMARY)
-  // REMOVED: Ixigo (unstable deep links)
+  // BUS VENDORS - MSRTC (PRIMARY for Maharashtra), redBus, Paytm Bus
+  // REMOVED: Udchalo (discontinued), Ixigo (unstable deep links)
   // ============================================================
-  redbus: {
-    id: 'redbus',
-    name: 'redBus',
+  msrtc: {
+    id: 'msrtc',
+    name: 'MSRTC',
     services: ['buses'],
     isPrimary: true,
     priority: 1,
   },
-  goibibo_bus: {
-    id: 'goibibo_bus',
-    name: 'Goibibo',
+  redbus: {
+    id: 'redbus',
+    name: 'redBus',
     services: ['buses'],
     priority: 2,
   },
-  easemytrip_bus: {
-    id: 'easemytrip_bus',
-    name: 'EaseMyTrip',
+  paytm_bus: {
+    id: 'paytm_bus',
+    name: 'Paytm Bus',
     services: ['buses'],
     priority: 3,
   },
-  // REMOVED: ixigo_bus (unstable deep links)
   
   // ============================================================
-  // TRAIN VENDORS - Ixigo (PRIMARY) - search/schedule page only
+  // TRAIN VENDORS - IRCTC (PRIMARY official), MakeMyTrip, Goibibo
+  // REMOVED: Udchalo (discontinued), Ixigo (moved to lower priority)
   // ============================================================
-  ixigo_trains: {
-    id: 'ixigo_trains',
-    name: 'Ixigo',
+  irctc: {
+    id: 'irctc',
+    name: 'IRCTC',
     services: ['trains'],
     isPrimary: true,
     priority: 1,
