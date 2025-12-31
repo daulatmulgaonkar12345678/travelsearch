@@ -867,3 +867,168 @@ export async function logAffiliateClick(
     // Silently fail
   }
 }
+
+// ============================================================
+// CENTRALIZED REDIRECT URL BUILDER
+// ============================================================
+
+/**
+ * Parameters for building a tracked redirect URL
+ */
+export interface RedirectParams {
+  service: 'flight' | 'hotel' | 'bus' | 'train'
+  vendor: string
+  targetUrl: string
+  // Flight/Bus/Train
+  origin?: string
+  destination?: string
+  // Hotel
+  city?: string
+  hotelName?: string
+  // Common
+  date?: string
+  checkIn?: string
+  checkOut?: string
+  price?: number
+}
+
+/**
+ * Build a tracked redirect URL that goes through /api/redirect
+ * 
+ * This ensures:
+ * 1. All clicks are logged for analytics
+ * 2. Affiliate parameters are preserved
+ * 3. Users still experience instant redirect
+ * 
+ * Usage:
+ *   const redirectUrl = buildTrackedRedirectUrl({
+ *     service: 'flight',
+ *     vendor: 'skyscanner',
+ *     targetUrl: 'https://www.skyscanner.co.in/...',
+ *     origin: 'DEL',
+ *     destination: 'BOM',
+ *     price: 5000
+ *   })
+ *   window.open(redirectUrl, '_blank')
+ */
+export function buildTrackedRedirectUrl(params: RedirectParams): string {
+  const searchParams = new URLSearchParams()
+  
+  // Required params
+  searchParams.set('service', params.service)
+  searchParams.set('vendor', params.vendor)
+  searchParams.set('target', encodeURIComponent(params.targetUrl))
+  
+  // Optional params - only add if present
+  if (params.origin) searchParams.set('origin', params.origin)
+  if (params.destination) searchParams.set('destination', params.destination)
+  if (params.city) searchParams.set('city', params.city)
+  if (params.hotelName) searchParams.set('hotel_name', params.hotelName)
+  if (params.date) searchParams.set('date', params.date)
+  if (params.checkIn) searchParams.set('check_in', params.checkIn)
+  if (params.checkOut) searchParams.set('check_out', params.checkOut)
+  if (params.price !== undefined) searchParams.set('price', params.price.toString())
+  
+  return `/api/redirect?${searchParams.toString()}`
+}
+
+/**
+ * Redirect handler with tracking
+ * 
+ * Opens the vendor URL in a new tab while logging the click.
+ * Use this instead of window.open(vendorUrl, '_blank')
+ */
+export function redirectWithTracking(params: RedirectParams): void {
+  const redirectUrl = buildTrackedRedirectUrl(params)
+  window.open(redirectUrl, '_blank')
+}
+
+/**
+ * Helper to redirect to a flight vendor with tracking
+ */
+export function redirectToFlightVendor(
+  vendorId: string,
+  targetUrl: string,
+  origin: string,
+  destination: string,
+  date: string,
+  price?: number
+): void {
+  redirectWithTracking({
+    service: 'flight',
+    vendor: vendorId,
+    targetUrl,
+    origin,
+    destination,
+    date,
+    price,
+  })
+}
+
+/**
+ * Helper to redirect to a hotel vendor with tracking
+ */
+export function redirectToHotelVendor(
+  vendorId: string,
+  targetUrl: string,
+  city: string,
+  hotelName: string,
+  checkIn: string,
+  checkOut: string,
+  price?: number
+): void {
+  redirectWithTracking({
+    service: 'hotel',
+    vendor: vendorId,
+    targetUrl,
+    city,
+    hotelName,
+    checkIn,
+    checkOut,
+    price,
+  })
+}
+
+/**
+ * Helper to redirect to a bus vendor with tracking
+ */
+export function redirectToBusVendor(
+  vendorId: string,
+  targetUrl: string,
+  origin: string,
+  destination: string,
+  date: string,
+  price?: number
+): void {
+  redirectWithTracking({
+    service: 'bus',
+    vendor: vendorId,
+    targetUrl,
+    origin,
+    destination,
+    date,
+    price,
+  })
+}
+
+/**
+ * Helper to redirect to a train vendor with tracking
+ */
+export function redirectToTrainVendor(
+  vendorId: string,
+  targetUrl: string,
+  origin: string,
+  destination: string,
+  date: string,
+  price?: number
+): void {
+  redirectWithTracking({
+    service: 'train',
+    vendor: vendorId,
+    targetUrl,
+    origin,
+    destination,
+    date,
+    price,
+  })
+}
