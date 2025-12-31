@@ -112,11 +112,21 @@ async def log_click_event(event: ClickEvent, db=None):
 
 
 async def persist_click_to_db(event: ClickEvent):
-    """Persist click event to MongoDB (non-blocking)"""
+    """
+    Persist click event to MongoDB (non-blocking, best-effort).
+    
+    INDUSTRY STANDARD: This is a background task that should:
+    - Never block the redirect
+    - Silently fail if DB is unavailable
+    - Log errors for monitoring but not propagate
+    """
     try:
         from app.db.mongodb import get_database
-        db = get_database()
         
+        # CRITICAL: Await the async database getter
+        db = await get_database()
+        
+        # Include search intent fields for analytics
         click_doc = {
             "service": event.service,
             "vendor": event.vendor,
@@ -127,12 +137,22 @@ async def persist_click_to_db(event: ClickEvent):
             "price": event.price,
             "session_id": event.session_id,
             "target_url": event.target,
+            # Search intent for analytics
+            "search_type": event.search_type,
+            "area": event.area,
             "created_at": datetime.now(timezone.utc),
         }
+        
+        # Remove None values to keep documents clean
+        click_doc = {k: v for k, v in click_doc.items() if v is not None}
+        
         await db.click_events.insert_one(click_doc)
         logger.debug(f"Click event persisted to DB: {event.service}/{event.vendor}")
+        
     except Exception as e:
-        logger.error(f"DB persistence error (non-blocking): {e}")
+        # Best-effort logging: Never propagate errors to main request
+        # This is expected behavior when DB is temporarily unavailable
+        logger.warning(f"Click persistence failed (non-blocking): {e}")
 
 
 @router.get("/redirect")
