@@ -1162,3 +1162,24 @@ test_priority: "high_first"
     - "Test Cache Isolation: Do CITY search for Mumbai, then AREA search for Bandra Mumbai - should get different results"
     - "Test Click Logging: Click vendor on AREA search, verify click log includes search_type=AREA and area=Bandra"
     - "Test Modify Search: On AREA results page, click Modify Search, verify form pre-fills with area selection"
+
+## Current Focus: Hotel Search Intent Filtering (P0)
+
+- task: "Hotel & Area Search Filtering - Filter results based on search_type"
+  implemented: true
+  working: pending
+  file: "/app/apps/backend/app/services/aggregator.py, /app/apps/frontend/app/hotels/results/page.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented search intent filtering in backend aggregator. HOTEL search: filters to exact hotel_id or hotel_name match. AREA search: filters by area_name, address, or coordinates (5km radius). CITY search: returns all hotels (no filtering). Frontend: Added custom no-results messages for HOTEL (purple icon, tip to search city) and AREA (green icon, suggestion to expand search)."
+  test_requirements:
+    - "CITY Search: Mumbai city search should return all 17 hotels"
+    - "AREA Search with match: Search for existing area (e.g., Colaba) should filter results"
+    - "AREA Search with no match: Search for nonexistent area shows green no-results page"
+    - "HOTEL Search with match: Search for specific hotel should return only that hotel"
+    - "HOTEL Search with no match: Shows purple no-results page with tip"
+    - "Cache isolation: Different search types should not share cached results"
