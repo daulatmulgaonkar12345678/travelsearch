@@ -241,7 +241,10 @@ async def redirect_to_vendor(
     # Normalize service name (flights -> flight, buses -> bus, etc.)
     service_normalized = service.lower()
     if service_normalized.endswith('s') and service_normalized not in ['bus']:
-        service_normalized = service_normalized[:-1]  # Remove trailing 's' for plural forms
+        if service_normalized == 'buses':
+            service_normalized = 'bus'  # Special case: buses -> bus
+        else:
+            service_normalized = service_normalized[:-1]  # Remove trailing 's' for other plural forms
     
     # Create click event
     click_event = ClickEvent(
