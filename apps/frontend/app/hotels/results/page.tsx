@@ -328,26 +328,19 @@ function HotelResultsContent() {
   }
 
   if (offers.length === 0) {
-    // Custom message for HOTEL search with no exact match
+    // Custom message for AREA search or general no results
     const noResultsMessage = () => {
-      if (searchType === 'HOTEL' && hotelName) {
-        return {
-          title: 'Exact hotel availability not found',
-          description: `We couldn't find availability for "${hotelName}" for the selected dates. Try different dates or search for similar hotels in ${city}.`,
-          showSimilarHint: true
-        }
-      }
       if (searchType === 'AREA' && area) {
         return {
           title: `No hotels found in ${area}`,
           description: `We couldn't find any hotels in ${area}, ${city} for the selected dates. Try expanding your search to all of ${city}.`,
-          showSimilarHint: false
+          icon: 'area'
         }
       }
       return {
         title: 'No hotels found',
         description: `We couldn't find any hotels in ${city} for the selected dates. Try different dates or another destination.`,
-        showSimilarHint: false
+        icon: 'city'
       }
     }
     
@@ -357,15 +350,12 @@ function HotelResultsContent() {
       <div className="min-h-screen bg-gray-50">
         <Navigation />
         <div className="max-w-2xl mx-auto py-12 px-4">
-          {/* Custom no results UI for specific search types */}
+          {/* Custom no results UI */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
             <div className={`w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center ${
-              searchType === 'HOTEL' ? 'bg-purple-100' : 
-              searchType === 'AREA' ? 'bg-green-100' : 'bg-gray-100'
+              msg.icon === 'area' ? 'bg-green-100' : 'bg-gray-100'
             }`}>
-              {searchType === 'HOTEL' ? (
-                <HotelIcon className="h-8 w-8 text-purple-600" />
-              ) : searchType === 'AREA' ? (
+              {msg.icon === 'area' ? (
                 <MapPin className="h-8 w-8 text-green-600" />
               ) : (
                 <HotelIcon className="h-8 w-8 text-gray-600" />
@@ -379,13 +369,11 @@ function HotelResultsContent() {
               {msg.description}
             </p>
             
-            {msg.showSimilarHint && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <p className="text-blue-800 text-sm">
-                  💡 Tip: Try searching for "{city}" to see all available hotels in the city
-                </p>
-              </div>
-            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                💡 Some hotels may not be available for booking through our partners
+              </p>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
