@@ -622,8 +622,8 @@ class HotelSearchTester:
             self.log_test("Admin Logs - Endpoint", False, f"Exception: {str(e)}")
     
     def run_all_tests(self):
-        """Run all backend tests for hotel smart search intent preservation"""
-        print("🧪 HOTEL SMART SEARCH INTENT PRESERVATION TESTING STARTED")
+        """Run all backend tests for hotel search intent filtering"""
+        print("🧪 HOTEL SEARCH INTENT FILTERING TESTING STARTED")
         print("=" * 70)
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
