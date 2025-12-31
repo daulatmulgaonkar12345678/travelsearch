@@ -11,10 +11,17 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   // Proxy API calls to backend server
-  // In production: routes to travelsearch-backend.onrender.com
-  // In development: routes to localhost:8001
+  // Production: https://travelsearch-backend.onrender.com
+  // Development: http://localhost:8001
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8001'
+    // Use BACKEND_URL from environment, fallback to production URL, then localhost
+    const backendUrl = process.env.BACKEND_URL 
+      || (process.env.NODE_ENV === 'production' 
+          ? 'https://travelsearch-backend.onrender.com' 
+          : 'http://localhost:8001')
+    
+    console.log(`[next.config.js] API rewrite destination: ${backendUrl}`)
+    
     return [
       {
         source: '/api/:path*',
