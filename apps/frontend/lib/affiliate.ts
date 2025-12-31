@@ -384,6 +384,8 @@ function buildSkyscannerHotelUrl(params: HotelDeepLinkParams): string {
 /**
  * Build hotel deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
+ * Default: Booking.com (PRIMARY)
+ * REMOVED: Udchalo (discontinued)
  */
 export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams): DeepLinkResult {
   const validationError = validateHotelParams(params)
@@ -393,30 +395,18 @@ export function buildHotelDeepLink(vendorId: string, params: HotelDeepLinkParams
   
   let url: string
   switch (vendorId) {
-    case 'udchalo_hotels':
-      url = buildUdchaloHotelUrl(params)
+    case 'booking':
+      url = buildBookingHotelUrl(params)
       break
     case 'agoda':
       url = buildAgodaHotelUrl(params)
       break
-    case 'booking':
-      url = buildBookingHotelUrl(params)
-      break
     case 'makemytrip_hotels':
       url = buildMakeMyTripHotelUrl(params)
       break
-    case 'skyscanner_hotels':
-      url = buildSkyscannerHotelUrl(params)
-      break
-    case 'goibibo_hotels':
-      url = buildGoibiboHotelUrl(params)
-      break
-    case 'easemytrip_hotels':
-      url = buildEaseMyTripHotelUrl(params)
-      break
     default:
-      // Udchalo is PRIMARY for hotels
-      url = buildUdchaloHotelUrl(params)
+      // Booking.com is PRIMARY for hotels
+      url = buildBookingHotelUrl(params)
   }
   
   return { url, error: null }
