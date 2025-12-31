@@ -40,6 +40,18 @@ class HotelSearchRequest(BaseModel):
     # Room configuration (can have multiple rooms)
     rooms: List[dict] = [{"adults": 2, "children": []}]  # [{"adults": 2, "children": [5, 8]}, ...]
     
+    # Search type: CITY (default), AREA, or HOTEL
+    search_type: Optional[str] = "CITY"
+    
+    # AREA search parameters
+    area: Optional[str] = None        # Area/locality name
+    latitude: Optional[float] = None  # For geo-based AREA search
+    longitude: Optional[float] = None
+    
+    # HOTEL search parameters
+    hotel_id: Optional[str] = None    # Direct hotel lookup
+    hotel_name: Optional[str] = None
+    
     # Filters
     min_rating: Optional[float] = None  # Star rating 1-5
     max_rating: Optional[float] = None
@@ -59,7 +71,7 @@ class HotelSearchRequest(BaseModel):
     pay_at_hotel: bool = False
     
     # Location
-    max_distance_km: Optional[float] = None  # Distance from city center
+    max_distance_km: Optional[float] = None  # Distance from city center or area coordinates
     
 class HotelSearchResponse(BaseModel):
     """Hotel search response"""
