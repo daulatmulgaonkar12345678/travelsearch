@@ -12,15 +12,18 @@ run_ui: true
 
 - task: "Search UX & Mobile Layout Improvements"
   implemented: true
-  working: "pending"
+  working: true
   file: "/app/apps/frontend/components/search/SearchBarV3.tsx, /app/apps/frontend/components/seo/InternalLinks.tsx"
   stuck_count: 0
   priority: "P0"
-  needs_retesting: true
+  needs_retesting: false
   status_history:
     - working: "pending"
       agent: "main"
       comment: "Implemented two P0 UX improvements: 1) Hotel Popular Search Cards - Fixed prefill event handler to properly update selectedHotelDestination state instead of non-existent setSelectedHotelCity function. Hotel cards now prefill the search form (city only) and scroll to form. 2) Mobile Tab Layout Fix - Updated service tabs (Flights, Buses, Trains, Hotels) to stack icon above text on mobile using flex-col on mobile and flex-row on sm breakpoint. Desktop layout unchanged."
+    - working: true
+      agent: "testing"
+      comment: "✅ ALL SEARCH UX & MOBILE LAYOUT IMPROVEMENTS TESTS PASSED (8/8 SCENARIOS): Complete validation of both P0 UX improvements successfully completed. CRITICAL VALIDATIONS: 1) Mobile Tab Layout Fix: ✅ Desktop (1920px) tabs show icon LEFT of text using flex-row (horizontal layout), ✅ Mobile (375px) tabs show icon ABOVE text using flex-col (vertical stack), ✅ All 4 tabs (Flights, Buses, Trains, Hotels) visible and readable on mobile, ✅ Tabs are center-aligned with proper active styling (blue color and border), ✅ CSS classes correctly use 'flex flex-col sm:flex-row' for responsive behavior, 2) Hotel Popular Search Card Prefill Fix: ✅ Clicking 'Find Hotels' on Mumbai card prefills destination input with 'Mumbai, India', ✅ Page scrolls to search form (from position 1053 to 297), ✅ Hotels tab remains active (NO navigation occurred), ✅ Search Hotels button is ENABLED (blue color, not gray disabled), ✅ User can still select dates and modify search, 3) Regression Tests: ✅ Bus popular search card (Pune → Mumbai) prefills bus form correctly and scrolls, ✅ Train popular search card (Mumbai → Delhi) prefills train form with '(All Stations)' format correctly and scrolls. ACCEPTANCE CRITERIA CONFIRMED: ✅ Mobile tabs stack icon above text (flex-col), ✅ Desktop tabs show icon left of text (flex-row), ✅ Hotel card prefill works without navigation, ✅ Search form scrolls into view after prefill, ✅ Search button enabled after prefill, ✅ Bus and train regression tests pass. SEARCH UX & MOBILE LAYOUT IMPROVEMENTS ARE PRODUCTION-READY: Both P0 features working perfectly with proper responsive design, prefill functionality, and scroll behavior."
   test_requirements:
     - "Test Mobile Tab Layout: On mobile viewport (375px), verify tabs show icon ABOVE text (stacked vertically)"
     - "Test Desktop Tab Layout: On desktop viewport (1920px), verify tabs show icon LEFT OF text (horizontal row)"
