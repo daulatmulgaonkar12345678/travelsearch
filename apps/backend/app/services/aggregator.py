@@ -233,7 +233,7 @@ class SearchAggregator:
                     
                     logger.info(f"✅ Fallback SUCCESS: Returning {len(ranked_offers)} offers from {fallback_metadata['used_origins']}")
                 else:
-                    logger.warning(f"⚠️  Fallback FAILED: Still zero results after trying expanded origins")
+                    logger.warning("⚠️  Fallback FAILED: Still zero results after trying expanded origins")
             
             except Exception as e:
                 logger.error(f"❌ Fallback error: {e}")
