@@ -337,14 +337,13 @@ class SearchAggregator:
         request: HotelSearchRequest
     ) -> List[HotelOffer]:
         """
-        Filter hotels based on search intent (CITY/AREA/HOTEL).
+        Filter hotels based on search intent (CITY/AREA).
+        
+        NOTE: Hotel-name search is NOT supported by Amadeus API.
+        Hotels are returned after city selection and can be filtered locally on the frontend.
         
         - CITY: Return all hotels (no filtering)
         - AREA: Filter to hotels in the specified area (by hotel name containing area, address, or coordinates)
-        - HOTEL: Filter to the specific hotel (by hotel_id or hotel_name - exact or partial match)
-        
-        Note: Amadeus hotel data often lacks area_name and coordinates, so we use
-        hotel_name pattern matching as a fallback.
         """
         search_type = request.search_type or "CITY"
         
@@ -389,45 +388,14 @@ class SearchAggregator:
                         if distance <= 5.0:  # 5km radius
                             filtered.append(hotel)
             
+            # If no matches found in AREA search, return all hotels with a note
+            # This prevents empty results when area metadata is unavailable
+            if not filtered:
+                logger.warning(f"AREA search for '{request.area}' found no matches - returning all {len(offers)} hotels")
+                return offers
+            
             logger.info(f"AREA search for '{request.area}' - filtered {len(offers)} -> {len(filtered)} hotels")
             return filtered
-        
-        # HOTEL search: filter to specific hotel
-        if search_type == "HOTEL":
-            hotel_id = request.hotel_id
-            hotel_name = request.hotel_name
-            
-            exact_matches = []
-            partial_matches = []
-            
-            for hotel in offers:
-                offer_name = getattr(hotel, 'hotel_name', '') or ''
-                offer_id = getattr(hotel, 'hotel_id', None) or getattr(hotel, 'offer_id', '')
-                
-                # Exact match by hotel_id
-                if hotel_id:
-                    if hotel_id.lower() == offer_id.lower():
-                        exact_matches.append(hotel)
-                        continue
-                
-                # Match by hotel_name (case-insensitive)
-                if hotel_name:
-                    hotel_name_lower = hotel_name.lower()
-                    offer_name_lower = offer_name.lower()
-                    
-                    # Exact match
-                    if hotel_name_lower == offer_name_lower:
-                        exact_matches.append(hotel)
-                        continue
-                    
-                    # Partial match (either contains the other)
-                    if hotel_name_lower in offer_name_lower or offer_name_lower in hotel_name_lower:
-                        partial_matches.append(hotel)
-            
-            # Prefer exact matches, fall back to partial matches
-            result = exact_matches if exact_matches else partial_matches
-            logger.info(f"HOTEL search for '{hotel_name or hotel_id}' - found {len(exact_matches)} exact, {len(partial_matches)} partial matches")
-            return result
         
         # Default: return all offers
         return offers
