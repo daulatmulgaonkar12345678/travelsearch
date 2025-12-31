@@ -413,36 +413,32 @@ function HotelResultsContent() {
     if (searchType === 'AREA' && area) {
       return `Showing hotels in ${area}, ${city}`
     }
-    if (searchType === 'HOTEL' && hotelName) {
-      return `Showing results for ${hotelName}, ${city}`
-    }
     return `Hotels in ${city}`
   }
+  
+  // Local hotel name filter - filter results client-side
+  const filteredOffers = useMemo(() => {
+    if (!hotelNameFilter.trim()) {
+      return offers
+    }
+    const filterLower = hotelNameFilter.toLowerCase().trim()
+    return offers.filter(offer => 
+      offer.hotel_name.toLowerCase().includes(filterLower)
+    )
+  }, [offers, hotelNameFilter])
   
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Search Context Banner for AREA/HOTEL searches */}
-        {(searchType === 'AREA' || searchType === 'HOTEL') && (
-          <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${
-            searchType === 'AREA' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-purple-50 border border-purple-200'
-          }`}>
-            {searchType === 'AREA' ? (
-              <MapPin className={`h-5 w-5 text-green-600`} />
-            ) : (
-              <HotelIcon className={`h-5 w-5 text-purple-600`} />
-            )}
+        {/* Search Context Banner for AREA searches */}
+        {searchType === 'AREA' && (
+          <div className="mb-4 p-4 rounded-lg flex items-center gap-3 bg-green-50 border border-green-200">
+            <MapPin className="h-5 w-5 text-green-600" />
             <div>
-              <p className={`font-medium ${searchType === 'AREA' ? 'text-green-800' : 'text-purple-800'}`}>
-                {searchType === 'AREA' ? 'Area Search' : 'Specific Hotel Search'}
-              </p>
-              <p className={`text-sm ${searchType === 'AREA' ? 'text-green-700' : 'text-purple-700'}`}>
-                {getSearchContextSubtitle()}
-              </p>
+              <p className="font-medium text-green-800">Area Search</p>
+              <p className="text-sm text-green-700">{getSearchContextSubtitle()}</p>
             </div>
           </div>
         )}
@@ -455,7 +451,7 @@ function HotelResultsContent() {
               {getSearchContextSubtitle()}
             </h2>
             <p className="text-gray-600 text-sm">
-              {checkIn} to {checkOut} • {roomsCount} room(s) • {offers.length} hotels found
+              {checkIn} to {checkOut} • {roomsCount} room(s) • {filteredOffers.length} hotels{hotelNameFilter ? ' matching filter' : ' found'}
             </p>
           </div>
           <ModifySearchButton 
@@ -468,16 +464,57 @@ function HotelResultsContent() {
               // Include search intent for modify
               search_type: searchType,
               ...(searchType === 'AREA' && area && { area }),
-              ...(searchType === 'HOTEL' && hotelName && { hotel_name: hotelName }),
             }}
             variant="default"
           />
         </div>
       </div>
+      
+      {/* Hotel Name Filter - Local filtering (Industry Standard) */}
+      <div className="mb-4 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Filter by hotel name..."
+              value={hotelNameFilter}
+              onChange={(e) => setHotelNameFilter(e.target.value)}
+              className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {hotelNameFilter && (
+              <button
+                onClick={() => setHotelNameFilter('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          💡 Some hotels may not be available for booking through our partners
+        </p>
+      </div>
+
+      {/* No results after filtering */}
+      {filteredOffers.length === 0 && hotelNameFilter && (
+        <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-200 text-center">
+          <HotelIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No hotels match "{hotelNameFilter}"</h3>
+          <p className="text-gray-600 mb-4">Try a different hotel name or clear the filter</p>
+          <button
+            onClick={() => setHotelNameFilter('')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Clear Filter
+          </button>
+        </div>
+      )}
 
       {/* Hotel Results */}
       <div className="space-y-4">
-        {offers.map((offer) => (
+        {filteredOffers.map((offer) => (
           <div
             key={offer.offer_id}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
