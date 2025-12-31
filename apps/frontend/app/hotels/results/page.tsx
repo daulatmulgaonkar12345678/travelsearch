@@ -107,7 +107,7 @@ function HotelResultsContent() {
         abortControllerRef.current.abort()
       }
     }
-  }, [city, checkIn, checkOut, roomsKey])
+  }, [city, checkIn, checkOut, roomsKey, searchIntentKey])
 
   const fetchResults = async () => {
     try {
@@ -116,11 +116,26 @@ function HotelResultsContent() {
       setLoadingTimeout(false)
       setShowRetry(false)
 
-      const requestBody = {
+      // Build request body with search intent (CITY/AREA/HOTEL)
+      const requestBody: Record<string, any> = {
         city,
         check_in: checkIn,
         check_out: checkOut,
-        rooms
+        rooms,
+        search_type: searchType,
+      }
+      
+      // Add AREA-specific parameters
+      if (searchType === 'AREA') {
+        if (area) requestBody.area = area
+        if (lat) requestBody.latitude = parseFloat(lat)
+        if (lng) requestBody.longitude = parseFloat(lng)
+      }
+      
+      // Add HOTEL-specific parameters
+      if (searchType === 'HOTEL') {
+        if (hotelId) requestBody.hotel_id = hotelId
+        if (hotelName) requestBody.hotel_name = hotelName
       }
 
       // Check cache first
