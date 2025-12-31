@@ -153,8 +153,8 @@ class CityFirstHotelSearchTester:
             
             payload = {
                 "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
+                "check_in": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d"),
+                "check_out": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
                 "rooms": [{"adults": 2, "children": []}],
                 "search_type": "CITY"
             }
