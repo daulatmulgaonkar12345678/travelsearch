@@ -8,7 +8,7 @@ import {
   getVendorsForService, 
   getPrimaryVendor,
   buildHotelDeepLink, 
-  logAffiliateClick,
+  buildTrackedRedirectUrl,
   type HotelDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
