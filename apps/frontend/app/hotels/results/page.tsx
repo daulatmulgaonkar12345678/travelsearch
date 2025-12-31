@@ -317,18 +317,80 @@ function HotelResultsContent() {
   }
 
   if (offers.length === 0) {
+    // Custom message for HOTEL search with no exact match
+    const noResultsMessage = () => {
+      if (searchType === 'HOTEL' && hotelName) {
+        return {
+          title: 'Exact hotel availability not found',
+          description: `We couldn't find availability for "${hotelName}" for the selected dates. Try different dates or search for similar hotels in ${city}.`,
+          showSimilarHint: true
+        }
+      }
+      if (searchType === 'AREA' && area) {
+        return {
+          title: `No hotels found in ${area}`,
+          description: `We couldn't find any hotels in ${area}, ${city} for the selected dates. Try expanding your search to all of ${city}.`,
+          showSimilarHint: false
+        }
+      }
+      return {
+        title: 'No hotels found',
+        description: `We couldn't find any hotels in ${city} for the selected dates. Try different dates or another destination.`,
+        showSimilarHint: false
+      }
+    }
+    
+    const msg = noResultsMessage()
+    
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
         <div className="max-w-2xl mx-auto py-12 px-4">
-          <NoResultsState
-            service="hotel"
-            origin={city}
-            date={`${checkIn} to ${checkOut}`}
-            onChangeDate={() => router.push(`/?tab=hotels&city=${encodeURIComponent(city)}`)}
-            onModifySearch={() => router.push('/?tab=hotels')}
-            onGoBack={() => router.push('/')}
-          />
+          {/* Custom no results UI for specific search types */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+            <div className={`w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center ${
+              searchType === 'HOTEL' ? 'bg-purple-100' : 
+              searchType === 'AREA' ? 'bg-green-100' : 'bg-gray-100'
+            }`}>
+              {searchType === 'HOTEL' ? (
+                <HotelIcon className="h-8 w-8 text-purple-600" />
+              ) : searchType === 'AREA' ? (
+                <MapPin className="h-8 w-8 text-green-600" />
+              ) : (
+                <HotelIcon className="h-8 w-8 text-gray-600" />
+              )}
+            </div>
+            
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {msg.title}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {msg.description}
+            </p>
+            
+            {msg.showSimilarHint && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <p className="text-blue-800 text-sm">
+                  💡 Tip: Try searching for "{city}" to see all available hotels in the city
+                </p>
+              </div>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => router.push(`/?tab=hotels&city=${encodeURIComponent(city)}`)}
+                className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition font-medium"
+              >
+                Search All Hotels in {city}
+              </button>
+              <button
+                onClick={() => router.push('/?tab=hotels')}
+                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+              >
+                New Search
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     )
