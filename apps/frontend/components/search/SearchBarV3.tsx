@@ -1462,8 +1462,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         {/* Search Button with validation */}
         {(() => {
           // Determine button state based on mode
-          // HOTEL: Must have structured city selection (not just text)
-          const hotelValid = selectedHotelCity !== null
+          // HOTEL: Must have structured destination selection (CITY/AREA/HOTEL)
+          const hotelValid = selectedHotelDestination !== null
           
           const isDisabled = 
             (searchType === 'flights' && (!originValid || !destinationValid)) ||
