@@ -101,9 +101,12 @@ async def log_click_event(event: ClickEvent, db=None):
         logger.error(f"Click logging error (non-blocking): {e}")
 
 
-async def persist_click_to_db(event: ClickEvent, db):
-    """Persist click event to MongoDB"""
+async def persist_click_to_db(event: ClickEvent):
+    """Persist click event to MongoDB (non-blocking)"""
     try:
+        from app.db.mongodb import get_database
+        db = get_database()
+        
         click_doc = {
             "service": event.service,
             "vendor": event.vendor,
@@ -117,6 +120,7 @@ async def persist_click_to_db(event: ClickEvent, db):
             "created_at": datetime.now(timezone.utc),
         }
         await db.click_events.insert_one(click_doc)
+        logger.debug(f"Click event persisted to DB: {event.service}/{event.vendor}")
     except Exception as e:
         logger.error(f"DB persistence error (non-blocking): {e}")
 
