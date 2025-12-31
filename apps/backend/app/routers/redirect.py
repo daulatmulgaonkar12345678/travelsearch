@@ -1,10 +1,28 @@
 """
-Affiliate Redirect API - Centralized Click Tracking
+Affiliate Redirect API - Industry-Proven Click Tracking (Redirect-First Model)
 
-All vendor booking links route through this endpoint for:
-1. Click event logging (non-blocking)
-2. Analytics tracking
-3. Immediate HTTP 302 redirect to vendor URL
+ARCHITECTURE: Redirect-First, Non-Blocking Click Tracking
+Mirrors Skyscanner, Kayak, Trivago, and Booking Affiliate systems.
+
+CORE PRINCIPLES:
+1. Redirect immediately (< 50ms response time)
+2. Log clicks asynchronously (BackgroundTasks)
+3. Never block the redirect
+4. Best-effort persistence only
+
+EXECUTION FLOW:
+1. User clicks a booking link
+2. Backend returns HTTP 302 redirect immediately
+3. Click event is sent to a background task
+4. Database persistence failures are logged but ignored
+5. User experience is never impacted
+
+EXPLICIT NON-GOALS:
+- No queues (Redis, RabbitMQ, Kafka)
+- No blocking retries
+- No transaction coupling
+- No redirect delays
+- No dependency on logging success
 
 Endpoint: GET /api/redirect
 """
