@@ -71,9 +71,20 @@ function HotelResultsContent() {
   const checkOut = searchParams.get('check_out') || ''
   const roomsCount = parseInt(searchParams.get('rooms') || '1', 10)
   
+  // Search intent parameters (CITY/AREA/HOTEL)
+  const searchType = searchParams.get('search_type') || 'CITY'
+  const area = searchParams.get('area') || ''
+  const lat = searchParams.get('lat') || ''
+  const lng = searchParams.get('lng') || ''
+  const hotelId = searchParams.get('hotel_id') || ''
+  const hotelName = searchParams.get('hotel_name') || ''
+  
   // Extract rooms configuration from search params (safe to use in dependency array)
   const rooms = getRoomsFromSearchParams(searchParams)
   const roomsKey = JSON.stringify(rooms) // Stable key for dependency tracking
+  
+  // Create stable search intent key for dependency tracking
+  const searchIntentKey = `${searchType}:${area}:${hotelId}`
 
   useEffect(() => {
     if (!city || !checkIn || !checkOut) {
