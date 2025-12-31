@@ -597,6 +597,37 @@ function buildRedBusUrl(params: BusDeepLinkParams): string {
 }
 
 /**
+ * MSRTC Deep Link (Maharashtra State Road Transport Corporation)
+ * Format: https://msrtc.maharashtra.gov.in/booking/bus-search?from=...&to=...&date=DD-MM-YYYY
+ * Note: This is a best-effort redirect - MSRTC may require direct navigation
+ */
+function buildMSRTCUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const dateFormatted = formatDDMMYYYYDash(date)
+  const fromEncoded = encodeURIComponent(fromCity)
+  const toEncoded = encodeURIComponent(toCity)
+  
+  // MSRTC official booking portal with search parameters
+  // If parameters aren't supported, user will need to enter manually
+  return `https://public.msrtcors.com/booking/search?source=${fromEncoded}&destination=${toEncoded}&journeyDate=${dateFormatted}`
+}
+
+/**
+ * Paytm Bus Deep Link (city names)
+ * Format: https://paytm.com/bus-tickets/...
+ */
+function buildPaytmBusUrl(params: BusDeepLinkParams): string {
+  const { fromCity, toCity, date } = params
+  
+  const fromSlug = fromCity.toLowerCase().replace(/\s+/g, '-')
+  const toSlug = toCity.toLowerCase().replace(/\s+/g, '-')
+  const dateFormatted = formatDDMMYYYYDash(date)
+  
+  return `https://paytm.com/bus-tickets/${fromSlug}-to-${toSlug}?date=${dateFormatted}`
+}
+
+/**
  * Goibibo Bus Deep Link (city names)
  * Format: https://www.goibibo.com/bus/...
  */
@@ -628,6 +659,7 @@ function buildEaseMyTripBusUrl(params: BusDeepLinkParams): string {
 /**
  * Build bus deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
+ * Default: MSRTC (PRIMARY for Maharashtra state transport)
  * REMOVED: Ixigo (unstable deep links)
  */
 export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): DeepLinkResult {
@@ -638,8 +670,14 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): D
   
   let url: string
   switch (vendorId) {
+    case 'msrtc':
+      url = buildMSRTCUrl(params)
+      break
     case 'redbus':
       url = buildRedBusUrl(params)
+      break
+    case 'paytm_bus':
+      url = buildPaytmBusUrl(params)
       break
     case 'goibibo_bus':
       url = buildGoibiboBusUrl(params)
@@ -648,8 +686,8 @@ export function buildBusDeepLink(vendorId: string, params: BusDeepLinkParams): D
       url = buildEaseMyTripBusUrl(params)
       break
     default:
-      // redBus is PRIMARY for buses
-      url = buildRedBusUrl(params)
+      // MSRTC is PRIMARY for buses
+      url = buildMSRTCUrl(params)
   }
   
   return { url, error: null }
