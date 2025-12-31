@@ -152,13 +152,25 @@ async def search_flights_post(_: FlightSearchRequest):
     )
 
 # ======================================================
-# HOTEL SEARCH (GET)
+# HOTEL SEARCH (GET) - Supports CITY, AREA, and HOTEL search types
 # ======================================================
 @router.get("/search/hotels", response_model=HotelSearchResponse)
 async def search_hotels(
     city: str = Query(...),
     check_in: str = Query(...),
     check_out: str = Query(...),
+
+    # Search type: CITY (default), AREA, or HOTEL
+    search_type: Optional[str] = Query("CITY", description="Search type: CITY, AREA, or HOTEL"),
+    
+    # AREA search parameters
+    area: Optional[str] = Query(None, description="Area/locality name for AREA search"),
+    lat: Optional[float] = Query(None, description="Latitude for AREA geo-search"),
+    lng: Optional[float] = Query(None, description="Longitude for AREA geo-search"),
+    
+    # HOTEL search parameters
+    hotel_id: Optional[str] = Query(None, description="Hotel ID for direct HOTEL search"),
+    hotel_name: Optional[str] = Query(None, description="Hotel name for HOTEL search"),
 
     min_rating: Optional[float] = Query(None, ge=0, le=5),
     max_rating: Optional[float] = Query(None, ge=0, le=5),
@@ -182,6 +194,16 @@ async def search_hotels(
         if check_out_date <= check_in_date:
             raise HTTPException(400, "Check-out must be after check-in")
 
+        # Log search type for debugging
+        logger.info(f"[HOTEL_SEARCH] type={search_type} city={city} area={area} hotel_id={hotel_id}")
+        
+        # For AREA searches with geo coordinates, set max_distance_km to filter nearby hotels
+        effective_max_distance = max_distance_km
+        if search_type == "AREA" and lat is not None and lng is not None:
+            # Default 5km radius for AREA searches
+            effective_max_distance = max_distance_km or 5.0
+            logger.info(f"[HOTEL_SEARCH] AREA search with geo: lat={lat}, lng={lng}, radius={effective_max_distance}km")
+
         request_obj = HotelSearchRequest(
             city=city,
             check_in=check_in,
@@ -195,7 +217,14 @@ async def search_hotels(
             free_cancellation=free_cancellation,
             pay_at_hotel=pay_at_hotel,
             ac_required=ac_required,
-            max_distance_km=max_distance_km,
+            max_distance_km=effective_max_distance,
+            # Pass AREA/HOTEL specific params for backend filtering
+            search_type=search_type,
+            area=area,
+            latitude=lat,
+            longitude=lng,
+            hotel_id=hotel_id,
+            hotel_name=hotel_name,
         )
 
         offers = await aggregator.search_hotels(request_obj)
