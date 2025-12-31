@@ -168,11 +168,12 @@ async def get_audit_logs(
 
 
 # ============================================
-# Booking Click Logs API
+# Booking Click Logs API (Authenticated - JWT)
+# NOTE: Use /admin/click-logs in webhooks_reconcile.py for simple admin access
 # ============================================
 
-@router.get("/admin/click-logs")
-async def get_click_logs(
+@router.get("/admin/click-logs-auth")
+async def get_click_logs_authenticated(
     limit: int = Query(100, ge=1, le=500, description="Number of logs to return"),
     service: Optional[str] = Query(None, description="Filter by service: flight|hotel|bus|train"),
     vendor: Optional[str] = Query(None, description="Filter by vendor name"),
