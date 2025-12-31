@@ -59,16 +59,19 @@ function TrainVendorsContent() {
         return
       }
 
-      // Log click asynchronously (fire-and-forget)
-      logAffiliateClick(
-        vendorId,
-        `${origin}-${destination}`,
-        `train-${origin}-${destination}-${departureDate}`,
-        parseFloat(price)
-      ).catch(() => {})
+      // Build tracked redirect URL (logs click via /api/redirect)
+      const trackedUrl = buildTrackedRedirectUrl({
+        service: 'train',
+        vendor: vendorId,
+        targetUrl: result.url,
+        origin,
+        destination,
+        date: departureDate,
+        price: parseFloat(price),
+      })
 
-      // Show redirect screen
-      setRedirectUrl(result.url)
+      // Show redirect screen with tracked URL
+      setRedirectUrl(trackedUrl)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
