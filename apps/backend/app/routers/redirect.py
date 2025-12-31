@@ -148,6 +148,9 @@ async def redirect_to_vendor(
     # Optional - Hotel
     city: Optional[str] = Query(None, description="Hotel city"),
     hotel_name: Optional[str] = Query(None, description="Hotel name"),
+    # Optional - Search Intent (for analytics)
+    search_type: Optional[str] = Query(None, description="Search type: CITY|AREA|HOTEL"),
+    area: Optional[str] = Query(None, description="Area name for AREA searches"),
     # Optional - Common
     date: Optional[str] = Query(None, description="Travel date"),
     check_in: Optional[str] = Query(None, description="Hotel check-in date"),
@@ -193,6 +196,9 @@ async def redirect_to_vendor(
         hotel_name=hotel_name,
         price=price,
         session_id=session_id,
+        # Search intent for analytics
+        search_type=search_type,
+        area=area,
     )
     
     # Log click event in background (non-blocking)
