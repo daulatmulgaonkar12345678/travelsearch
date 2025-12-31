@@ -494,11 +494,11 @@ run_ui: true
 ## Test Plan
 ```yaml
 current_focus:
-  - "Modify Search Validation Fix - Flight Search testing completed"
-  - "Full airport objects now stored in localStorage for validation"
-  - "Form hydration working perfectly with valid styling"
-  - "Search functionality operational across all services"
-  - "No validation errors on modify search flows"
+  - "AREA Search Fix Verification testing completed"
+  - "Hotel smart search properly preserves AREA metadata (type, lat/lng)"
+  - "All search types (CITY/AREA/HOTEL) working correctly"
+  - "No regression in existing functionality"
+  - "Modify search functionality preserved"
 stuck_tasks: []
 test_all: false
 test_priority: "high_first"
