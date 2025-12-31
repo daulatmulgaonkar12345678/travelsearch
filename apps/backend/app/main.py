@@ -13,6 +13,7 @@ from app.routers import (
     airports,
     cities,
     hotels_autocomplete,
+    hotels_smart_search,
     internal_health,
     hybrid_health,
     health_amadeus,
