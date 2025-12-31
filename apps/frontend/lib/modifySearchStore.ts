@@ -23,8 +23,8 @@ export interface AirportData {
   country: string
 }
 
-// Hotel destination types
-export type HotelDestinationType = 'city' | 'area' | 'hotel'
+// Hotel destination types - matches API response format
+export type HotelDestinationType = 'CITY' | 'AREA' | 'HOTEL'
 
 export interface HotelDestination {
   type: HotelDestinationType
@@ -33,8 +33,9 @@ export interface HotelDestination {
   city: string         // Parent city (for all types)
   country: string
   // Type-specific fields
-  areaName?: string    // For type='area'
-  hotelName?: string   // For type='hotel'
+  areaName?: string    // For type='AREA'
+  hotelName?: string   // For type='HOTEL'
+  hotelId?: string     // For type='HOTEL'
   latitude?: number
   longitude?: number
 }
