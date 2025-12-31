@@ -523,7 +523,8 @@ function buildUdchaloFlightUrl(params: FlightDeepLinkParams): string {
 /**
  * Build flight deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
- * REMOVED: Ixigo (payment-level deep links unstable)
+ * Default: Skyscanner (PRIMARY)
+ * REMOVED: Udchalo (discontinued), Ixigo (payment-level deep links unstable)
  */
 export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkParams): DeepLinkResult {
   const validationError = validateFlightParams(params)
@@ -544,9 +545,6 @@ export function buildFlightDeepLink(vendorId: string, params: FlightDeepLinkPara
       break
     case 'easemytrip_flights':
       url = buildEaseMyTripFlightUrl(params)
-      break
-    case 'udchalo_flights':
-      url = buildUdchaloFlightUrl(params)
       break
     default:
       // Skyscanner is PRIMARY for flights
