@@ -356,20 +356,8 @@ function buildEaseMyTripHotelUrl(params: HotelDeepLinkParams): string {
 }
 
 /**
- * Udchalo Hotel Deep Link (search-based) - Priority booking
- * Format: https://www.udchalo.com/hotels/search?...
- */
-function buildUdchaloHotelUrl(params: HotelDeepLinkParams): string {
-  const { hotelName, city, checkIn, checkOut, adults = 2, rooms = 1 } = params
-  
-  const cityEncoded = encodeURIComponent(city)
-  const hotelNameEncoded = encodeURIComponent(hotelName)
-  
-  return `https://www.udchalo.com/hotels/search?city=${cityEncoded}&checkin=${checkIn}&checkout=${checkOut}&rooms=${rooms}&adults=${adults}&q=${hotelNameEncoded}`
-}
-
-/**
  * Skyscanner Hotels Deep Link (meta search)
+ * Note: Removed from primary vendors, kept for legacy compatibility
  * Format: https://www.skyscanner.co.in/hotels/search?...
  */
 function buildSkyscannerHotelUrl(params: HotelDeepLinkParams): string {
