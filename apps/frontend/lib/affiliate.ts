@@ -885,6 +885,9 @@ export interface RedirectParams {
   // Hotel
   city?: string
   hotelName?: string
+  // Search intent (for analytics)
+  searchType?: string  // CITY, AREA, HOTEL
+  area?: string        // Area name for AREA searches
   // Common
   date?: string
   checkIn?: string
