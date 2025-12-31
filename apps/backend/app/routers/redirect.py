@@ -89,26 +89,37 @@ class ClickEvent:
 
 async def log_click_event(event: ClickEvent, db=None):
     """
-    Non-blocking click event logging.
-    Logs to console and persists to database.
+    Non-blocking click event logging (best-effort).
+    
+    INDUSTRY STANDARD (Skyscanner/Kayak/Trivago pattern):
+    - Log to console for immediate visibility
+    - Buffer in memory for quick access
+    - Persist to DB asynchronously
+    - NEVER propagate errors to caller
+    
+    This function runs in a background task and must:
+    1. Complete quickly (< 100ms)
+    2. Never throw exceptions to caller
+    3. Gracefully handle all failure scenarios
     """
     try:
-        # Structured JSON logging (INFO level)
+        # 1. Structured JSON logging (immediate, always succeeds)
         logger.info(f"CLICK_EVENT: {event.to_json()}")
         
-        # Add to in-memory buffer (for quick access)
+        # 2. Add to in-memory buffer (for /redirect/health and quick access)
         click_buffer.append(event.to_dict())
         
         # Keep buffer size manageable (last 1000 events)
-        if len(click_buffer) > 1000:
+        while len(click_buffer) > 1000:
             click_buffer.pop(0)
         
-        # Persist to database
+        # 3. Persist to database (best-effort, non-blocking)
         await persist_click_to_db(event)
             
     except Exception as e:
-        # Never let logging failures affect the redirect
-        logger.error(f"Click logging error (non-blocking): {e}")
+        # CRITICAL: Never let logging failures affect anything
+        # This is expected behavior - log and move on
+        logger.warning(f"Click logging error (non-blocking, ignored): {e}")
 
 
 async def persist_click_to_db(event: ClickEvent):
