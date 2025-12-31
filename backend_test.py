@@ -234,10 +234,14 @@ class HotelSearchTester:
         
         try:
             test_url = f"{API_BASE}/search/hotels"
+            # Use future dates for testing
+            tomorrow = (date.today() + timedelta(days=1)).isoformat()
+            day_after = (date.today() + timedelta(days=2)).isoformat()
+            
             payload = {
                 "city": "Mumbai",
-                "check_in": "2025-01-15",
-                "check_out": "2025-01-16",
+                "check_in": tomorrow,
+                "check_out": day_after,
                 "rooms": [{"adults": 2, "children": []}],
                 "search_type": "AREA",
                 "area": "Bandra",
