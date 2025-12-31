@@ -71,7 +71,7 @@ interface SmartSearchResponse {
 
 interface HotelLocationAutocompleteProps {
   value: HotelCity | HotelDestination | null
-  onChange: (destination: HotelCity | null) => void
+  onChange: (destination: HotelDestination | null) => void  // Changed: Now passes full HotelDestination
   placeholder?: string
   label?: string
   testId?: string
