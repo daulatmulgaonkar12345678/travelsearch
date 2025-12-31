@@ -118,11 +118,11 @@ def generate_route_page(origin: str, destination: str, price: float) -> str:
     title = f"Cheap Flights from {origin_city} to {dest_city} | {origin} to {destination} Flights"
     description = f"Find the best deals on flights from {origin_city} ({origin}) to {dest_city} ({destination}). Compare prices from multiple airlines. Book now from ₹{int(price)}."
     
-    canonical = f"https://travelsearch.com/flights/{origin.lower()}-to-{destination.lower()}"
+    canonical = f"https://travelsearch.in/flights/{origin.lower()}-to-{destination.lower()}"
     
     breadcrumb_json = generate_json_ld_breadcrumb([
-        ("Home", "https://travelsearch.com"),
-        ("Flights", "https://travelsearch.com/flights"),
+        ("Home", "https://travelsearch.in"),
+        ("Flights", "https://travelsearch.in/flights"),
         (f"{origin} to {destination}", canonical)
     ])
     
@@ -198,12 +198,12 @@ def generate_city_hotel_page(city: str) -> str:
     """Generate SEO page for city hotels"""
     title = f"Best Hotels in {city} | Compare {city} Hotel Deals"
     description = f"Find the perfect hotel in {city}. Compare prices from Trip.com, Booking.com, Agoda and more. Book hotels in {city} with confidence."
-    canonical = f"https://travelsearch.com/hotels/{city.lower().replace(' ', '-')}"
+    canonical = f"https://travelsearch.in/hotels/{city.lower().replace(' ', '-')}"
     
     hotel_json = generate_json_ld_hotel(city)
     breadcrumb_json = generate_json_ld_breadcrumb([
-        ("Home", "https://travelsearch.com"),
-        ("Hotels", "https://travelsearch.com/hotels"),
+        ("Home", "https://travelsearch.in"),
+        ("Hotels", "https://travelsearch.in/hotels"),
         (city, canonical)
     ])
     
@@ -273,7 +273,7 @@ def generate_airport_page(code: str) -> str:
     
     title = f"{name} ({code}) - Airport Guide | {city} Airport Information"
     description = f"Complete guide to {name} ({code}). Terminal information, facilities, transportation, and tips for travelers."
-    canonical = f"https://travelsearch.com/airports/{code.lower()}"
+    canonical = f"https://travelsearch.in/airports/{code.lower()}"
     
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -367,7 +367,7 @@ def main():
                 
                 pages_generated.append(filepath)
                 sitemap_urls.append((
-                    f"https://travelsearch.com/flights/{origin.lower()}-to-{destination.lower()}",
+                    f"https://travelsearch.in/flights/{origin.lower()}-to-{destination.lower()}",
                     "0.8",
                     "weekly"
                 ))
@@ -389,7 +389,7 @@ def main():
         
         pages_generated.append(filepath)
         sitemap_urls.append((
-            f"https://travelsearch.com/hotels/{city.lower().replace(' ', '-')}",
+            f"https://travelsearch.in/hotels/{city.lower().replace(' ', '-')}",
             "0.7",
             "daily"
         ))
@@ -408,7 +408,7 @@ def main():
         
         pages_generated.append(filepath)
         sitemap_urls.append((
-            f"https://travelsearch.com/airports/{code.lower()}",
+            f"https://travelsearch.in/airports/{code.lower()}",
             "0.6",
             "monthly"
         ))
@@ -434,7 +434,7 @@ def main():
             
             pages_generated.append(filepath)
             sitemap_urls.append((
-                f"https://travelsearch.com/cheapest-month/{origin.lower()}-{dest.lower()}",
+                f"https://travelsearch.in/cheapest-month/{origin.lower()}-{dest.lower()}",
                 "0.5",
                 "monthly"
             ))
@@ -465,7 +465,7 @@ def main():
         
         pages_generated.append(filepath)
         sitemap_urls.append((
-            f"https://travelsearch.com/airlines/{code.lower()}",
+            f"https://travelsearch.in/airlines/{code.lower()}",
             "0.5",
             "monthly"
         ))

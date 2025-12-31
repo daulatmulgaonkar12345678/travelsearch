@@ -174,8 +174,8 @@ export default function ServiceDisclaimer() {
             <p>
               For platform-related questions:
               <br />
-              <a href="mailto:support@travelsearch.com" className="text-blue-600 hover:underline">
-                support@travelsearch.com
+              <a href="mailto:support@travelsearch.in" className="text-blue-600 hover:underline">
+                support@travelsearch.in
               </a>
             </p>
             <p className="text-sm text-gray-600 mt-4">

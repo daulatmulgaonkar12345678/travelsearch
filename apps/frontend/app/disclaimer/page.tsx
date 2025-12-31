@@ -113,8 +113,8 @@ export default function Disclaimer() {
             <p>
               If you have questions about this disclaimer, please contact us at:
               <br />
-              <a href="mailto:info@travelsearch.com" className="text-blue-600 hover:underline">
-                info@travelsearch.com
+              <a href="mailto:info@travelsearch.in" className="text-blue-600 hover:underline">
+                info@travelsearch.in
               </a>
             </p>
           </section>

@@ -33,7 +33,7 @@ export function generateFlightRouteSchema(props: FlightRouteSchemaProps) {
     faqs = [],
   } = props
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.in'
   const routeSlug = `${originCity.toLowerCase()}-to-${destinationCity.toLowerCase()}`
   const pageUrl = `${baseUrl}/flights/${routeSlug}`
 

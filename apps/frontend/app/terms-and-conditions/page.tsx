@@ -108,8 +108,8 @@ export default function TermsAndConditions() {
             <p>
               For questions about these Terms and Conditions, please contact us at:
               <br />
-              <a href="mailto:legal@travelsearch.com" className="text-blue-600 hover:underline">
-                legal@travelsearch.com
+              <a href="mailto:legal@travelsearch.in" className="text-blue-600 hover:underline">
+                legal@travelsearch.in
               </a>
             </p>
           </section>

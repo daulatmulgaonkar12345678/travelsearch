@@ -10,7 +10,7 @@
  */
 
 export function JsonLd() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.in'
   
   // WebSite schema with SearchAction
   const websiteSchema = {
@@ -63,7 +63,7 @@ export function JsonLd() {
  * Breadcrumb JSON-LD for route pages
  */
 export function BreadcrumbJsonLd({ items }: { items: { name: string; url: string }[] }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.in'
   
   const breadcrumbSchema = {
     '@context': 'https://schema.org',

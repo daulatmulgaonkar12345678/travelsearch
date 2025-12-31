@@ -100,8 +100,8 @@ export default function AboutUs() {
             <p>
               For questions about our platform, partnership inquiries, or general feedback:
               <br />
-              <a href="mailto:hello@travelsearch.com" className="text-blue-600 hover:underline">
-                hello@travelsearch.com
+              <a href="mailto:admin@travelsearch.in" className="text-blue-600 hover:underline">
+                admin@travelsearch.in
               </a>
             </p>
             <p className="text-sm text-gray-600 mt-4">

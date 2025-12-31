@@ -32,8 +32,8 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-lg mb-2">General Inquiries</h3>
               <p className="text-gray-600 text-sm mb-2">For general questions about our platform</p>
-              <a href="mailto:info@travelsearch.com" className="text-blue-600 hover:underline">
-                info@travelsearch.com
+              <a href="mailto:info@travelsearch.in" className="text-blue-600 hover:underline">
+                info@travelsearch.in
               </a>
             </div>
             
@@ -43,8 +43,8 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-lg mb-2">Support</h3>
               <p className="text-gray-600 text-sm mb-2">Need help using our platform?</p>
-              <a href="mailto:support@travelsearch.com" className="text-blue-600 hover:underline">
-                support@travelsearch.com
+              <a href="mailto:support@travelsearch.in" className="text-blue-600 hover:underline">
+                support@travelsearch.in
               </a>
             </div>
             
@@ -54,8 +54,8 @@ export default function Contact() {
               </div>
               <h3 className="font-semibold text-lg mb-2">Feedback</h3>
               <p className="text-gray-600 text-sm mb-2">Share your suggestions with us</p>
-              <a href="mailto:feedback@travelsearch.com" className="text-blue-600 hover:underline">
-                feedback@travelsearch.com
+              <a href="mailto:feedback@travelsearch.in" className="text-blue-600 hover:underline">
+                feedback@travelsearch.in
               </a>
             </div>
           </div>

@@ -31,7 +31,7 @@ export function generateHotelCitySchema(props: HotelCitySchemaProps) {
     faqs = [],
   } = props
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://travelsearch.in'
   const citySlug = cityName.toLowerCase().replace(/\s+/g, '-')
   const pageUrl = `${baseUrl}/hotels/${citySlug}`
 

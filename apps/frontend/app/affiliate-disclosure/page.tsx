@@ -131,8 +131,8 @@ export default function AffiliateDisclosure() {
             <p>
               If you have questions about our affiliate relationships or business model, contact us at:
               <br />
-              <a href="mailto:partnerships@travelsearch.com" className="text-blue-600 hover:underline">
-                partnerships@travelsearch.com
+              <a href="mailto:admin@travelsearch.in" className="text-blue-600 hover:underline">
+                admin@travelsearch.in
               </a>
             </p>
           </section>

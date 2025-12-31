@@ -12,7 +12,7 @@
 import { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://travelsearch.com'),
+  metadataBase: new URL('https://travelsearch.in'),
   
   // Primary metadata
   title: {
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://travelsearch.com',
+    url: 'https://travelsearch.in',
     siteName: 'TravelSearch',
     title: 'TravelSearch | Compare Flights from Multiple Providers',
     description: 'Independent flight comparison platform. Compare flights, prices, and schedules from multiple airlines and booking providers.',
@@ -86,10 +86,10 @@ export const metadata: Metadata = {
   
   // Alternate languages (if applicable)
   alternates: {
-    canonical: 'https://travelsearch.com',
+    canonical: 'https://travelsearch.in',
     languages: {
-      'en-US': 'https://travelsearch.com',
-      'en-GB': 'https://travelsearch.com/en-gb',
+      'en-US': 'https://travelsearch.in',
+      'en-GB': 'https://travelsearch.in/en-gb',
     },
   },
   
@@ -167,18 +167,18 @@ export function OrganizationStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'TravelSearch',
-    url: 'https://travelsearch.com',
-    logo: 'https://travelsearch.com/logo.png',
+    url: 'https://travelsearch.in',
+    logo: 'https://travelsearch.in/logo.png',
     description: 'Independent flight comparison platform helping travelers find and compare flights from multiple providers.',
     sameAs: [
-      'https://twitter.com/travelsearch',
-      'https://facebook.com/travelsearch',
-      'https://linkedin.com/company/travelsearch'
+      'https://twitter.in/travelsearch',
+      'https://facebook.in/travelsearch',
+      'https://linkedin.in/company/travelsearch'
     ],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
-      email: 'support@travelsearch.com'
+      email: 'support@travelsearch.in'
     }
   }
   
@@ -196,12 +196,12 @@ export function WebsiteSearchStructuredData() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'TravelSearch',
-    url: 'https://travelsearch.com',
+    url: 'https://travelsearch.in',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://travelsearch.com/flights/results?origin={origin}&destination={destination}'
+        urlTemplate: 'https://travelsearch.in/flights/results?origin={origin}&destination={destination}'
       },
       'query-input': 'required name=origin name=destination'
     }
@@ -245,12 +245,12 @@ export const homepageMetadata: Metadata = {
   title: 'TravelSearch | Compare Flights from Multiple Providers',
   description: 'Search and compare flights from multiple airlines and booking providers. Find the best flight options for your travel dates. Independent comparison platform.',
   alternates: {
-    canonical: 'https://travelsearch.com'
+    canonical: 'https://travelsearch.in'
   },
   openGraph: {
     title: 'TravelSearch - Flight Comparison Platform',
     description: 'Compare flights from multiple providers. Find the best option for your journey.',
-    url: 'https://travelsearch.com',
+    url: 'https://travelsearch.in',
   }
 }
 
@@ -264,7 +264,7 @@ export function generateFlightResultsMetadata(
     title: `Flights from ${origin} to ${destination} - ${date}`,
     description: `Compare flights from ${origin} to ${destination} on ${date}. View prices, departure times, and airlines. Book directly with providers.`,
     alternates: {
-      canonical: `https://travelsearch.com/flights/results?origin=${origin}&destination=${destination}&date=${date}`
+      canonical: `https://travelsearch.in/flights/results?origin=${origin}&destination=${destination}&date=${date}`
     },
     openGraph: {
       title: `${origin} to ${destination} Flights`,
@@ -288,7 +288,7 @@ export function generateRouteMetadata(
     title: `${originCity} to ${destinationCity} Flights (${originCode}-${destinationCode}) | Compare & Book`,
     description: `Compare flights from ${originCity} (${originCode}) to ${destinationCity} (${destinationCode}). View schedules, prices, and book directly with airlines.`,
     alternates: {
-      canonical: `https://travelsearch.com/routes/${originCode.toLowerCase()}-to-${destinationCode.toLowerCase()}`
+      canonical: `https://travelsearch.in/routes/${originCode.toLowerCase()}-to-${destinationCode.toLowerCase()}`
     },
     openGraph: {
       title: `${originCity} to ${destinationCity} Flights`,
@@ -310,7 +310,7 @@ module.exports = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    domains: ['travelsearch.com'],
+    domains: ['travelsearch.in'],
   },
   
   // Compression
@@ -412,7 +412,7 @@ export function SkipLink() {
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://travelsearch.com'
+  const baseUrl = 'https://travelsearch.in'
   
   // Static pages
   const staticPages = [
@@ -467,7 +467,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://travelsearch.com/sitemap.xml',
+    sitemap: 'https://travelsearch.in/sitemap.xml',
   }
 }
 

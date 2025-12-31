@@ -98,8 +98,8 @@ export default function PrivacyPolicy() {
             <p>
               If you have any questions about this Privacy Policy, please contact us at:
               <br />
-              <a href="mailto:privacy@travelsearch.com" className="text-blue-600 hover:underline">
-                privacy@travelsearch.com
+              <a href="mailto:privacy@travelsearch.in" className="text-blue-600 hover:underline">
+                privacy@travelsearch.in
               </a>
             </p>
           </section>

@@ -73,4 +73,4 @@ Crawl-delay: 1
 # ============================================
 # SITEMAP LOCATION
 # ============================================
-Sitemap: https://travelsearch.com/sitemap.xml
+Sitemap: https://travelsearch.in/sitemap.xml
