@@ -724,17 +724,19 @@ export function validateTrainParams(params: TrainDeepLinkParams): string | null 
 }
 
 /**
- * Ixigo Trains Deep Link (station codes) - PRIMARY
- * Format: https://www.ixigo.com/search/result/train/...
+ * IRCTC Deep Link (Official Indian Railways booking) - PRIMARY
+ * Format: https://www.irctc.co.in/nget/train-search?from={FROM}&to={TO}&journeyDate={DD-MM-YYYY}
+ * Note: Opens search page, IRCTC handles login and booking
  */
-function buildIxigoTrainsUrl(params: TrainDeepLinkParams): string {
+function buildIRCTCUrl(params: TrainDeepLinkParams): string {
   const { fromStation, toStation, date } = params
   
+  const dateFormatted = formatDDMMYYYYDash(date)
   const fromEncoded = encodeURIComponent(fromStation)
   const toEncoded = encodeURIComponent(toStation)
-  const dateFormatted = formatDDMMYYYY(date)
   
-  return `https://www.ixigo.com/search/result/train/${fromEncoded}/${toEncoded}/${dateFormatted}`
+  // IRCTC search-level deep link only - user handles login
+  return `https://www.irctc.co.in/nget/train-search?from=${fromEncoded}&to=${toEncoded}&journeyDate=${dateFormatted}`
 }
 
 /**
@@ -767,6 +769,8 @@ function buildGoibiboTrainsUrl(params: TrainDeepLinkParams): string {
 /**
  * Build train deep link with validation
  * Returns null if parameters are invalid - BLOCKS redirect
+ * Default: IRCTC (PRIMARY official Indian Railways)
+ * REMOVED: Ixigo (moved to optional), Udchalo (discontinued)
  */
 export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams): DeepLinkResult {
   const validationError = validateTrainParams(params)
@@ -776,8 +780,8 @@ export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams
   
   let url: string
   switch (vendorId) {
-    case 'ixigo_trains':
-      url = buildIxigoTrainsUrl(params)
+    case 'irctc':
+      url = buildIRCTCUrl(params)
       break
     case 'makemytrip_railways':
       url = buildMakeMyTripRailwaysUrl(params)
@@ -786,8 +790,8 @@ export function buildTrainDeepLink(vendorId: string, params: TrainDeepLinkParams
       url = buildGoibiboTrainsUrl(params)
       break
     default:
-      // Ixigo is PRIMARY for trains
-      url = buildIxigoTrainsUrl(params)
+      // IRCTC is PRIMARY for trains
+      url = buildIRCTCUrl(params)
   }
   
   return { url, error: null }
