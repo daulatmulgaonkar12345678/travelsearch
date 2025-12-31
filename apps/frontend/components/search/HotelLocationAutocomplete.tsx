@@ -142,7 +142,7 @@ function getTypeLabel(type: HotelDestinationType): string {
 export default function HotelLocationAutocomplete({
   value,
   onChange,
-  placeholder = "City, area, or hotel name",
+  placeholder = "City, area",
   label = "Destination",
   testId = "hotel-city-input",
   disabled = false,
@@ -372,7 +372,7 @@ export default function HotelLocationAutocomplete({
         <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-96 overflow-y-auto animate-dropdown-open">
           <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
             <span className="text-xs text-gray-600 font-medium">
-              Search by city, area, or hotel name
+              Search by city, area
             </span>
           </div>
           {suggestions.map((dest, index) => (
