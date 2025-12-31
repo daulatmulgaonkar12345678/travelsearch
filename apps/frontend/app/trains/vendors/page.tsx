@@ -8,7 +8,7 @@ import {
   getVendorsForService, 
   getPrimaryVendor,
   buildTrainDeepLink, 
-  logAffiliateClick,
+  buildTrackedRedirectUrl,
   type TrainDeepLinkParams 
 } from '@/lib/affiliate'
 import RedirectScreen from '@/components/common/RedirectScreen'
