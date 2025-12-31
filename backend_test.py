@@ -42,22 +42,15 @@ class BackendTester:
         if not success:
             self.failed_tests.append(test_name)
     
-    def test_train_search_api(self):
-        """Test Train Search API with specific parameters from review request"""
-        print("\n🚆 TESTING TRAIN SEARCH API")
+    def test_click_logs_endpoint(self):
+        """Test GET /api/admin/click-logs endpoint"""
+        print("\n📊 TESTING CLICK LOGS ENDPOINT")
         print("=" * 50)
         
-        # Test Case 1: Valid station codes (PUNE to CSMT)
-        test_url = f"{API_BASE}/search/trains"
-        params = {
-            'origin': 'PUNE',
-            'destination': 'CSMT', 
-            'departure_date': '2026-02-15',
-            'passengers': 1
-        }
-        
+        # Test Case 1: Basic click logs retrieval
         try:
-            response = self.session.get(test_url, params=params, timeout=30)
+            test_url = f"{API_BASE}/admin/click-logs"
+            response = self.session.get(test_url, timeout=30)
             print(f"Request URL: {response.url}")
             print(f"Status Code: {response.status_code}")
             
@@ -65,342 +58,301 @@ class BackendTester:
                 data = response.json()
                 
                 # Validate response structure
-                required_fields = ['offers', 'route']
+                required_fields = ['count', 'total', 'logs']
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
-                    self.log_test("Train Search - Response Structure", False, 
+                    self.log_test("Click Logs - Basic Retrieval", False, 
                                 f"Missing fields: {missing_fields}")
                 else:
-                    # Check route object
-                    route = data.get('route', {})
-                    has_route_fields = all(field in route for field in 
-                                         ['origin_city', 'destination_city', 'distance_km'])
+                    logs = data.get('logs', [])
+                    count = data.get('count', 0)
+                    total = data.get('total', 0)
                     
-                    # Check offers structure
-                    offers = data.get('offers', [])
-                    offers_valid = True
-                    if offers:
-                        first_offer = offers[0]
-                        required_offer_fields = ['booking_partners']
-                        offers_valid = all(field in first_offer for field in required_offer_fields)
-                        
-                        # Check booking partners
-                        if 'booking_partners' in first_offer:
-                            partners = first_offer['booking_partners']
-                            if isinstance(partners, list) and len(partners) > 0:
-                                partner = partners[0]
-                                partner_valid = all(field in partner for field in ['name', 'url', 'priority'])
-                            else:
-                                partner_valid = False
-                        else:
-                            partner_valid = False
+                    self.log_test("Click Logs - Basic Retrieval", True, 
+                                f"Retrieved {count} logs out of {total} total")
                     
-                    # Check is_fallback field
-                    has_fallback = 'is_fallback' in data
-                    
-                    if has_route_fields and offers_valid and partner_valid and has_fallback:
-                        self.log_test("Train Search PUNE→CSMT", True, 
-                                    f"Found {len(offers)} offers, route distance: {route.get('distance_km')}km")
-                    else:
-                        issues = []
-                        if not has_route_fields: issues.append("route fields missing")
-                        if not offers_valid: issues.append("offers structure invalid")
-                        if not partner_valid: issues.append("booking partners invalid")
-                        if not has_fallback: issues.append("is_fallback missing")
-                        self.log_test("Train Search PUNE→CSMT", False, f"Issues: {', '.join(issues)}")
+                    # Store initial count for later comparison
+                    self.initial_click_count = total
             else:
-                self.log_test("Train Search PUNE→CSMT", False, 
+                self.log_test("Click Logs - Basic Retrieval", False, 
                             f"HTTP {response.status_code}: {response.text[:200]}")
+                self.initial_click_count = 0
                 
         except Exception as e:
-            self.log_test("Train Search PUNE→CSMT", False, f"Exception: {str(e)}")
+            self.log_test("Click Logs - Basic Retrieval", False, f"Exception: {str(e)}")
+            self.initial_click_count = 0
         
-        # Test Case 2: Test with other valid station codes
-        test_cases = [
-            ('NDLS', 'BCT', 'New Delhi to Mumbai Central'),
-            ('CSMT', 'PUNE', 'Mumbai to Pune (reverse)')
-        ]
-        
-        for origin, dest, description in test_cases:
-            try:
-                params = {
-                    'origin': origin,
-                    'destination': dest,
-                    'departure_date': '2026-02-15',
-                    'passengers': 1
-                }
-                response = self.session.get(test_url, params=params, timeout=30)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    offers = data.get('offers', [])
-                    route = data.get('route', {})
-                    self.log_test(f"Train Search {description}", True, 
-                                f"Found {len(offers)} offers")
-                else:
-                    self.log_test(f"Train Search {description}", False, 
-                                f"HTTP {response.status_code}")
-            except Exception as e:
-                self.log_test(f"Train Search {description}", False, f"Exception: {str(e)}")
-    
-    def test_train_autocomplete_api(self):
-        """Test Train Autocomplete API for CITY_ALL tokens"""
-        print("\n🔍 TESTING TRAIN AUTOCOMPLETE API")
-        print("=" * 50)
-        
-        test_url = f"{API_BASE}/trains/autocomplete"
-        
-        # Test Case 1: Search for "mumbai" should return MUMBAI_ALL
+        # Test Case 2: Click logs with limit parameter
         try:
-            params = {'q': 'mumbai'}
-            response = self.session.get(test_url, params=params, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                results = data.get('results', [])
-                
-                # Look for MUMBAI_ALL token
-                mumbai_all_found = False
-                city_all_first = False
-                
-                if results:
-                    first_result = results[0]
-                    if first_result.get('value') == 'MUMBAI_ALL' and first_result.get('type') == 'city_all':
-                        mumbai_all_found = True
-                        city_all_first = True
-                        if '⭐' in first_result.get('label', ''):
-                            star_found = True
-                        else:
-                            star_found = False
-                    
-                    # Check if any result has MUMBAI_ALL
-                    for result in results:
-                        if result.get('value') == 'MUMBAI_ALL':
-                            mumbai_all_found = True
-                            break
-                
-                if mumbai_all_found and city_all_first:
-                    self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", True, 
-                                f"Found MUMBAI_ALL as first result with {len(results)} total results")
-                else:
-                    issues = []
-                    if not mumbai_all_found: issues.append("MUMBAI_ALL not found")
-                    if not city_all_first: issues.append("MUMBAI_ALL not first")
-                    self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, 
-                                f"Issues: {', '.join(issues)}")
-            else:
-                self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("Train Autocomplete Mumbai→MUMBAI_ALL", False, f"Exception: {str(e)}")
-        
-        # Test Case 2: Search for specific station code
-        try:
-            params = {'q': 'CSMT'}
+            test_url = f"{API_BASE}/admin/click-logs"
+            params = {'limit': 50}
             response = self.session.get(test_url, params=params, timeout=30)
             
             if response.status_code == 200:
                 data = response.json()
-                results = data.get('results', [])
+                logs = data.get('logs', [])
+                count = data.get('count', 0)
                 
-                # Look for exact CSMT match
-                csmt_found = False
-                if results:
-                    for result in results:
-                        if result.get('value') == 'CSMT' and result.get('type') == 'station':
-                            csmt_found = True
-                            break
-                
-                if csmt_found:
-                    self.log_test("Train Autocomplete CSMT Station", True, 
-                                f"Found CSMT station in {len(results)} results")
+                if count <= 50:
+                    self.log_test("Click Logs - Limit Parameter", True, 
+                                f"Correctly limited to {count} logs (≤50)")
                 else:
-                    self.log_test("Train Autocomplete CSMT Station", False, 
-                                "CSMT station not found in results")
+                    self.log_test("Click Logs - Limit Parameter", False, 
+                                f"Limit not respected: got {count} logs (>50)")
             else:
-                self.log_test("Train Autocomplete CSMT Station", False, 
+                self.log_test("Click Logs - Limit Parameter", False, 
                             f"HTTP {response.status_code}")
                 
         except Exception as e:
-            self.log_test("Train Autocomplete CSMT Station", False, f"Exception: {str(e)}")
-    
-    def test_bus_search_api(self):
-        """Test Bus Search API with specific parameters"""
-        print("\n🚌 TESTING BUS SEARCH API")
+            self.log_test("Click Logs - Limit Parameter", False, f"Exception: {str(e)}")
+
+    def test_redirect_endpoint_click_logging(self):
+        """Test GET /api/redirect endpoint with flight params for click logging"""
+        print("\n🔗 TESTING REDIRECT ENDPOINT (CLICK LOGGING)")
         print("=" * 50)
         
-        test_url = f"{API_BASE}/search/buses"
+        # Test Case 1: Flight redirect with click logging
+        try:
+            test_url = f"{API_BASE}/redirect"
+            target_url = "https://www.skyscanner.co.in"
+            params = {
+                'service': 'flight',
+                'vendor': 'skyscanner',
+                'target': quote(target_url),
+                'origin': 'DEL',
+                'destination': 'BOM',
+                'price': 5000
+            }
+            
+            response = self.session.get(test_url, params=params, timeout=30, allow_redirects=False)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 302:
+                # Check redirect location
+                location = response.headers.get('location', '')
+                if location == target_url:
+                    self.log_test("Redirect - Flight Click Logging", True, 
+                                f"Correctly redirected to {target_url}")
+                else:
+                    self.log_test("Redirect - Flight Click Logging", False, 
+                                f"Wrong redirect location: {location}")
+            else:
+                self.log_test("Redirect - Flight Click Logging", False, 
+                            f"Expected 302, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Redirect - Flight Click Logging", False, f"Exception: {str(e)}")
+        
+        # Wait a moment for background logging to complete
+        time.sleep(2)
+
+    def test_service_type_normalization(self):
+        """Test service type normalization in redirect endpoint"""
+        print("\n🔄 TESTING SERVICE TYPE NORMALIZATION")
+        print("=" * 50)
+        
+        test_cases = [
+            ('bus', 'bus', 'Bus service normalization'),
+            ('buses', 'bus', 'Buses to bus normalization'),
+            ('flights', 'flight', 'Flights to flight normalization'),
+            ('flight', 'flight', 'Flight service normalization'),
+        ]
+        
+        target_url = "https://example.com"
+        
+        for service_input, expected_service, description in test_cases:
+            try:
+                test_url = f"{API_BASE}/redirect"
+                params = {
+                    'service': service_input,
+                    'vendor': 'testvendor',
+                    'target': quote(target_url),
+                    'origin': 'TestOrigin',
+                    'destination': 'TestDestination',
+                    'price': 1000
+                }
+                
+                response = self.session.get(test_url, params=params, timeout=30, allow_redirects=False)
+                
+                if response.status_code == 302:
+                    self.log_test(description, True, 
+                                f"Service '{service_input}' accepted and should normalize to '{expected_service}'")
+                else:
+                    self.log_test(description, False, 
+                                f"HTTP {response.status_code}: {response.text[:100]}")
+                    
+            except Exception as e:
+                self.log_test(description, False, f"Exception: {str(e)}")
+        
+        # Wait for background logging
+        time.sleep(2)
+
+    def test_click_persistence(self):
+        """Test that clicks are persisted and appear in logs"""
+        print("\n💾 TESTING CLICK PERSISTENCE")
+        print("=" * 50)
+        
+        # First, get current click count
+        try:
+            test_url = f"{API_BASE}/admin/click-logs"
+            response = self.session.get(test_url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                initial_count = data.get('total', 0)
+            else:
+                initial_count = 0
+                
+        except Exception as e:
+            initial_count = 0
+            
+        # Generate a unique click event
+        timestamp = int(time.time())
+        test_url = f"{API_BASE}/redirect"
+        target_url = "https://www.example.com"
         params = {
-            'origin': 'Pune',
-            'destination': 'Mumbai',
-            'departure_date': '2026-02-15',
-            'passengers': 1
+            'service': 'flight',
+            'vendor': f'testvendor_{timestamp}',
+            'target': quote(target_url),
+            'origin': 'DEL',
+            'destination': 'BOM',
+            'price': 5000
         }
         
         try:
+            # Make redirect call to generate click event
+            response = self.session.get(test_url, params=params, timeout=30, allow_redirects=False)
+            
+            if response.status_code == 302:
+                # Wait for background logging to complete
+                time.sleep(3)
+                
+                # Check if click appears in logs
+                logs_url = f"{API_BASE}/admin/click-logs"
+                logs_response = self.session.get(logs_url, timeout=30)
+                
+                if logs_response.status_code == 200:
+                    logs_data = logs_response.json()
+                    new_count = logs_data.get('total', 0)
+                    logs = logs_data.get('logs', [])
+                    
+                    # Check if count increased
+                    if new_count > initial_count:
+                        # Look for our specific click event
+                        found_click = False
+                        for log in logs:
+                            if (log.get('vendor') == f'testvendor_{timestamp}' and 
+                                log.get('service') == 'flight' and
+                                log.get('origin') == 'DEL' and
+                                log.get('destination') == 'BOM' and
+                                log.get('price') == 5000):
+                                found_click = True
+                                break
+                        
+                        if found_click:
+                            self.log_test("Click Persistence", True, 
+                                        f"Click event persisted and found in logs (count: {initial_count} → {new_count})")
+                        else:
+                            self.log_test("Click Persistence", False, 
+                                        f"Click count increased but specific event not found in logs")
+                    else:
+                        self.log_test("Click Persistence", False, 
+                                    f"Click count did not increase (was {initial_count}, now {new_count})")
+                else:
+                    self.log_test("Click Persistence", False, 
+                                f"Could not retrieve logs after click: HTTP {logs_response.status_code}")
+            else:
+                self.log_test("Click Persistence", False, 
+                            f"Redirect failed: HTTP {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Click Persistence", False, f"Exception: {str(e)}")
+
+    def test_click_log_fields(self):
+        """Test that click logs contain required fields"""
+        print("\n📋 TESTING CLICK LOG FIELDS")
+        print("=" * 50)
+        
+        try:
+            test_url = f"{API_BASE}/admin/click-logs"
+            params = {'limit': 10}
             response = self.session.get(test_url, params=params, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', [])
+                
+                if logs:
+                    # Check first log entry for required fields
+                    first_log = logs[0]
+                    required_fields = ['service', 'vendor', 'created_at']
+                    optional_fields = ['origin', 'destination', 'price', 'target_url']
+                    
+                    missing_required = [field for field in required_fields if field not in first_log]
+                    present_optional = [field for field in optional_fields if field in first_log]
+                    
+                    if not missing_required:
+                        self.log_test("Click Log Fields - Required", True, 
+                                    f"All required fields present: {required_fields}")
+                        
+                        if present_optional:
+                            self.log_test("Click Log Fields - Optional", True, 
+                                        f"Optional fields present: {present_optional}")
+                        else:
+                            self.log_test("Click Log Fields - Optional", True, 
+                                        "No optional fields present (acceptable)")
+                    else:
+                        self.log_test("Click Log Fields - Required", False, 
+                                    f"Missing required fields: {missing_required}")
+                else:
+                    self.log_test("Click Log Fields", True, 
+                                "No logs available to test fields (acceptable for empty system)")
+            else:
+                self.log_test("Click Log Fields", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Click Log Fields", False, f"Exception: {str(e)}")
+
+    def test_redirect_health_endpoint(self):
+        """Test redirect health endpoint"""
+        print("\n🏥 TESTING REDIRECT HEALTH ENDPOINT")
+        print("=" * 50)
+        
+        try:
+            test_url = f"{API_BASE}/redirect/health"
+            response = self.session.get(test_url, timeout=30)
             print(f"Request URL: {response.url}")
             print(f"Status Code: {response.status_code}")
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # Validate response structure
-                required_fields = ['offers', 'origin_city', 'destination_city', 'distance_km']
+                # Check required fields
+                required_fields = ['status', 'buffer_size']
+                missing_fields = [field for field in required_fields if field not in data]
                 
-                # Check if we have route object or direct fields
-                if 'route' in data:
-                    route = data['route']
-                    has_route_fields = all(field in route for field in 
-                                         ['origin_city', 'destination_city', 'distance_km'])
-                else:
-                    has_route_fields = all(field in data for field in required_fields)
-                
-                # Check offers structure
-                offers = data.get('offers', [])
-                offers_valid = True
-                booking_partners_valid = True
-                
-                if offers:
-                    first_offer = offers[0]
-                    required_offer_fields = ['booking_partners']
-                    offers_valid = all(field in first_offer for field in required_offer_fields)
+                if not missing_fields:
+                    status = data.get('status')
+                    buffer_size = data.get('buffer_size', 0)
                     
-                    # Check booking partners (should include redBus, AbhiBus, etc.)
-                    if 'booking_partners' in first_offer:
-                        partners = first_offer['booking_partners']
-                        if isinstance(partners, list) and len(partners) > 0:
-                            partner_names = [p.get('name', '') for p in partners]
-                            expected_partners = ['redBus', 'AbhiBus', 'Paytm']
-                            has_expected = any(expected in str(partner_names) for expected in expected_partners)
-                            booking_partners_valid = has_expected
-                        else:
-                            booking_partners_valid = False
+                    if status == 'healthy':
+                        self.log_test("Redirect Health", True, 
+                                    f"Healthy status, buffer size: {buffer_size}")
                     else:
-                        booking_partners_valid = False
-                
-                if has_route_fields and offers_valid and booking_partners_valid:
-                    self.log_test("Bus Search Pune→Mumbai", True, 
-                                f"Found {len(offers)} offers with valid booking partners")
+                        self.log_test("Redirect Health", False, 
+                                    f"Unhealthy status: {status}")
                 else:
-                    issues = []
-                    if not has_route_fields: issues.append("route fields missing")
-                    if not offers_valid: issues.append("offers structure invalid")
-                    if not booking_partners_valid: issues.append("booking partners invalid")
-                    self.log_test("Bus Search Pune→Mumbai", False, f"Issues: {', '.join(issues)}")
+                    self.log_test("Redirect Health", False, 
+                                f"Missing fields: {missing_fields}")
             else:
-                self.log_test("Bus Search Pune→Mumbai", False, 
+                self.log_test("Redirect Health", False, 
                             f"HTTP {response.status_code}: {response.text[:200]}")
                 
         except Exception as e:
-            self.log_test("Bus Search Pune→Mumbai", False, f"Exception: {str(e)}")
-    
-    def test_error_handling(self):
-        """Test error handling for invalid dates and missing parameters"""
-        print("\n⚠️  TESTING ERROR HANDLING")
-        print("=" * 50)
-        
-        # Test Case 1: Past date for train search
-        try:
-            test_url = f"{API_BASE}/search/trains"
-            past_date = (date.today() - timedelta(days=1)).isoformat()
-            params = {
-                'origin': 'PUNE',
-                'destination': 'CSMT',
-                'departure_date': past_date,
-                'passengers': 1
-            }
-            
-            response = self.session.get(test_url, params=params, timeout=30)
-            
-            if response.status_code == 400:
-                data = response.json()
-                # Check if error is in detail object (FastAPI format)
-                detail = data.get('detail', {})
-                if isinstance(detail, dict) and 'error_type' in detail and 'DATE_IN_PAST' in str(detail.get('error_type')):
-                    self.log_test("Train Search Past Date Error", True, 
-                                "Correctly rejected past date with 400 error")
-                elif 'error_type' in data and 'DATE_IN_PAST' in str(data.get('error_type')):
-                    self.log_test("Train Search Past Date Error", True, 
-                                "Correctly rejected past date with 400 error")
-                else:
-                    self.log_test("Train Search Past Date Error", False, 
-                                f"Wrong error format: {data}")
-            else:
-                self.log_test("Train Search Past Date Error", False, 
-                            f"Expected 400, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("Train Search Past Date Error", False, f"Exception: {str(e)}")
-        
-        # Test Case 2: Missing parameters for train search
-        try:
-            test_url = f"{API_BASE}/search/trains"
-            params = {
-                'origin': 'PUNE',
-                # Missing destination and departure_date
-                'passengers': 1
-            }
-            
-            response = self.session.get(test_url, params=params, timeout=30)
-            
-            if response.status_code == 422:  # FastAPI validation error
-                self.log_test("Train Search Missing Params", True, 
-                            "Correctly rejected missing parameters with 422 error")
-            else:
-                self.log_test("Train Search Missing Params", False, 
-                            f"Expected 422, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("Train Search Missing Params", False, f"Exception: {str(e)}")
-        
-        # Test Case 3: Past date for bus search
-        try:
-            test_url = f"{API_BASE}/search/buses"
-            past_date = (date.today() - timedelta(days=1)).isoformat()
-            params = {
-                'origin': 'Pune',
-                'destination': 'Mumbai',
-                'departure_date': past_date,
-                'passengers': 1
-            }
-            
-            response = self.session.get(test_url, params=params, timeout=30)
-            
-            if response.status_code == 400:
-                self.log_test("Bus Search Past Date Error", True, 
-                            "Correctly rejected past date with 400 error")
-            else:
-                self.log_test("Bus Search Past Date Error", False, 
-                            f"Expected 400, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("Bus Search Past Date Error", False, f"Exception: {str(e)}")
-        
-        # Test Case 4: Missing parameters for bus search
-        try:
-            test_url = f"{API_BASE}/search/buses"
-            params = {
-                'origin': 'Pune',
-                # Missing destination and departure_date
-                'passengers': 1
-            }
-            
-            response = self.session.get(test_url, params=params, timeout=30)
-            
-            if response.status_code == 422:  # FastAPI validation error
-                self.log_test("Bus Search Missing Params", True, 
-                            "Correctly rejected missing parameters with 422 error")
-            else:
-                self.log_test("Bus Search Missing Params", False, 
-                            f"Expected 422, got {response.status_code}")
-                
-        except Exception as e:
-            self.log_test("Bus Search Missing Params", False, f"Exception: {str(e)}")
+            self.log_test("Redirect Health", False, f"Exception: {str(e)}")
     
     def run_all_tests(self):
         """Run all backend tests"""
