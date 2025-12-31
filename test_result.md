@@ -1069,3 +1069,26 @@ test_priority: "high_first"
   message: "Completed ModifySearchButton integration on all 4 results pages. Vendor pages were already correctly updated by previous agent. Ready for frontend testing to verify full functionality."
 - agent: "testing"
   message: "✅ MODIFY SEARCH HYDRATION TESTING COMPLETED: All 4 services (Flights, Hotels, Buses, Trains) successfully tested for modify search functionality. Key findings: 1) All vendor pages load correctly with proper route/destination information, 2) Modify buttons are visible and functional on all vendor pages, 3) Navigation flow works: vendor page → click Modify → homepage with correct ?tab={service}&modify=true URL, 4) Form hydration from localStorage working correctly - all search parameters preserved (origins, destinations, dates, passenger counts), 5) Correct service tabs automatically selected after modify navigation, 6) No console errors related to hydration detected. The localStorage-based modify search system is production-ready and provides excellent user experience for modifying searches across all travel services."
+
+## Current Focus: Centralized Click Logging Admin UI (P0)
+
+- task: "Booking Click Logs Admin UI - Centralized Redirect & Click Logging"
+  implemented: true
+  working: pending
+  file: "/app/apps/frontend/app/admin/reconciliations/page.tsx, /app/apps/frontend/app/api/admin/click-logs/route.ts, /app/apps/frontend/app/api/redirect/route.ts"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented centralized click logging admin UI. Features: 1) Backend /api/admin/click-logs endpoint (already existed), 2) Frontend Next.js proxy routes for /api/admin/click-logs and /api/redirect, 3) New 'Booking Click Logs' section in admin dashboard showing Time, Service, Vendor, Route/Location, Price, Target URL columns, 4) Service-specific badges with icons (Flight/Hotel/Bus/Train), 5) Refresh button for click logs, 6) Fixed service normalization bug where 'bus' was incorrectly becoming 'bu'."
+  test_requirements:
+    - "Test Admin Login: Navigate to /admin/login, login with credentials, verify redirect to /admin/reconciliations"
+    - "Test Click Logs Display: Admin page shows 'Booking Click Logs' section with table (Time, Service, Vendor, Route/Location, Price, Target URL)"
+    - "Test Click Logging: Click vendor button on /flights/vendors page, verify click event is logged"
+    - "Test Admin UI Update: After clicking vendor, admin page should show new click log entry"
+    - "Test Service Badges: Flight clicks show blue badge with plane icon, Bus clicks show orange badge with bus icon"
+    - "Test Route Display: Flight clicks show 'DEL → BOM' format, Hotel clicks show 'Hotel Name, City' format"
+    - "Test Refresh: Click Refresh button on click logs section, verify logs are refreshed"
+    - "Test End-to-End: Full flow - vendor page click → redirect → admin UI shows log"
