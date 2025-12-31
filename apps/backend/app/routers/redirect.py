@@ -190,14 +190,23 @@ async def redirect_to_vendor(
     session_id: Optional[str] = Query(None, description="Anonymous session ID"),
 ):
     """
-    Centralized redirect endpoint for all vendor booking links.
+    REDIRECT-FIRST Affiliate Click Handler (Industry Standard Pattern)
     
-    Flow:
-    1. Validate target URL
-    2. Log click event (non-blocking background task)
-    3. Return HTTP 302 redirect to vendor
+    Mirrors how Skyscanner, Kayak, Trivago, and Booking Affiliate systems operate.
     
-    Response: HTTP 302 Redirect
+    FLOW (Target: < 50ms response time):
+    1. Validate target URL (sync, ~1ms)
+    2. Create click event object (sync, ~1ms)
+    3. Schedule background logging task (non-blocking, ~0ms)
+    4. Return HTTP 302 redirect IMMEDIATELY
+    
+    GUARANTEES:
+    - User redirect is NEVER blocked by logging
+    - Redirect works even if database is unavailable
+    - Click logging is best-effort (analytics, not revenue)
+    - No retries, no queues, no blocking waits
+    
+    Response: HTTP 302 Redirect (immediate)
     """
     # Decode the target URL
     decoded_target = unquote(target)
