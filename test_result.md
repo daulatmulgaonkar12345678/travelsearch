@@ -8,13 +8,13 @@ test_sequence: 16
 run_ui: true
 ```
 
-## Current Focus: Hotel Smart Search Intent Preservation Testing (P0) - COMPLETED
+## Current Focus: Hotel Search Intent Filtering Testing (P0) - CRITICAL ISSUES FOUND
 
-- task: "Hotel Smart Search Intent Preservation - Complete Backend Testing"
+- task: "Hotel Search Intent Filtering - Backend API Testing"
   implemented: true
-  working: true
-  file: "/app/apps/backend/app/routers/search.py, /app/apps/backend/app/routers/hotels_smart_search.py, /app/apps/backend/app/routers/redirect.py"
-  stuck_count: 0
+  working: false
+  file: "/app/apps/backend/app/routers/search.py, /app/apps/backend/app/services/aggregator.py, /app/apps/backend/app/services/adapters/amadeus_hotels.py"
+  stuck_count: 1
   priority: "P0"
   needs_retesting: false
   status_history:
