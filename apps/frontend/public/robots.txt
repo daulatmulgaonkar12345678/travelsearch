@@ -1,20 +1,35 @@
 # robots.txt for TravelSearch
-# Travel meta-search platform
+# Travel meta-search platform with SEO-optimized route pages
 
 User-agent: *
 
-# Allow indexing of main pages
+# ============================================
+# ALLOW: Main Pages & Service Hubs
+# ============================================
 Allow: /
 Allow: /flights
 Allow: /trains
 Allow: /buses
 Allow: /hotels
 
-# Allow indexing of SEO route pages
+# ============================================
+# ALLOW: SEO Route Pages (High Priority)
+# ============================================
+# Flight route pages
 Allow: /flights/*-to-*
+
+# Hotel city and area pages
 Allow: /hotels/*
 
-# Allow legal and info pages
+# Bus route pages
+Allow: /buses/*-to-*
+
+# Train route pages
+Allow: /trains/*-to-*
+
+# ============================================
+# ALLOW: Legal & Info Pages
+# ============================================
 Allow: /about-us
 Allow: /affiliate-disclosure
 Allow: /service-disclaimer
@@ -22,20 +37,40 @@ Allow: /privacy-policy
 Allow: /terms-and-conditions
 Allow: /contact
 
-# Disallow dynamic results pages (user-specific, date-dependent)
+# ============================================
+# DISALLOW: Dynamic Results Pages
+# (User-specific, date-dependent, no SEO value)
+# ============================================
 Disallow: /flights/results
 Disallow: /trains/results
 Disallow: /buses/results
 Disallow: /hotels/results
+Disallow: /flights/vendors
+Disallow: /hotels/vendors
+
+# Query parameters that create duplicate content
 Disallow: /*?*departure_date=*
 Disallow: /*?*check_in=*
 Disallow: /*?*passengers=*
+Disallow: /*?*date=*
+Disallow: /*?*from=*
+Disallow: /*?*to=*
 
-# Disallow admin and internal pages
+# ============================================
+# DISALLOW: Admin & Internal Pages
+# ============================================
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /api/
 Disallow: /_next/
+Disallow: /static/
 
-# Sitemap location
+# ============================================
+# CRAWL RATE (Polite crawling)
+# ============================================
+Crawl-delay: 1
+
+# ============================================
+# SITEMAP LOCATION
+# ============================================
 Sitemap: https://travelsearch.com/sitemap.xml
