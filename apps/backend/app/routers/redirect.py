@@ -37,6 +37,9 @@ class ClickEvent:
         hotel_name: Optional[str] = None,
         price: Optional[float] = None,
         session_id: Optional[str] = None,
+        # Search intent (for analytics)
+        search_type: Optional[str] = None,  # CITY, AREA, HOTEL
+        area: Optional[str] = None,
     ):
         self.event = "affiliate_click"
         self.service = service
@@ -48,6 +51,8 @@ class ClickEvent:
         self.hotel_name = hotel_name
         self.price = price
         self.session_id = session_id
+        self.search_type = search_type
+        self.area = area
         self.timestamp = datetime.now(timezone.utc).isoformat()
     
     def to_dict(self) -> dict:
@@ -70,6 +75,11 @@ class ClickEvent:
             data["price"] = self.price
         if self.session_id:
             data["session_id"] = self.session_id
+        # Include search intent for analytics
+        if self.search_type:
+            data["search_type"] = self.search_type
+        if self.area:
+            data["area"] = self.area
         return data
     
     def to_json(self) -> str:
