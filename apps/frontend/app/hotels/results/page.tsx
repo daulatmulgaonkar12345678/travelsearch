@@ -379,7 +379,7 @@ function HotelResultsContent() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-1">
-              Hotels in {city}
+              {getSearchContextSubtitle()}
             </h2>
             <p className="text-gray-600 text-sm">
               {checkIn} to {checkOut} • {roomsCount} room(s) • {offers.length} hotels found
@@ -392,6 +392,10 @@ function HotelResultsContent() {
               check_in: checkIn,
               check_out: checkOut,
               adults: rooms[0]?.adults?.toString() || '2',
+              // Include search intent for modify
+              search_type: searchType,
+              ...(searchType === 'AREA' && area && { area }),
+              ...(searchType === 'HOTEL' && hotelName && { hotel_name: hotelName }),
             }}
             variant="default"
           />
