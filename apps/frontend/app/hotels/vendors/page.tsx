@@ -34,6 +34,10 @@ function HotelVendorsContent() {
   const checkIn = searchParams.get('check_in') || ''
   const checkOut = searchParams.get('check_out') || ''
   const adults = searchParams.get('adults') || '2'
+  
+  // Search intent (for analytics)
+  const searchType = searchParams.get('search_type') || 'CITY'
+  const area = searchParams.get('area') || ''
 
   const handleVendorClick = async (vendorId: string) => {
     try {
@@ -59,6 +63,7 @@ function HotelVendorsContent() {
       }
 
       // Build tracked redirect URL (logs click via /api/redirect)
+      // Include search_type for analytics
       const trackedUrl = buildTrackedRedirectUrl({
         service: 'hotel',
         vendor: vendorId,
@@ -68,6 +73,9 @@ function HotelVendorsContent() {
         checkIn,
         checkOut,
         price: parseFloat(price),
+        // Include search intent for logging
+        searchType,
+        area: searchType === 'AREA' ? area : undefined,
       })
 
       // Show redirect screen with tracked URL
