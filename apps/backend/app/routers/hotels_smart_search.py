@@ -285,12 +285,14 @@ async def smart_search(
                     source="cached"
                 )
         
-        # Perform searches across all types
-        city_results = search_cities(query, limit=3)
-        area_results = search_areas(query, limit=4)
-        hotel_results = search_hotels(query, limit=5)
+        # Perform searches across CITY and AREA types only
+        # NOTE: Hotel name search is NOT supported by Amadeus API
+        # Hotels are returned after city selection and can be filtered locally
+        city_results = search_cities(query, limit=5)
+        area_results = search_areas(query, limit=5)
         
-        # Combine and dedupe (prioritize: exact matches > cities > areas > hotels)
+        # Combine and dedupe (prioritize: cities > areas)
+        # Hotel-name autocomplete removed per industry standard (Skyscanner, Kayak, Trivago)
         all_results: List[SmartSearchResult] = []
         seen_ids = set()
         
@@ -306,19 +308,13 @@ async def smart_search(
                 all_results.append(r)
                 seen_ids.add(r.id)
         
-        # Finally hotels (most specific)
-        for r in hotel_results:
-            if r.id not in seen_ids:
-                all_results.append(r)
-                seen_ids.add(r.id)
-        
         # Limit total results
         final_results = all_results[:limit]
         
         # Cache results
         smart_search_cache[cache_key] = (final_results, datetime.utcnow())
         
-        logger.info(f"[SMART_SEARCH] query=\"{query}\" cities={len(city_results)} areas={len(area_results)} hotels={len(hotel_results)} total={len(final_results)}")
+        logger.info(f"[SMART_SEARCH] query=\"{query}\" cities={len(city_results)} areas={len(area_results)} total={len(final_results)}")
         
         return SmartSearchResponse(
             query=query,
