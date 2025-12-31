@@ -8,7 +8,29 @@ test_sequence: 17
 run_ui: true
 ```
 
-## Current Focus: Search UX & Mobile Layout Improvements (P0) - COMPLETED ✅
+## Current Focus: Industry-Proven Click Tracking (Redirect-First Model) - IN PROGRESS
+
+- task: "Industry-Proven Click Tracking - Redirect-First, Non-Blocking Implementation"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/backend/app/routers/redirect.py"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented redirect-first, non-blocking click tracking system mirroring Skyscanner/Kayak/Trivago patterns. Fixed critical 'coroutine was never awaited' bug by properly awaiting get_database(). Background tasks log clicks asynchronously. Redirect response time < 50ms verified."
+  test_requirements:
+    - "Test redirect returns HTTP 302 immediately"
+    - "Test redirect response time < 50ms"
+    - "Test redirect works even if DB logging fails (best-effort)"
+    - "Test click events appear in admin dashboard"
+    - "Verify NO 'coroutine was never awaited' warnings"
+    - "Test multiple concurrent redirects don't block each other"
+    - "Verify click logs contain all expected fields (service, vendor, origin, destination, price, search_type)"
+
+## Previous Focus: Search UX & Mobile Layout Improvements (P0) - COMPLETED ✅
 
 - task: "Search UX & Mobile Layout Improvements"
   implemented: true
