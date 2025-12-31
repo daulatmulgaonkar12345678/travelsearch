@@ -243,6 +243,26 @@ function HotelResultsContent() {
     router.push(`/hotels/vendors?${params.toString()}`)
   }
 
+  // Generate contextual subtitle based on search type
+  const getSearchContextSubtitle = () => {
+    if (searchType === 'AREA' && area) {
+      return `Showing hotels in ${area}, ${city}`
+    }
+    return `Hotels in ${city}`
+  }
+  
+  // Local hotel name filter - filter results client-side
+  // Must be called before any early returns to follow React hooks rules
+  const filteredOffers = useMemo(() => {
+    if (!hotelNameFilter.trim()) {
+      return offers
+    }
+    const filterLower = hotelNameFilter.toLowerCase().trim()
+    return offers.filter(offer => 
+      offer.hotel_name.toLowerCase().includes(filterLower)
+    )
+  }, [offers, hotelNameFilter])
+
   // Handle service unavailable
   if (serviceUnavailable) {
     return (
