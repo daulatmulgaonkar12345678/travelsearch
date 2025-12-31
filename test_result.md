@@ -8,7 +8,30 @@ test_sequence: 16
 run_ui: true
 ```
 
-## Current Focus: City-First Hotel Search Model Testing (P0) - COMPLETED ✅
+## Current Focus: Search UX & Mobile Layout Improvements (P0) - IN PROGRESS
+
+- task: "Search UX & Mobile Layout Improvements"
+  implemented: true
+  working: "pending"
+  file: "/app/apps/frontend/components/search/SearchBarV3.tsx, /app/apps/frontend/components/seo/InternalLinks.tsx"
+  stuck_count: 0
+  priority: "P0"
+  needs_retesting: true
+  status_history:
+    - working: "pending"
+      agent: "main"
+      comment: "Implemented two P0 UX improvements: 1) Hotel Popular Search Cards - Fixed prefill event handler to properly update selectedHotelDestination state instead of non-existent setSelectedHotelCity function. Hotel cards now prefill the search form (city only) and scroll to form. 2) Mobile Tab Layout Fix - Updated service tabs (Flights, Buses, Trains, Hotels) to stack icon above text on mobile using flex-col on mobile and flex-row on sm breakpoint. Desktop layout unchanged."
+  test_requirements:
+    - "Test Mobile Tab Layout: On mobile viewport (375px), verify tabs show icon ABOVE text (stacked vertically)"
+    - "Test Desktop Tab Layout: On desktop viewport (1920px), verify tabs show icon LEFT OF text (horizontal row)"
+    - "Test Hotel Popular Search Card Prefill: Click 'Find Hotels' on Mumbai card, verify form prefills with 'Mumbai, India'"
+    - "Test Hotel Popular Search Card Scroll: After clicking hotel card, verify page scrolls to search form"
+    - "Test Hotel Popular Search Card NO Navigation: Verify clicking hotel card does NOT navigate to a new page"
+    - "Test Bus Popular Search Card Prefill (Regression): Click bus route card, verify it prefills form and scrolls"
+    - "Test Train Popular Search Card Prefill (Regression): Click train route card, verify it prefills form and scrolls"
+    - "Test Hotel Search Button: After hotel card prefill, verify Search Hotels button is ENABLED (blue, not gray)"
+
+## Previous Focus: City-First Hotel Search Model Testing (P0) - COMPLETED ✅
 
 - task: "City-First Hotel Search Model - Backend API Testing"
   implemented: true
