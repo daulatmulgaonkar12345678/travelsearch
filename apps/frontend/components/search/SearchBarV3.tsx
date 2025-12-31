@@ -1396,16 +1396,16 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           </div>
         ) : (
           /* Hotel Search Form - Controlled Selection */
-          // <div className="space-y-4">
-          //   <div>
-          //     <HotelLocationAutocomplete
-          //       value={selectedHotelDestination}
-          //       onChange={setSelectedHotelDestination}
-          //       label="Destination"
-          //       placeholder="City, area"
-          //       testId="hotel-city-input"
-          //     />
-          //   </div>
+          <div className="space-y-4">
+            <div>
+              <HotelLocationAutocomplete
+                value={selectedHotelDestination}
+                onChange={setSelectedHotelDestination}
+                label="Destination"
+                placeholder="City, area"
+                testId="hotel-city-input"
+              />
+            </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               <DateInputs
