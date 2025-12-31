@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for Hotel Smart Search Intent Preservation
-Testing the hotel search intent preservation feature as per review request.
+Backend API Testing for City-First Hotel Search Model (Industry Standard)
+Testing the new city-first hotel search implementation as per review request.
 """
 
 import requests
