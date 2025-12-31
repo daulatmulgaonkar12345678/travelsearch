@@ -733,8 +733,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
   }
 
   const handleHotelSearch = () => {
-    if (!selectedHotelCity) {
-      alert('Please select a city from the dropdown')
+    if (!selectedHotelDestination) {
+      alert('Please select a destination from the dropdown')
       return
     }
     
@@ -775,12 +775,37 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       }
     }
     
+    // Build search params based on destination TYPE (CITY/AREA/HOTEL)
     const params = new URLSearchParams({
-      city: selectedHotelCity.city,
+      city: selectedHotelDestination.city,
       check_in: checkIn,
       check_out: checkOut,
       rooms: hotelRooms.rooms.length.toString(),
+      // Pass search type for backend handling
+      search_type: selectedHotelDestination.type,
     })
+    
+    // Add type-specific parameters
+    if (selectedHotelDestination.type === 'AREA') {
+      // AREA search - include area name and geo coordinates
+      if (selectedHotelDestination.areaName) {
+        params.append('area', selectedHotelDestination.areaName)
+      }
+      if (selectedHotelDestination.latitude && selectedHotelDestination.longitude) {
+        params.append('lat', selectedHotelDestination.latitude.toString())
+        params.append('lng', selectedHotelDestination.longitude.toString())
+      }
+    } else if (selectedHotelDestination.type === 'HOTEL') {
+      // HOTEL search - include hotel ID for direct lookup
+      if (selectedHotelDestination.hotelId) {
+        params.append('hotel_id', selectedHotelDestination.hotelId)
+      }
+      if (selectedHotelDestination.hotelName) {
+        params.append('hotel_name', selectedHotelDestination.hotelName)
+      }
+    }
+    // CITY search uses only city param (default)
+    
     hotelRooms.rooms.forEach((room, roomIdx) => {
       params.append(`room_${roomIdx}_adults`, room.adults.toString())
       params.append(`room_${roomIdx}_type`, room.roomType)
