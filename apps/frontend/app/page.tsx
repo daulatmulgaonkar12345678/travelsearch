@@ -102,42 +102,43 @@ function HomeContent() {
     : 'flights'
   
   return (
-    <div className="min-h-screen bg-[#F2F7FF]">
+    <div className="min-h-[100dvh] md:min-h-screen bg-[#F2F7FF]">
       <Navigation />
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-display font-bold text-gray-900 mb-6">
+      {/* Hero Section - Content-based height on mobile, no vh dependency */}
+      <section className="container mx-auto px-4 pt-6 pb-8 sm:pt-10 sm:pb-12 md:py-16">
+        {/* Hero Text - Compact on mobile */}
+        <div className="max-w-4xl mx-auto text-center mb-6 sm:mb-8 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gray-900 mb-3 sm:mb-4 md:mb-6">
             Find Your Perfect Journey
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-4 sm:mb-6 md:mb-8 px-2">
             Compare flights, trains, buses, and hotels from verified travel partners. No hidden fees.
           </p>
         </div>
 
-        {/* Search Component */}
-        <div className="max-w-5xl mx-auto space-y-4">
+        {/* Search Component - Reduced spacing on mobile */}
+        <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4">
           <SearchBarV3 defaultTab={activeService} />
           
           {/* Trust Strip - appears below search */}
           <TrustStrip />
           
           {/* Recent Searches - filtered by active service */}
-          <div className="pt-2">
+          <div className="pt-1 sm:pt-2">
             <RecentSearches activeService={activeService} />
           </div>
         </div>
       </section>
 
       {/* Features - service-aware */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
         <FeatureCards activeService={activeService} />
       </section>
 
       {/* Popular Routes & Destinations - service-aware */}
-      <section className="container mx-auto px-4 pb-16">
-        <div className="max-w-5xl mx-auto space-y-12">
+      <section className="container mx-auto px-4 pb-8 sm:pb-12 md:pb-16">
+        <div className="max-w-5xl mx-auto space-y-8 sm:space-y-10 md:space-y-12">
           <PopularSections activeService={activeService} />
         </div>
       </section>
