@@ -354,12 +354,19 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
       case 'hotels': {
         const payload = getModifySearchPayload<HotelSearchPayload>('hotels')
         if (payload) {
-          // Use full destination object if available
+          // Use full destination object - preserves type (CITY/AREA/HOTEL)
           if (payload.destination && typeof payload.destination === 'object') {
-            setSelectedHotelCity({
+            setSelectedHotelDestination({
+              id: payload.destination.id || `CITY_${payload.destination.city.toUpperCase()}`,
+              type: (payload.destination.type as HotelDestinationType) || 'CITY',
+              label: payload.destination.label,
               city: payload.destination.city,
               country: payload.destination.country,
-              display: payload.destination.label,
+              areaName: payload.destination.areaName,
+              hotelName: payload.destination.hotelName,
+              hotelId: payload.destination.hotelId,
+              latitude: payload.destination.latitude,
+              longitude: payload.destination.longitude,
             })
           }
           if (payload.check_in) {
