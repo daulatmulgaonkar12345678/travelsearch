@@ -1396,8 +1396,8 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
           <div className="space-y-4">
             <div>
               <HotelLocationAutocomplete
-                value={selectedHotelCity}
-                onChange={setSelectedHotelCity}
+                value={selectedHotelDestination}
+                onChange={setSelectedHotelDestination}
                 label="Destination"
                 placeholder="City, area, or hotel name"
                 testId="hotel-city-input"
