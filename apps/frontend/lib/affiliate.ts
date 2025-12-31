@@ -498,15 +498,7 @@ function buildEaseMyTripFlightUrl(params: FlightDeepLinkParams): string {
   return `https://www.easemytrip.com/flights/${origin.toUpperCase()}-${destination.toUpperCase()}-${dateFormatted}/?adults=${adults}&child=${children}&infant=${infants}&class=E&trip=oneway`
 }
 
-/**
- * Udchalo Flight Deep Link (IATA codes) - Defense/Govt priority booking
- * Format: https://www.udchalo.com/flights/search?...
- */
-function buildUdchaloFlightUrl(params: FlightDeepLinkParams): string {
-  const { origin, destination, departDate, adults = 1, children = 0, infants = 0 } = params
-  
-  return `https://www.udchalo.com/flights/search?from=${origin.toUpperCase()}&to=${destination.toUpperCase()}&date=${departDate}&adults=${adults}&children=${children}&infants=${infants}&class=economy`
-}
+// REMOVED: Udchalo Flight (discontinued)
 
 /**
  * Build flight deep link with validation
