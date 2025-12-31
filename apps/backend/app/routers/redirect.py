@@ -167,8 +167,10 @@ async def redirect_to_vendor(
     if service.lower() not in valid_services:
         raise HTTPException(status_code=400, detail=f"Invalid service: {service}")
     
-    # Normalize service name
-    service_normalized = service.lower().rstrip('s')  # flights -> flight
+    # Normalize service name (flights -> flight, buses -> bus, etc.)
+    service_normalized = service.lower()
+    if service_normalized.endswith('s') and service_normalized not in ['bus']:
+        service_normalized = service_normalized[:-1]  # Remove trailing 's' for plural forms
     
     # Create click event
     click_event = ClickEvent(
