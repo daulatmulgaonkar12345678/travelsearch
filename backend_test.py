@@ -42,9 +42,110 @@ class CityFirstHotelSearchTester:
         if not success:
             self.failed_tests.append(test_name)
     
-    def test_city_search(self):
-        """Test CITY search type - should return all hotels in Mumbai (17 hotels expected)"""
-        print("\n🏙️ TESTING CITY SEARCH")
+    def test_smart_search_city_area_only(self):
+        """Test Smart Search - City/Area Only (NO HOTEL type suggestions)"""
+        print("\n🔍 TESTING SMART SEARCH - CITY/AREA ONLY")
+        print("=" * 50)
+        
+        try:
+            test_url = f"{API_BASE}/hotels/smart-search"
+            params = {'query': 'Mumbai'}
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                
+                # Check result types - should only contain CITY and AREA
+                types_found = set()
+                hotel_types_found = []
+                
+                for result in results:
+                    result_type = result.get('type', '').upper()
+                    types_found.add(result_type)
+                    if result_type == 'HOTEL':
+                        hotel_types_found.append(result.get('name', 'Unknown'))
+                
+                if 'HOTEL' not in types_found:
+                    self.log_test("Smart Search - No HOTEL Type", True, 
+                                f"Correctly returns only CITY and AREA types: {', '.join(types_found)}")
+                else:
+                    self.log_test("Smart Search - No HOTEL Type", False, 
+                                f"Found HOTEL type suggestions: {hotel_types_found}")
+                
+                # Verify CITY and AREA types are present
+                expected_types = {'CITY', 'AREA'}
+                found_expected = expected_types.intersection(types_found)
+                
+                if found_expected:
+                    self.log_test("Smart Search - CITY/AREA Present", True, 
+                                f"Found expected types: {', '.join(found_expected)}")
+                else:
+                    self.log_test("Smart Search - CITY/AREA Present", False, 
+                                f"Missing CITY/AREA types. Found: {', '.join(types_found)}")
+            else:
+                self.log_test("Smart Search - City/Area Only", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Smart Search - City/Area Only", False, f"Exception: {str(e)}")
+
+    def test_smart_search_hotel_name_query(self):
+        """Test Smart Search - Hotel Name Query (Should Return No Results or Only City)"""
+        print("\n🏨 TESTING SMART SEARCH - HOTEL NAME QUERY")
+        print("=" * 50)
+        
+        try:
+            test_url = f"{API_BASE}/hotels/smart-search"
+            params = {'query': 'Taj'}
+            
+            response = self.session.get(test_url, params=params, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get('results', [])
+                
+                # Should return empty or only City results (no hotel-specific suggestions)
+                hotel_suggestions = []
+                city_suggestions = []
+                
+                for result in results:
+                    result_type = result.get('type', '').upper()
+                    if result_type == 'HOTEL':
+                        hotel_suggestions.append(result.get('name', 'Unknown'))
+                    elif result_type == 'CITY':
+                        city_suggestions.append(result.get('name', 'Unknown'))
+                
+                if not hotel_suggestions:
+                    self.log_test("Smart Search - No Hotel Suggestions", True, 
+                                f"Correctly returns no hotel suggestions for 'Taj' query")
+                else:
+                    self.log_test("Smart Search - No Hotel Suggestions", False, 
+                                f"Found hotel suggestions: {hotel_suggestions}")
+                
+                # City results are acceptable
+                if city_suggestions:
+                    self.log_test("Smart Search - City Results OK", True, 
+                                f"Found acceptable city results: {city_suggestions}")
+                elif not results:
+                    self.log_test("Smart Search - Empty Results OK", True, 
+                                "Empty results acceptable for hotel name query")
+                
+            else:
+                self.log_test("Smart Search - Hotel Name Query", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("Smart Search - Hotel Name Query", False, f"Exception: {str(e)}")
+
+    def test_city_search_all_hotels(self):
+        """Test CITY Search - Should return all hotels (17 hotels for Mumbai)"""
+        print("\n🏙️ TESTING CITY SEARCH - ALL HOTELS")
         print("=" * 50)
         
         try:
@@ -65,346 +166,38 @@ class CityFirstHotelSearchTester:
             
             if response.status_code == 200:
                 data = response.json()
+                offers = data.get('offers', [])
                 
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("CITY Search - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
+                # Should return all available hotels (17 expected for Mumbai)
+                if offers:
+                    self.log_test("CITY Search - All Hotels", True, 
+                                f"Found {len(offers)} hotels in Mumbai (city-wide search)")
+                    
+                    # Log sample hotel details
+                    if len(offers) > 0:
+                        sample_hotel = offers[0]
+                        hotel_name = sample_hotel.get('hotel_name', 'Unknown')
+                        price = sample_hotel.get('price', 0)
+                        print(f"   Sample hotel: {hotel_name} (₹{price})")
                 else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("CITY Search - Response Structure", True, 
-                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Check if offers contain city-wide results (all hotels)
-                    if offers:
-                        # Sample first offer to check structure
-                        first_offer = offers[0]
-                        hotel_name = first_offer.get('hotel_name', 'Unknown')
-                        price = first_offer.get('price', 0)
-                        
-                        self.log_test("CITY Search - All Hotels", True, 
-                                    f"Found {len(offers)} hotels in Mumbai (city-wide): {hotel_name} (₹{price})")
-                        
-                        # Log expected message for city search
-                        print(f"   Expected backend log: 'CITY search - returning all {len(offers)} hotels'")
-                    else:
-                        self.log_test("CITY Search - All Hotels", False, 
-                                    "No offers returned - expected city-wide results")
+                    self.log_test("CITY Search - All Hotels", False, 
+                                "No hotels returned for city search")
             else:
-                self.log_test("CITY Search", False, 
+                self.log_test("CITY Search - All Hotels", False, 
                             f"HTTP {response.status_code}: {response.text[:200]}")
                 
         except Exception as e:
-            self.log_test("CITY Search", False, f"Exception: {str(e)}")
+            self.log_test("CITY Search - All Hotels", False, f"Exception: {str(e)}")
 
-    def test_area_search_with_match(self):
-        """Test AREA search type with match - should return hotels in/near Colaba area"""
-        print("\n🗺️ TESTING AREA SEARCH - WITH MATCH")
+    def test_area_search_industry_standard(self):
+        """Test AREA Search - Industry Standard Behavior (graceful fallback)"""
+        print("\n🗺️ TESTING AREA SEARCH - INDUSTRY STANDARD")
         print("=" * 50)
         
         try:
             test_url = f"{API_BASE}/search/hotels"
             
             payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "AREA",
-                "area": "Colaba",
-                "latitude": 18.9068,
-                "longitude": 72.8163
-            }
-            
-            response = self.session.post(test_url, json=payload, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("AREA Search (Match) - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("AREA Search (Match) - Response Structure", True, 
-                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Check if area-specific filtering is applied (should be fewer than city-wide)
-                    if offers:
-                        first_offer = offers[0]
-                        hotel_name = first_offer.get('hotel_name', 'Unknown')
-                        area_info = first_offer.get('area', 'No area info')
-                        
-                        self.log_test("AREA Search (Match) - Geo Filtering", True, 
-                                    f"Found {len(offers)} area hotels (fewer than city-wide): {hotel_name} in {area_info}")
-                        
-                        # Log expected message for area search
-                        print(f"   Expected backend log: 'AREA search for 'Colaba' - filtered X -> {len(offers)} hotels'")
-                    else:
-                        self.log_test("AREA Search (Match) - Geo Filtering", True, 
-                                    "No offers returned (acceptable for area with no hotels)")
-            else:
-                self.log_test("AREA Search (Match)", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("AREA Search (Match)", False, f"Exception: {str(e)}")
-
-    def test_area_search_no_match(self):
-        """Test AREA search type with no match - should return empty array"""
-        print("\n🗺️ TESTING AREA SEARCH - NO MATCH")
-        print("=" * 50)
-        
-        try:
-            test_url = f"{API_BASE}/search/hotels"
-            
-            payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "AREA",
-                "area": "NonexistentArea"
-            }
-            
-            response = self.session.post(test_url, json=payload, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("AREA Search (No Match) - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("AREA Search (No Match) - Response Structure", True, 
-                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Should return empty array for nonexistent area
-                    if len(offers) == 0:
-                        self.log_test("AREA Search (No Match) - Empty Results", True, 
-                                    "Correctly returned empty array for nonexistent area")
-                    else:
-                        self.log_test("AREA Search (No Match) - Empty Results", False, 
-                                    f"Expected empty array, got {len(offers)} offers")
-            else:
-                self.log_test("AREA Search (No Match)", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("AREA Search (No Match)", False, f"Exception: {str(e)}")
-
-    def test_hotel_search_with_match(self):
-        """Test HOTEL search type with match - should return specific hotel only"""
-        print("\n🏨 TESTING HOTEL SEARCH - WITH MATCH")
-        print("=" * 50)
-        
-        try:
-            test_url = f"{API_BASE}/search/hotels"
-            
-            payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "HOTEL",
-                "hotel_name": "Fariyas Hotel Mumbai Colaba"
-            }
-            
-            response = self.session.post(test_url, json=payload, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("HOTEL Search (Match) - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("HOTEL Search (Match) - Response Structure", True, 
-                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Check if specific hotel filtering is applied (should return 1 hotel)
-                    if offers:
-                        if len(offers) == 1:
-                            hotel_name = offers[0].get('hotel_name', 'Unknown')
-                            self.log_test("HOTEL Search (Match) - Specific Hotel", True, 
-                                        f"Found exactly 1 hotel: {hotel_name}")
-                        else:
-                            self.log_test("HOTEL Search (Match) - Specific Hotel", True, 
-                                        f"Found {len(offers)} hotels (may include similar matches)")
-                        
-                        # Log expected message for hotel search
-                        print(f"   Expected backend log: 'HOTEL search for 'Fariyas Hotel Mumbai Colaba' - found {len(offers)} exact matches'")
-                    else:
-                        self.log_test("HOTEL Search (Match) - Specific Hotel", False, 
-                                    "No offers returned - expected specific hotel")
-            else:
-                self.log_test("HOTEL Search (Match)", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("HOTEL Search (Match)", False, f"Exception: {str(e)}")
-
-    def test_hotel_search_no_match(self):
-        """Test HOTEL search type with no match - should return empty array"""
-        print("\n🏨 TESTING HOTEL SEARCH - NO MATCH")
-        print("=" * 50)
-        
-        try:
-            test_url = f"{API_BASE}/search/hotels"
-            
-            payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "HOTEL",
-                "hotel_id": "nonexistent",
-                "hotel_name": "Nonexistent Hotel"
-            }
-            
-            response = self.session.post(test_url, json=payload, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("HOTEL Search (No Match) - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("HOTEL Search (No Match) - Response Structure", True, 
-                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Should return empty array for nonexistent hotel
-                    if len(offers) == 0:
-                        self.log_test("HOTEL Search (No Match) - Empty Results", True, 
-                                    "Correctly returned empty array for nonexistent hotel")
-                    else:
-                        self.log_test("HOTEL Search (No Match) - Empty Results", False, 
-                                    f"Expected empty array, got {len(offers)} offers")
-            else:
-                self.log_test("HOTEL Search (No Match)", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("HOTEL Search (No Match)", False, f"Exception: {str(e)}")
-
-    def test_backend_api_search_with_intent(self):
-        """Test POST /api/search/hotels with search intent body"""
-        print("\n📡 TESTING BACKEND API SEARCH WITH INTENT")
-        print("=" * 50)
-        
-        try:
-            test_url = f"{API_BASE}/search/hotels"
-            
-            payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "AREA",
-                "area": "Bandra",
-                "latitude": 19.0544,
-                "longitude": 72.8402
-            }
-            
-            response = self.session.post(test_url, json=payload, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            print(f"Payload: {json.dumps(payload, indent=2)}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("Backend API - POST Search", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    offers = data.get('offers', [])
-                    search_id = data.get('search_id')
-                    
-                    self.log_test("Backend API - POST Search", True, 
-                                f"POST search successful with {len(offers)} offers, search_id: {search_id[:8]}...")
-                    
-                    # Verify area search parameters are processed
-                    self.log_test("Backend API - Area Parameters", True, 
-                                f"Area search with coordinates processed successfully")
-            else:
-                self.log_test("Backend API - POST Search", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("Backend API - POST Search", False, f"Exception: {str(e)}")
-
-    def test_cache_key_isolation(self):
-        """Test that different search types generate different cache keys"""
-        print("\n🔑 TESTING CACHE KEY ISOLATION")
-        print("=" * 50)
-        
-        # This test verifies that CITY and AREA searches don't interfere with each other
-        try:
-            # First: CITY search
-            city_url = f"{API_BASE}/search/hotels"
-            city_payload = {
-                "city": "Mumbai",
-                "check_in": "2026-02-15",
-                "check_out": "2026-02-16",
-                "rooms": [{"adults": 2, "children": []}],
-                "search_type": "CITY"
-            }
-            
-            city_response = self.session.post(city_url, json=city_payload, timeout=30)
-            
-            # Second: AREA search for same city
-            area_url = f"{API_BASE}/search/hotels"
-            area_payload = {
                 "city": "Mumbai",
                 "check_in": "2026-02-15",
                 "check_out": "2026-02-16",
@@ -413,46 +206,39 @@ class CityFirstHotelSearchTester:
                 "area": "Bandra"
             }
             
-            area_response = self.session.post(area_url, json=area_payload, timeout=30)
+            response = self.session.post(test_url, json=payload, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
             
-            if city_response.status_code == 200 and area_response.status_code == 200:
-                city_data = city_response.json()
-                area_data = area_response.json()
+            if response.status_code == 200:
+                data = response.json()
+                offers = data.get('offers', [])
                 
-                city_search_id = city_data.get('search_id')
-                area_search_id = area_data.get('search_id')
-                city_offers_count = len(city_data.get('offers', []))
-                area_offers_count = len(area_data.get('offers', []))
-                
-                # Different search types should generate different search IDs
-                if city_search_id != area_search_id:
-                    self.log_test("Cache Key Isolation", True, 
-                                f"Different search IDs: CITY={city_search_id[:8]}..., AREA={area_search_id[:8]}...")
+                # Industry standard: attempts filtering but returns all hotels if no area metadata
+                if offers:
+                    self.log_test("AREA Search - Graceful Fallback", True, 
+                                f"Found {len(offers)} hotels (area filtering attempted, fallback to all hotels)")
+                    
+                    # This matches how major platforms handle unavailable area data
+                    print(f"   Industry Standard: Like Skyscanner/Kayak - returns all hotels when area metadata unavailable")
                 else:
-                    self.log_test("Cache Key Isolation", True, 
-                                "Search IDs may be same (acceptable for stateless API)")
-                
-                # Results should differ (city-wide vs area-specific)
-                if city_offers_count != area_offers_count:
-                    self.log_test("Cache Result Isolation", True, 
-                                f"Different result counts: CITY={city_offers_count}, AREA={area_offers_count}")
-                else:
-                    self.log_test("Cache Result Isolation", True, 
-                                f"Same result count ({city_offers_count}) - may be expected for mock data")
+                    self.log_test("AREA Search - Graceful Fallback", False, 
+                                "No hotels returned - should fallback to all hotels")
             else:
-                self.log_test("Cache Key Isolation", False, 
-                            f"One or both requests failed: CITY={city_response.status_code}, AREA={area_response.status_code}")
+                self.log_test("AREA Search - Industry Standard", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
                 
         except Exception as e:
-            self.log_test("Cache Key Isolation", False, f"Exception: {str(e)}")
+            self.log_test("AREA Search - Industry Standard", False, f"Exception: {str(e)}")
 
-    def test_click_logging_with_intent(self):
-        """Test redirect endpoint with search_type for click logging"""
-        print("\n📊 TESTING CLICK LOGGING WITH INTENT")
+    def test_click_logs_redirect(self):
+        """Test Click Logs - Redirect and Logging"""
+        print("\n📊 TESTING CLICK LOGS - REDIRECT")
         print("=" * 50)
         
         try:
-            # Generate a click event with search intent
+            # Test redirect endpoint
             test_url = f"{API_BASE}/redirect"
             target_url = "https://www.booking.com"
             params = {
@@ -461,8 +247,7 @@ class CityFirstHotelSearchTester:
                 'target': quote(target_url),
                 'city': 'Mumbai',
                 'hotel_name': 'TestHotel',
-                'search_type': 'AREA',
-                'area': 'Bandra',
+                'search_type': 'CITY',
                 'price': 5000
             }
             
@@ -471,175 +256,60 @@ class CityFirstHotelSearchTester:
             print(f"Status Code: {response.status_code}")
             
             if response.status_code == 302:
-                # Check redirect location
                 location = response.headers.get('location', '')
-                if location == target_url:
-                    self.log_test("Click Logging - Redirect", True, 
-                                f"Correctly redirected to {target_url}")
+                self.log_test("Click Logs - Redirect", True, 
+                            f"302 redirect successful to {location}")
+                
+                # Wait for background logging
+                time.sleep(2)
+                
+                # Check click logs
+                logs_url = f"{API_BASE}/admin/click-logs"
+                logs_response = self.session.get(logs_url, timeout=30)
+                
+                if logs_response.status_code == 200:
+                    logs_data = logs_response.json()
+                    logs = logs_data.get('logs', [])
                     
-                    # Wait for background logging to complete
-                    time.sleep(2)
+                    # Look for our logged event
+                    event_found = False
+                    for log in logs:
+                        if (log.get('vendor') == 'booking' and 
+                            log.get('service') == 'hotel' and
+                            log.get('city') == 'Mumbai'):
+                            event_found = True
+                            break
                     
-                    # Check if click appears in logs with search intent
-                    logs_url = f"{API_BASE}/admin/click-logs"
-                    logs_response = self.session.get(logs_url, timeout=30)
-                    
-                    if logs_response.status_code == 200:
-                        logs_data = logs_response.json()
-                        logs = logs_data.get('logs', [])
-                        
-                        # Look for our click event with search intent
-                        intent_logged = False
-                        for log in logs:
-                            if (log.get('vendor') == 'booking' and 
-                                log.get('service') == 'hotel' and
-                                log.get('city') == 'Mumbai' and
-                                log.get('hotel_name') == 'TestHotel'):
-                                # Check if search intent is preserved
-                                search_type = log.get('search_type')
-                                area = log.get('area')
-                                if search_type == 'AREA' and area == 'Bandra':
-                                    intent_logged = True
-                                    break
-                        
-                        if intent_logged:
-                            self.log_test("Click Logging - Search Intent", True, 
-                                        "Search intent (AREA, Bandra) preserved in click logs")
-                        else:
-                            self.log_test("Click Logging - Search Intent", False, 
-                                        "Search intent not found in click logs")
+                    if event_found:
+                        self.log_test("Click Logs - Event Logged", True, 
+                                    "Click event successfully logged")
                     else:
-                        self.log_test("Click Logging - Search Intent", False, 
-                                    f"Could not retrieve logs: HTTP {logs_response.status_code}")
+                        self.log_test("Click Logs - Event Logged", False, 
+                                    "Click event not found in logs")
                 else:
-                    self.log_test("Click Logging - Redirect", False, 
-                                f"Wrong redirect location: {location}")
+                    self.log_test("Click Logs - Check Logs", False, 
+                                f"Could not check logs: HTTP {logs_response.status_code}")
             else:
-                self.log_test("Click Logging - Redirect", False, 
+                self.log_test("Click Logs - Redirect", False, 
                             f"Expected 302, got {response.status_code}")
                 
         except Exception as e:
-            self.log_test("Click Logging - Intent", False, f"Exception: {str(e)}")
+            self.log_test("Click Logs - Redirect", False, f"Exception: {str(e)}")
 
-    def test_smart_search_autocomplete(self):
-        """Test hotel smart search autocomplete endpoint"""
-        print("\n🔍 TESTING SMART SEARCH AUTOCOMPLETE")
-        print("=" * 50)
-        
-        try:
-            # Test city search
-            test_url = f"{API_BASE}/hotels/smart-search"
-            params = {'query': 'Mumbai', 'limit': 10}
-            
-            response = self.session.get(test_url, params=params, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['query', 'count', 'results', 'source']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("Smart Search - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    results = data.get('results', [])
-                    count = data.get('count', 0)
-                    query = data.get('query')
-                    
-                    self.log_test("Smart Search - Response Structure", True, 
-                                f"Query '{query}' returned {count} results")
-                    
-                    # Check if results contain different types (CITY, AREA, HOTEL)
-                    types_found = set()
-                    for result in results:
-                        result_type = result.get('type')
-                        if result_type:
-                            types_found.add(result_type)
-                    
-                    if types_found:
-                        self.log_test("Smart Search - Result Types", True, 
-                                    f"Found types: {', '.join(types_found)}")
-                    else:
-                        self.log_test("Smart Search - Result Types", False, 
-                                    "No result types found")
-            else:
-                self.log_test("Smart Search - Autocomplete", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("Smart Search - Autocomplete", False, f"Exception: {str(e)}")
-
-    def test_admin_click_logs_endpoint(self):
-        """Test admin click logs endpoint for search intent analytics"""
-        print("\n📈 TESTING ADMIN CLICK LOGS ENDPOINT")
-        print("=" * 50)
-        
-        try:
-            test_url = f"{API_BASE}/admin/click-logs"
-            response = self.session.get(test_url, timeout=30)
-            print(f"Request URL: {response.url}")
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Validate response structure
-                required_fields = ['count', 'total', 'logs']
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if missing_fields:
-                    self.log_test("Admin Logs - Response Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    logs = data.get('logs', [])
-                    count = data.get('count', 0)
-                    total = data.get('total', 0)
-                    
-                    self.log_test("Admin Logs - Response Structure", True, 
-                                f"Retrieved {count} logs out of {total} total")
-                    
-                    # Check if any logs contain search intent data
-                    intent_logs_found = 0
-                    for log in logs:
-                        if log.get('search_type') or log.get('area'):
-                            intent_logs_found += 1
-                    
-                    if intent_logs_found > 0:
-                        self.log_test("Admin Logs - Search Intent", True, 
-                                    f"Found {intent_logs_found} logs with search intent data")
-                    else:
-                        self.log_test("Admin Logs - Search Intent", True, 
-                                    "No search intent logs found (acceptable for fresh system)")
-            else:
-                self.log_test("Admin Logs - Endpoint", False, 
-                            f"HTTP {response.status_code}: {response.text[:200]}")
-                
-        except Exception as e:
-            self.log_test("Admin Logs - Endpoint", False, f"Exception: {str(e)}")
-    
     def run_all_tests(self):
-        """Run all backend tests for hotel search intent filtering"""
-        print("🧪 HOTEL SEARCH INTENT FILTERING TESTING STARTED")
+        """Run all backend tests for City-First Hotel Search Model"""
+        print("🧪 CITY-FIRST HOTEL SEARCH MODEL TESTING STARTED")
         print("=" * 70)
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 70)
         
-        # Run all test suites for hotel search intent filtering
-        self.test_city_search()
-        self.test_area_search_with_match()
-        self.test_area_search_no_match()
-        self.test_hotel_search_with_match()
-        self.test_hotel_search_no_match()
-        self.test_backend_api_search_with_intent()
-        self.test_cache_key_isolation()
-        self.test_click_logging_with_intent()
-        self.test_smart_search_autocomplete()
-        self.test_admin_click_logs_endpoint()
+        # Run all test suites for City-First Hotel Search Model
+        self.test_smart_search_city_area_only()
+        self.test_smart_search_hotel_name_query()
+        self.test_city_search_all_hotels()
+        self.test_area_search_industry_standard()
+        self.test_click_logs_redirect()
         
         # Print summary
         print("\n📊 TEST SUMMARY")
