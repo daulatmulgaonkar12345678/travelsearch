@@ -529,11 +529,14 @@ export default function SearchBarV3({ defaultTab = 'flights' }: SearchBarV3Props
         type: 'city_all'
       })
     } else if (data.service === 'hotels' && data.city) {
-      // HOTEL: Update city state
-      setSelectedHotelCity({
+      // HOTEL: Update destination state with CITY type
+      // This prefills the form like manual typing - user still needs to click Search
+      setSelectedHotelDestination({
+        id: `CITY_${data.city.toUpperCase()}`,
+        type: 'CITY',
+        label: `${data.city}, India`,
         city: data.city,
         country: 'India',
-        display: `${data.city}, India`,
       })
     }
     
