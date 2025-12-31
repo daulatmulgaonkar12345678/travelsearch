@@ -1,218 +1,197 @@
-from fastapi import APIRouter, HTTPException, Request, Query
+"""
+Affiliate Redirect API - Centralized Click Tracking
+
+All vendor booking links route through this endpoint for:
+1. Click event logging (non-blocking)
+2. Analytics tracking
+3. Immediate HTTP 302 redirect to vendor URL
+
+Endpoint: GET /api/redirect
+"""
+
+from fastapi import APIRouter, Query, HTTPException, BackgroundTasks
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
 from typing import Optional
-import uuid
-from datetime import datetime
-from app.models.click import ClickLog
-from app.db.mongodb import get_clicks_collection
-from app.middleware.bot_detection import BotDetectionService
-from app.config import settings
+from datetime import datetime, timezone
+from urllib.parse import unquote
 import logging
+import json
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
-class RedirectRequest(BaseModel):
-    provider: str
-    offer_id: str
-    route: str
-    price: float
-    deep_link: str
-    device_fingerprint: Optional[str] = None
+# In-memory buffer for click events (will also persist to DB)
+click_buffer = []
 
-@router.post("/redirect")
-async def create_redirect(redirect_req: RedirectRequest, request: Request):
-    """Create click log and return redirect info"""
-    try:
-        # Generate unique click ID
-        click_id = str(uuid.uuid4())
-        
-        # Get request metadata
-        user_agent = request.headers.get("user-agent", "")
-        client_ip = request.client.host
-        accept_headers = request.headers.get("accept", "")
-        
-        # Generate device fingerprint
-        device_fingerprint = redirect_req.device_fingerprint or BotDetectionService.generate_fingerprint(
-            user_agent, accept_headers, client_ip
-        )
-        
-        # Calculate fraud score
-        fraud_score = BotDetectionService.calculate_fraud_score(
-            user_agent, client_ip, {}
-        )
-        
-        # Create click log
-        click_log = ClickLog(
-            click_id=click_id,
-            route=redirect_req.route,
-            provider=redirect_req.provider,
-            offer_id=redirect_req.offer_id,
-            price=redirect_req.price,
-            device_fingerprint_hash=ClickLog.hash_fingerprint(device_fingerprint),
-            ip_masked=ClickLog.mask_ip(client_ip),
-            user_agent=user_agent,
-            timestamp=datetime.utcnow(),
-            fraud_flag=fraud_score > 50,
-            fraud_reason="High fraud score" if fraud_score > 50 else None,
-            conversion_status="pending"
-        )
-        
-        # Save to database
-        clicks_collection = get_clicks_collection()
-        await clicks_collection.insert_one(click_log.dict())
-        
-        logger.info(f"Click logged: {click_id} - {redirect_req.provider} - {redirect_req.route}")
-        
-        # Return click info (frontend will handle actual redirect after interstitial)
-        return {
-            "click_id": click_id,
-            "redirect_url": redirect_req.deep_link,
-            "fraud_score": fraud_score,
-            "requires_captcha": BotDetectionService.should_challenge(fraud_score)
+
+class ClickEvent:
+    """Structured click event for logging"""
+    def __init__(
+        self,
+        service: str,
+        vendor: str,
+        target: str,
+        origin: Optional[str] = None,
+        destination: Optional[str] = None,
+        city: Optional[str] = None,
+        hotel_name: Optional[str] = None,
+        price: Optional[float] = None,
+        session_id: Optional[str] = None,
+    ):
+        self.event = "affiliate_click"
+        self.service = service
+        self.vendor = vendor
+        self.target = target
+        self.origin = origin
+        self.destination = destination
+        self.city = city
+        self.hotel_name = hotel_name
+        self.price = price
+        self.session_id = session_id
+        self.timestamp = datetime.now(timezone.utc).isoformat()
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary, excluding None values"""
+        data = {
+            "event": self.event,
+            "service": self.service,
+            "vendor": self.vendor,
+            "timestamp": self.timestamp,
         }
+        if self.origin:
+            data["origin"] = self.origin
+        if self.destination:
+            data["destination"] = self.destination
+        if self.city:
+            data["city"] = self.city
+        if self.hotel_name:
+            data["hotel_name"] = self.hotel_name
+        if self.price is not None:
+            data["price"] = self.price
+        if self.session_id:
+            data["session_id"] = self.session_id
+        return data
     
-    except Exception as e:
-        logger.error(f"Redirect error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    def to_json(self) -> str:
+        """Convert to JSON string for logging"""
+        return json.dumps(self.to_dict())
 
-@router.get("/go/{click_id}")
-async def redirect_to_provider(click_id: str):
-    """Direct redirect using click_id (alternative method)"""
+
+async def log_click_event(event: ClickEvent, db=None):
+    """
+    Non-blocking click event logging.
+    Logs to console and persists to database.
+    """
     try:
-        # Lookup click in database
-        clicks_collection = get_clicks_collection()
-        click = await clicks_collection.find_one({"click_id": click_id})
+        # Structured JSON logging (INFO level)
+        logger.info(f"CLICK_EVENT: {event.to_json()}")
         
-        if not click:
-            raise HTTPException(status_code=404, detail="Click ID not found")
+        # Add to in-memory buffer (for quick access)
+        click_buffer.append(event.to_dict())
         
-        # Extract deep link from original click log
-        # In production, store deep_link in click log
-        deep_link = f"https://mock-provider.com/book?click_id={click_id}"
+        # Keep buffer size manageable (last 1000 events)
+        if len(click_buffer) > 1000:
+            click_buffer.pop(0)
         
-        # Redirect
-        return RedirectResponse(url=deep_link, status_code=302)
-    
+        # Persist to database if available
+        if db is not None:
+            await persist_click_to_db(event, db)
+            
     except Exception as e:
-        logger.error(f"Redirect error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # Never let logging failures affect the redirect
+        logger.error(f"Click logging error (non-blocking): {e}")
 
-@router.post("/webhook/conversion")
-async def conversion_webhook(click_id: str, status: str, booking_id: Optional[str] = None):
-    """Webhook endpoint for provider to confirm booking"""
+
+async def persist_click_to_db(event: ClickEvent, db):
+    """Persist click event to MongoDB"""
     try:
-        clicks_collection = get_clicks_collection()
-        
-        # Update click status
-        result = await clicks_collection.update_one(
-            {"click_id": click_id},
-            {
-                "$set": {
-                    "conversion_status": status,
-                    "booking_id": booking_id,
-                    "conversion_time": datetime.utcnow()
-                }
-            }
-        )
-        
-        if result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Click ID not found")
-        
-        logger.info(f"Conversion updated: {click_id} - {status}")
-        
-        return {"status": "success", "click_id": click_id}
-    
+        click_doc = {
+            "service": event.service,
+            "vendor": event.vendor,
+            "origin": event.origin,
+            "destination": event.destination,
+            "city": event.city,
+            "hotel_name": event.hotel_name,
+            "price": event.price,
+            "session_id": event.session_id,
+            "target_url": event.target,
+            "created_at": datetime.now(timezone.utc),
+        }
+        await db.click_events.insert_one(click_doc)
     except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"DB persistence error (non-blocking): {e}")
 
-@router.get("/redirect/aviasales")
-async def redirect_to_aviasales(
-    request: Request,
-    origin: str = Query(..., description="Origin airport IATA code"),
-    destination: str = Query(..., description="Destination airport IATA code"),
-    depart_date: str = Query(..., description="Departure date YYYY-MM-DD", alias="depart"),
-    return_date: Optional[str] = Query(None, description="Return date YYYY-MM-DD", alias="return"),
-    adults: int = Query(1, description="Number of adults")
+
+@router.get("/redirect")
+async def redirect_to_vendor(
+    background_tasks: BackgroundTasks,
+    # Required
+    target: str = Query(..., description="URL-encoded vendor booking URL"),
+    service: str = Query(..., description="Service type: flight|hotel|bus|train"),
+    vendor: str = Query(..., description="Vendor name: makemytrip|booking|agoda|irctc|redbus|etc"),
+    # Optional - Flight/Bus/Train
+    origin: Optional[str] = Query(None, description="Origin code/city"),
+    destination: Optional[str] = Query(None, description="Destination code/city"),
+    # Optional - Hotel
+    city: Optional[str] = Query(None, description="Hotel city"),
+    hotel_name: Optional[str] = Query(None, description="Hotel name"),
+    # Optional - Common
+    date: Optional[str] = Query(None, description="Travel date"),
+    check_in: Optional[str] = Query(None, description="Hotel check-in date"),
+    check_out: Optional[str] = Query(None, description="Hotel check-out date"),
+    price: Optional[float] = Query(None, description="Price shown to user"),
+    session_id: Optional[str] = Query(None, description="Anonymous session ID"),
 ):
     """
-    Redirect to Travelpayouts/Aviasales affiliate link.
+    Centralized redirect endpoint for all vendor booking links.
     
-    This endpoint:
-    1. Builds the affiliate URL with proper marker
-    2. Logs the click for tracking
-    3. Redirects user to partner site (302)
+    Flow:
+    1. Validate target URL
+    2. Log click event (non-blocking background task)
+    3. Return HTTP 302 redirect to vendor
     
-    TODO: Expand deep-link building with proper Travelpayouts documentation
+    Response: HTTP 302 Redirect
     """
-    try:
-        # Generate click ID for tracking
-        click_id = str(uuid.uuid4())
-        
-        # Get base URL and marker from config
-        base_url = settings.travelpayouts_aviasales_base_url
-        marker = settings.travelpayouts_marker
-        
-        # Check if configured
-        if base_url == "REPLACE_ME" or marker == "REPLACE_ME":
-            logger.warning("Aviasales affiliate not configured")
-            raise HTTPException(
-                status_code=503, 
-                detail="Affiliate redirect not configured"
-            )
-        
-        # Build affiliate URL
-        # Travelpayouts URL structure (basic):
-        # https://aviasales.tpx.lt/{marker}?origin={origin}&destination={dest}&depart_date={date}
-        affiliate_url = f"{base_url}?origin_iata={origin}&destination_iata={destination}"
-        affiliate_url += f"&depart_date={depart_date}"
-        
-        if return_date:
-            affiliate_url += f"&return_date={return_date}"
-        
-        if adults > 1:
-            affiliate_url += f"&adults={adults}"
-        
-        # Add marker for commission tracking
-        affiliate_url += f"&marker={marker}"
-        
-        # Log the click
-        user_agent = request.headers.get("user-agent", "")
-        client_ip = request.client.host
-        
-        click_log = ClickLog(
-            click_id=click_id,
-            route=f"{origin}-{destination}",
-            provider="aviasales",
-            offer_id=f"{origin}-{destination}-{depart_date}",
-            price=0.0,  # Price not known at redirect time
-            device_fingerprint_hash=ClickLog.hash_fingerprint(user_agent + client_ip),
-            ip_masked=ClickLog.mask_ip(client_ip),
-            user_agent=user_agent,
-            timestamp=datetime.utcnow(),
-            fraud_flag=False,
-            fraud_reason=None,
-            conversion_status="pending"
-        )
-        
-        # Save to database (async)
-        try:
-            clicks_collection = get_clicks_collection()
-            await clicks_collection.insert_one(click_log.dict())
-            logger.info(f"Aviasales click logged: {click_id} - {origin} to {destination}")
-        except Exception as db_error:
-            # Log but don't fail the redirect
-            logger.error(f"Failed to log click: {db_error}")
-        
-        # Redirect to partner
-        logger.info(f"Redirecting to Aviasales: {affiliate_url}")
-        return RedirectResponse(url=affiliate_url, status_code=302)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Aviasales redirect error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Redirect failed")
+    # Decode the target URL
+    decoded_target = unquote(target)
+    
+    # Basic URL validation
+    if not decoded_target.startswith(('http://', 'https://')):
+        raise HTTPException(status_code=400, detail="Invalid target URL")
+    
+    # Validate service type
+    valid_services = ['flight', 'hotel', 'bus', 'train', 'flights', 'hotels', 'buses', 'trains']
+    if service.lower() not in valid_services:
+        raise HTTPException(status_code=400, detail=f"Invalid service: {service}")
+    
+    # Normalize service name
+    service_normalized = service.lower().rstrip('s')  # flights -> flight
+    
+    # Create click event
+    click_event = ClickEvent(
+        service=service_normalized,
+        vendor=vendor.lower(),
+        target=decoded_target,
+        origin=origin,
+        destination=destination,
+        city=city,
+        hotel_name=hotel_name,
+        price=price,
+        session_id=session_id,
+    )
+    
+    # Log click event in background (non-blocking)
+    background_tasks.add_task(log_click_event, click_event)
+    
+    # Immediate HTTP 302 redirect
+    return RedirectResponse(url=decoded_target, status_code=302)
 
+
+@router.get("/redirect/health")
+async def redirect_health():
+    """Health check for redirect endpoint"""
+    return {
+        "status": "healthy",
+        "buffer_size": len(click_buffer),
+        "last_click": click_buffer[-1] if click_buffer else None,
+    }
