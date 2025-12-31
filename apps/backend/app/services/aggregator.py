@@ -283,7 +283,26 @@ class SearchAggregator:
     
     async def search_hotels(self, request: HotelSearchRequest) -> List[HotelOffer]:
         """Search hotels from configured provider"""
-        cache_key = f"hotels:{request.city}:{request.check_in}:{request.check_out}:{len(request.rooms)}"
+        # Build cache key with search intent to prevent collisions
+        # Format: hotels::{city}::{check_in}::{check_out}::{rooms}::{search_type}::{area|hotel_id}
+        cache_key_parts = [
+            "hotels",
+            request.city,
+            request.check_in,
+            request.check_out,
+            str(len(request.rooms)),
+            request.search_type or "CITY"
+        ]
+        
+        # Add AREA or HOTEL specific identifiers to cache key
+        if request.search_type == "AREA" and request.area:
+            cache_key_parts.append(f"area:{request.area}")
+        elif request.search_type == "HOTEL" and request.hotel_id:
+            cache_key_parts.append(f"hotel:{request.hotel_id}")
+        elif request.search_type == "HOTEL" and request.hotel_name:
+            cache_key_parts.append(f"hotel_name:{request.hotel_name}")
+            
+        cache_key = ":".join(cache_key_parts)
         
         # Check cache
         cached = await self.cache.get(cache_key)
