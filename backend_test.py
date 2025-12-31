@@ -355,18 +355,23 @@ class BackendTester:
             self.log_test("Redirect Health", False, f"Exception: {str(e)}")
     
     def run_all_tests(self):
-        """Run all backend tests"""
-        print("🧪 BACKEND API TESTING STARTED")
+        """Run all backend tests for click logging system"""
+        print("🧪 CENTRALIZED CLICK LOGGING SYSTEM TESTING STARTED")
         print("=" * 60)
         print(f"Backend URL: {BACKEND_URL}")
         print(f"API Base: {API_BASE}")
         print("=" * 60)
         
-        # Run all test suites
-        self.test_train_search_api()
-        self.test_train_autocomplete_api()
-        self.test_bus_search_api()
-        self.test_error_handling()
+        # Initialize click count tracking
+        self.initial_click_count = 0
+        
+        # Run all test suites for click logging system
+        self.test_click_logs_endpoint()
+        self.test_redirect_endpoint_click_logging()
+        self.test_service_type_normalization()
+        self.test_click_persistence()
+        self.test_click_log_fields()
+        self.test_redirect_health_endpoint()
         
         # Print summary
         print("\n📊 TEST SUMMARY")
