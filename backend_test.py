@@ -284,12 +284,16 @@ class HotelSearchTester:
         
         # This test verifies that CITY and AREA searches don't interfere with each other
         try:
+            # Use future dates for testing
+            tomorrow = (date.today() + timedelta(days=1)).isoformat()
+            day_after = (date.today() + timedelta(days=2)).isoformat()
+            
             # First: CITY search
             city_url = f"{API_BASE}/search/hotels"
             city_params = {
                 'city': 'Mumbai',
-                'check_in': '2025-01-15',
-                'check_out': '2025-01-16',
+                'check_in': tomorrow,
+                'check_out': day_after,
                 'search_type': 'CITY'
             }
             
@@ -299,8 +303,8 @@ class HotelSearchTester:
             area_url = f"{API_BASE}/search/hotels"
             area_params = {
                 'city': 'Mumbai',
-                'check_in': '2025-01-15',
-                'check_out': '2025-01-16',
+                'check_in': tomorrow,
+                'check_out': day_after,
                 'search_type': 'AREA',
                 'area': 'Bandra'
             }
