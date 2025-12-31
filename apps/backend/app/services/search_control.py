@@ -390,24 +390,33 @@ def record_ip_search(ip: str):
 
 def validate_search_intent(headers: Dict) -> Tuple[bool, str]:
     """
-    Validate that search intent is explicitly "real".
+    Validate search intent.
     
-    Only returns True if x-search-intent header is exactly "real".
-    This ensures only explicit button clicks trigger real searches.
+    RELAXED GATE: Now allows searches when:
+    1. x-search-intent header is "real" (explicit button click)
+    2. x-search-intent header is missing or empty (direct API call)
+    
+    Only blocks explicit prefetch/filter requests.
+    This ensures live provider searches run when valid params are present.
     
     Returns:
         (is_real_intent: bool, reason: str)
     """
-    intent = headers.get("x-search-intent", "").lower()
+    intent = headers.get("x-search-intent", "").lower().strip()
     
+    # Explicit "real" intent - always allow
     if intent == "real":
         return True, "explicit_real_intent"
-    elif intent == "prefetch":
+    
+    # Explicit prefetch/filter - block (these are optimization requests)
+    if intent == "prefetch":
         return False, "prefetch_request"
-    elif intent == "filter":
+    if intent == "filter":
         return False, "filter_request"
-    else:
-        return False, "no_real_intent"
+    
+    # Missing or empty intent - ALLOW (direct API calls, valid searches)
+    # This relaxes the gate to allow live searches when params are valid
+    return True, "implicit_search_allowed"
 
 
 # ============================================================================
