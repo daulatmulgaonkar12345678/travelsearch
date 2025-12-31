@@ -287,15 +287,19 @@ class BackendTester:
                 if logs:
                     # Check first log entry for required fields
                     first_log = logs[0]
-                    required_fields = ['service', 'vendor', 'created_at']
+                    required_fields = ['service', 'vendor']
+                    # Timestamp can be either 'created_at' (DB) or 'timestamp' (buffer)
+                    timestamp_fields = ['created_at', 'timestamp']
                     optional_fields = ['origin', 'destination', 'price', 'target_url']
                     
                     missing_required = [field for field in required_fields if field not in first_log]
+                    has_timestamp = any(field in first_log for field in timestamp_fields)
                     present_optional = [field for field in optional_fields if field in first_log]
                     
-                    if not missing_required:
+                    if not missing_required and has_timestamp:
+                        timestamp_field = next((field for field in timestamp_fields if field in first_log), None)
                         self.log_test("Click Log Fields - Required", True, 
-                                    f"All required fields present: {required_fields}")
+                                    f"All required fields present: {required_fields + [timestamp_field]}")
                         
                         if present_optional:
                             self.log_test("Click Log Fields - Optional", True, 
@@ -304,8 +308,13 @@ class BackendTester:
                             self.log_test("Click Log Fields - Optional", True, 
                                         "No optional fields present (acceptable)")
                     else:
+                        issues = []
+                        if missing_required:
+                            issues.append(f"missing required: {missing_required}")
+                        if not has_timestamp:
+                            issues.append("missing timestamp field")
                         self.log_test("Click Log Fields - Required", False, 
-                                    f"Missing required fields: {missing_required}")
+                                    f"Issues: {', '.join(issues)}")
                 else:
                     self.log_test("Click Log Fields", True, 
                                 "No logs available to test fields (acceptable for empty system)")
