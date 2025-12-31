@@ -219,7 +219,7 @@ function HotelResultsContent() {
   }
 
   const handleSelectHotel = (offer: HotelOffer) => {
-    // Navigate to vendor selection page
+    // Navigate to vendor selection page with search intent
     const params = new URLSearchParams({
       offer_id: offer.offer_id,
       hotel_name: offer.hotel_name,
@@ -228,7 +228,15 @@ function HotelResultsContent() {
       currency: offer.currency,
       check_in: checkIn,
       check_out: checkOut,
+      // Include search intent for analytics
+      search_type: searchType,
     })
+    
+    // Add AREA if applicable
+    if (searchType === 'AREA' && area) {
+      params.set('area', area)
+    }
+    
     router.push(`/hotels/vendors?${params.toString()}`)
   }
 
