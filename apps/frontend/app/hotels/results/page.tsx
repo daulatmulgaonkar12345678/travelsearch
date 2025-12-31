@@ -335,11 +335,45 @@ function HotelResultsContent() {
   }
 
   // Main results view
+  // Generate contextual subtitle based on search type
+  const getSearchContextSubtitle = () => {
+    if (searchType === 'AREA' && area) {
+      return `Showing hotels in ${area}, ${city}`
+    }
+    if (searchType === 'HOTEL' && hotelName) {
+      return `Showing results for ${hotelName}, ${city}`
+    }
+    return `Hotels in ${city}`
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Search Context Banner for AREA/HOTEL searches */}
+        {(searchType === 'AREA' || searchType === 'HOTEL') && (
+          <div className={`mb-4 p-4 rounded-lg flex items-center gap-3 ${
+            searchType === 'AREA' 
+              ? 'bg-green-50 border border-green-200' 
+              : 'bg-purple-50 border border-purple-200'
+          }`}>
+            {searchType === 'AREA' ? (
+              <MapPin className={`h-5 w-5 text-green-600`} />
+            ) : (
+              <HotelIcon className={`h-5 w-5 text-purple-600`} />
+            )}
+            <div>
+              <p className={`font-medium ${searchType === 'AREA' ? 'text-green-800' : 'text-purple-800'}`}>
+                {searchType === 'AREA' ? 'Area Search' : 'Specific Hotel Search'}
+              </p>
+              <p className={`text-sm ${searchType === 'AREA' ? 'text-green-700' : 'text-purple-700'}`}>
+                {getSearchContextSubtitle()}
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Search Summary with Modify Search */}
       <div className="mb-6 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
         <div className="flex items-center justify-between flex-wrap gap-4">
