@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, Suspense, useRef } from 'react'
+import { useEffect, useState, Suspense, useRef, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import HotelLoadingState from '@/components/loading/HotelLoadingState'
 import ServiceUnavailable from '@/components/common/ServiceUnavailable'
 import NoResultsState from '@/components/common/NoResultsState'
 import ServiceError, { getErrorType, ErrorType } from '@/components/common/ServiceError'
-import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw } from 'lucide-react'
+import { Loader2, MapPin, Star, Hotel as HotelIcon, RefreshCw, Search, X } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import ModifySearchButton from '@/components/search/ModifySearchButton'
 import { requestCache } from '@/lib/requestCache'
@@ -61,6 +61,9 @@ function HotelResultsContent() {
   const [serviceUnavailable, setServiceUnavailable] = useState(false)
   const [loadingTimeout, setLoadingTimeout] = useState(false)
   const [showRetry, setShowRetry] = useState(false)
+  
+  // Local hotel name filter (post-search filtering)
+  const [hotelNameFilter, setHotelNameFilter] = useState('')
 
   // Abort controller ref for cancelling requests
   const abortControllerRef = useRef<AbortController | null>(null)
