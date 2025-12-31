@@ -12,8 +12,8 @@ from typing import Dict, Any, List
 import time
 from urllib.parse import quote, unquote
 
-# Backend URL Configuration - Use production URL from environment
-BACKEND_URL = "https://travelsearch-backend.onrender.com"
+# Backend URL Configuration - Use local backend
+BACKEND_URL = "http://localhost:8001"
 API_BASE = f"{BACKEND_URL}/api"
 
 class CityFirstHotelSearchTester:
