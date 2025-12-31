@@ -217,29 +217,27 @@ class HotelSearchTester:
         except Exception as e:
             self.log_test("AREA Search (No Match)", False, f"Exception: {str(e)}")
 
-    def test_hotel_search(self):
-        """Test HOTEL search type - should return specific hotel only"""
-        print("\n🏨 TESTING HOTEL SEARCH")
+    def test_hotel_search_with_match(self):
+        """Test HOTEL search type with match - should return specific hotel only"""
+        print("\n🏨 TESTING HOTEL SEARCH - WITH MATCH")
         print("=" * 50)
         
         try:
             test_url = f"{API_BASE}/search/hotels"
-            # Use future dates for testing
-            tomorrow = (date.today() + timedelta(days=1)).isoformat()
-            day_after = (date.today() + timedelta(days=2)).isoformat()
             
-            params = {
-                'city': 'Mumbai',
-                'check_in': tomorrow,
-                'check_out': day_after,
-                'search_type': 'HOTEL',
-                'hotel_id': 'TAJ_MAHAL_PALACE',
-                'hotel_name': 'Taj Mahal Palace'
+            payload = {
+                "city": "Mumbai",
+                "check_in": "2026-02-15",
+                "check_out": "2026-02-16",
+                "rooms": [{"adults": 2, "children": []}],
+                "search_type": "HOTEL",
+                "hotel_name": "Fariyas Hotel Mumbai Colaba"
             }
             
-            response = self.session.get(test_url, params=params, timeout=30)
+            response = self.session.post(test_url, json=payload, timeout=30)
             print(f"Request URL: {response.url}")
             print(f"Status Code: {response.status_code}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
             
             if response.status_code == 200:
                 data = response.json()
@@ -249,40 +247,90 @@ class HotelSearchTester:
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if missing_fields:
-                    self.log_test("HOTEL Search - Response Structure", False, 
+                    self.log_test("HOTEL Search (Match) - Response Structure", False, 
                                 f"Missing fields: {missing_fields}")
                 else:
                     offers = data.get('offers', [])
                     search_id = data.get('search_id')
                     
-                    self.log_test("HOTEL Search - Response Structure", True, 
+                    self.log_test("HOTEL Search (Match) - Response Structure", True, 
                                 f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
                     
-                    # Check if specific hotel filtering is applied
+                    # Check if specific hotel filtering is applied (should return 1 hotel)
                     if offers:
-                        # Should ideally return only the specific hotel
-                        specific_hotel_found = False
-                        for offer in offers:
-                            hotel_name = offer.get('hotel_name', '').lower()
-                            if 'taj mahal palace' in hotel_name or 'taj' in hotel_name:
-                                specific_hotel_found = True
-                                break
-                        
-                        if specific_hotel_found:
-                            self.log_test("HOTEL Search - Specific Hotel", True, 
-                                        "Found specific hotel in results")
+                        if len(offers) == 1:
+                            hotel_name = offers[0].get('hotel_name', 'Unknown')
+                            self.log_test("HOTEL Search (Match) - Specific Hotel", True, 
+                                        f"Found exactly 1 hotel: {hotel_name}")
                         else:
-                            self.log_test("HOTEL Search - Specific Hotel", True, 
-                                        "Hotel search processed (specific filtering may be mock)")
+                            self.log_test("HOTEL Search (Match) - Specific Hotel", True, 
+                                        f"Found {len(offers)} hotels (may include similar matches)")
+                        
+                        # Log expected message for hotel search
+                        print(f"   Expected backend log: 'HOTEL search for 'Fariyas Hotel Mumbai Colaba' - found {len(offers)} exact matches'")
                     else:
-                        self.log_test("HOTEL Search - Specific Hotel", True, 
-                                    "No offers returned (acceptable for mock data)")
+                        self.log_test("HOTEL Search (Match) - Specific Hotel", False, 
+                                    "No offers returned - expected specific hotel")
             else:
-                self.log_test("HOTEL Search", False, 
+                self.log_test("HOTEL Search (Match)", False, 
                             f"HTTP {response.status_code}: {response.text[:200]}")
                 
         except Exception as e:
-            self.log_test("HOTEL Search", False, f"Exception: {str(e)}")
+            self.log_test("HOTEL Search (Match)", False, f"Exception: {str(e)}")
+
+    def test_hotel_search_no_match(self):
+        """Test HOTEL search type with no match - should return empty array"""
+        print("\n🏨 TESTING HOTEL SEARCH - NO MATCH")
+        print("=" * 50)
+        
+        try:
+            test_url = f"{API_BASE}/search/hotels"
+            
+            payload = {
+                "city": "Mumbai",
+                "check_in": "2026-02-15",
+                "check_out": "2026-02-16",
+                "rooms": [{"adults": 2, "children": []}],
+                "search_type": "HOTEL",
+                "hotel_id": "nonexistent",
+                "hotel_name": "Nonexistent Hotel"
+            }
+            
+            response = self.session.post(test_url, json=payload, timeout=30)
+            print(f"Request URL: {response.url}")
+            print(f"Status Code: {response.status_code}")
+            print(f"Payload: {json.dumps(payload, indent=2)}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Validate response structure
+                required_fields = ['offers', 'search_id', 'cached', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if missing_fields:
+                    self.log_test("HOTEL Search (No Match) - Response Structure", False, 
+                                f"Missing fields: {missing_fields}")
+                else:
+                    offers = data.get('offers', [])
+                    search_id = data.get('search_id')
+                    
+                    self.log_test("HOTEL Search (No Match) - Response Structure", True, 
+                                f"Valid response with {len(offers)} offers, search_id: {search_id[:8]}...")
+                    
+                    # Should return empty array for nonexistent hotel
+                    if len(offers) == 0:
+                        self.log_test("HOTEL Search (No Match) - Empty Results", True, 
+                                    "Correctly returned empty array for nonexistent hotel")
+                    else:
+                        self.log_test("HOTEL Search (No Match) - Empty Results", False, 
+                                    f"Expected empty array, got {len(offers)} offers")
+            else:
+                self.log_test("HOTEL Search (No Match)", False, 
+                            f"HTTP {response.status_code}: {response.text[:200]}")
+                
+        except Exception as e:
+            self.log_test("HOTEL Search (No Match)", False, f"Exception: {str(e)}")
 
     def test_backend_api_search_with_intent(self):
         """Test POST /api/search/hotels with search intent body"""
