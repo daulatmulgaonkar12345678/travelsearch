@@ -273,14 +273,14 @@ export default function HotelLocationAutocomplete({
   }
 
   /**
-   * Handle destination selection
+   * Handle destination selection - preserves FULL object including type
    */
   const handleSelectDestination = (dest: HotelDestination) => {
     setQuery(dest.label)
     setShowDropdown(false)
     setSuggestions([])
-    // Convert to legacy HotelCity format for backwards compatibility
-    onChange(toHotelCity(dest))
+    // Pass FULL destination object - preserves type (CITY/AREA/HOTEL) and lat/lng
+    onChange(dest)
   }
 
   /**
