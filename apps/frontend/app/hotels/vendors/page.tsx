@@ -58,16 +58,20 @@ function HotelVendorsContent() {
         return
       }
 
-      // Log click asynchronously (fire-and-forget)
-      logAffiliateClick(
-        vendorId,
-        `hotel-${city}`,
-        `${hotelName}-${checkIn}`,
-        parseFloat(price)
-      ).catch(() => {})
+      // Build tracked redirect URL (logs click via /api/redirect)
+      const trackedUrl = buildTrackedRedirectUrl({
+        service: 'hotel',
+        vendor: vendorId,
+        targetUrl: result.url,
+        city,
+        hotelName: hotelName || city,
+        checkIn,
+        checkOut,
+        price: parseFloat(price),
+      })
 
-      // Show redirect screen
-      setRedirectUrl(result.url)
+      // Show redirect screen with tracked URL
+      setRedirectUrl(trackedUrl)
       setShowRedirectScreen(true)
     } catch (error) {
       console.error('Redirect error:', error)
