@@ -629,10 +629,12 @@ class HotelSearchTester:
         print(f"API Base: {API_BASE}")
         print("=" * 70)
         
-        # Run all test suites for hotel smart search intent preservation
+        # Run all test suites for hotel search intent filtering
         self.test_city_search()
-        self.test_area_search()
-        self.test_hotel_search()
+        self.test_area_search_with_match()
+        self.test_area_search_no_match()
+        self.test_hotel_search_with_match()
+        self.test_hotel_search_no_match()
         self.test_backend_api_search_with_intent()
         self.test_cache_key_isolation()
         self.test_click_logging_with_intent()
