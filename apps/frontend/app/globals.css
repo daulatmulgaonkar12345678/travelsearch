@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile viewport height fix - uses dynamic viewport height */
+@supports (height: 100dvh) {
+  .min-h-\[100dvh\] {
+    min-height: 100dvh;
+  }
+  .h-\[100dvh\] {
+    height: 100dvh;
+  }
+}
+
 @layer base {
   :root {
     /* ============================================ */
