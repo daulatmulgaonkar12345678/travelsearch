@@ -165,3 +165,144 @@ async def get_audit_logs(
         "page": skip // limit + 1,
         "pages": (total + limit - 1) // limit
     }
+
+
+# ============================================
+# Booking Click Logs API
+# ============================================
+
+@router.get("/admin/click-logs")
+async def get_click_logs(
+    limit: int = Query(100, ge=1, le=500, description="Number of logs to return"),
+    service: Optional[str] = Query(None, description="Filter by service: flight|hotel|bus|train"),
+    vendor: Optional[str] = Query(None, description="Filter by vendor name"),
+    date_from: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    admin: User = Depends(require_admin_role)
+):
+    """
+    Get booking click logs for reconciliation.
+    
+    Returns latest click events with optional filtering.
+    Sorted by newest first.
+    """
+    from app.db.mongodb import get_database
+    from app.routers.redirect import click_buffer
+    
+    try:
+        db = get_database()
+        
+        # Build query
+        query = {}
+        
+        if service:
+            query["service"] = service.lower().rstrip('s')  # Normalize: flights -> flight
+        
+        if vendor:
+            query["vendor"] = vendor.lower()
+        
+        if date_from or date_to:
+            query["created_at"] = {}
+            if date_from:
+                query["created_at"]["$gte"] = datetime.fromisoformat(date_from)
+            if date_to:
+                # Include the entire end date
+                query["created_at"]["$lte"] = datetime.fromisoformat(date_to + "T23:59:59")
+        
+        # Fetch from database
+        logs = await db.click_events.find(
+            query,
+            {"_id": 0}  # Exclude MongoDB _id
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        total = await db.click_events.count_documents(query)
+        
+        # If no DB logs, fall back to in-memory buffer
+        if not logs and click_buffer:
+            logs = sorted(click_buffer, key=lambda x: x.get('timestamp', ''), reverse=True)[:limit]
+            total = len(click_buffer)
+        
+        return {
+            "count": len(logs),
+            "total": total,
+            "logs": logs
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching click logs: {e}")
+        
+        # Fallback to in-memory buffer
+        from app.routers.redirect import click_buffer
+        
+        filtered = click_buffer
+        if service:
+            filtered = [c for c in filtered if c.get('service') == service.lower().rstrip('s')]
+        if vendor:
+            filtered = [c for c in filtered if c.get('vendor') == vendor.lower()]
+        
+        sorted_logs = sorted(filtered, key=lambda x: x.get('timestamp', ''), reverse=True)[:limit]
+        
+        return {
+            "count": len(sorted_logs),
+            "total": len(filtered),
+            "logs": sorted_logs,
+            "source": "memory_buffer"
+        }
+
+
+@router.get("/admin/click-stats")
+async def get_click_stats(
+    days: int = Query(7, ge=1, le=30, description="Number of days for stats"),
+    admin: User = Depends(require_admin_role)
+):
+    """
+    Get aggregated click statistics.
+    
+    Returns counts by service and vendor for the specified period.
+    """
+    from app.db.mongodb import get_database
+    from datetime import timedelta
+    
+    try:
+        db = get_database()
+        
+        start_date = datetime.utcnow() - timedelta(days=days)
+        
+        # Aggregate by service
+        service_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}}},
+            {"$group": {"_id": "$service", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        
+        service_stats = await db.click_events.aggregate(service_pipeline).to_list(10)
+        
+        # Aggregate by vendor
+        vendor_pipeline = [
+            {"$match": {"created_at": {"$gte": start_date}}},
+            {"$group": {"_id": "$vendor", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        
+        vendor_stats = await db.click_events.aggregate(vendor_pipeline).to_list(20)
+        
+        # Total clicks
+        total = await db.click_events.count_documents({"created_at": {"$gte": start_date}})
+        
+        return {
+            "period_days": days,
+            "total_clicks": total,
+            "by_service": {s["_id"]: s["count"] for s in service_stats if s["_id"]},
+            "by_vendor": {v["_id"]: v["count"] for v in vendor_stats if v["_id"]}
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching click stats: {e}")
+        return {
+            "period_days": days,
+            "total_clicks": 0,
+            "by_service": {},
+            "by_vendor": {},
+            "error": "Stats temporarily unavailable"
+        }
+
