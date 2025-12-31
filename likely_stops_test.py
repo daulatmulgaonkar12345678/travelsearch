@@ -21,7 +21,7 @@ import sys
 import os
 
 # Backend URL - using production URL from environment
-BACKEND_URL = "https://click-tracker-23.preview.emergentagent.com"
+BACKEND_URL = "https://click-logging.preview.emergentagent.com"
 
 class LikelyStopsTester:
     def __init__(self):
