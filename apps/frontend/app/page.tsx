@@ -153,7 +153,7 @@ function HomeContent() {
  */
 function HomeLoading() {
   return (
-    <div className="min-h-screen bg-[#F2F7FF] flex items-center justify-center">
+    <div className="min-h-[100dvh] md:min-h-screen bg-[#F2F7FF] flex items-center justify-center">
       <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
     </div>
   )
